@@ -777,6 +777,14 @@ void AstCellInline::dump(ostream& str) {
     this->AstNode::dump(str);
     str<<" -> "<<origModName();
 }
+void AstCellArrayRef::dump(ostream& str) {
+    this->AstNode::dump(str);
+    str<<" array="<<m_arrayName;
+}
+void AstUnlinkedVarXRef::dump(ostream& str) {
+    this->AstNode::dump(str);
+    str<<" var="<<m_varName;
+}
 void AstDisplay::dump(ostream& str) {
     this->AstNode::dump(str);
     //str<<" "<<displayType().ascii();

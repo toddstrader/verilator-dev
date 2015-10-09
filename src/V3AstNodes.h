@@ -1311,6 +1311,7 @@ public:
     ASTNODE_NODE_FUNCS(VarXRef, VARXREF)
     virtual void dump(ostream& str);
     string	dotted() const { return m_dotted; }
+    void  	dotted(const string& dotted) { m_dotted = dotted; }
     string	prettyDotted() const { return prettyName(dotted()); }
     string	inlinedDots() const { return m_inlinedDots; }
     void	inlinedDots(const string& flag) { m_inlinedDots = flag; }
@@ -1568,6 +1569,45 @@ public:
     virtual string name()	const { return m_name; }		// * = Cell name
     string origModName()	const { return m_origModName; }		// * = modp()->origName() before inlining
     virtual void name(const string& name) { m_name = name; }
+};
+
+class AstCellArrayRef : public AstNode {
+    // As-of-yet unlinkable reference into an array of cells
+private:
+    string      m_arrayName;    // Array name
+public:
+    AstCellArrayRef(FileLine* fl,
+	    string arrayName, AstNode* selectExprp)
+	: AstNode(fl),
+        m_arrayName(arrayName)
+        {
+	addNOp1p(selectExprp); }
+    ASTNODE_NODE_FUNCS(CellArrayRef, CELLARRAYREF)
+    virtual void dump(ostream& str);
+    // ACCESSORS
+    string arrayName()		const { return m_arrayName; }
+    void arrayName(const string& arrayName) { m_arrayName = arrayName; }
+    AstNode* selp()		const { return op1p(); }	// op1 = Select expression
+};
+
+class AstUnlinkedVarXRef : public AstNode {
+    // As-of-yet unlinkable VarXRef
+private:
+    string      m_varName;    // Var name
+public:
+    AstUnlinkedVarXRef(FileLine* fl,
+	    AstVarXRef* vxrp, string varName, AstCellArrayRef* carp)
+	: AstNode(fl),
+        m_varName(varName)
+        {
+	addNOp1p(vxrp); addNOp2p(carp); }
+    ASTNODE_NODE_FUNCS(UnlinkedVarXRef, UNLINKEDVARXREF)
+    virtual void dump(ostream& str);
+    // ACCESSORS
+    string varName()		const { return m_varName; }
+    void varName(const string& varName) { m_varName = varName; }
+    AstVarXRef* vxrp()		const { return op1p()->castVarXRef(); }	        // op1 = VarXRef
+    AstCellArrayRef* carp()	const { return op2p()->castCellArrayRef(); }	// op1 = CellArrayRef
 };
 
 class AstBind : public AstNode {

@@ -108,6 +108,8 @@ private:
     typedef deque<AstCell*> CellList;
     CellList	m_cellps;	// Cells left to process (in this module)
 
+    string m_unlinkedTxt;       // Text for AstUnlinkedVarXRef
+
     // METHODS
     static int debug() {
 	static int level = -1;
@@ -250,6 +252,32 @@ private:
     }
     virtual void visit(AstVarXRef* nodep, AstNUser*) {
 	nodep->varp(NULL);  // Needs relink, as may remove pointed-to var
+    }
+    virtual void visit(AstUnlinkedVarXRef* nodep, AstNUser*) {
+        UINFO(9, "paraming UVXR: "<<nodep<<endl);
+        // TODO -- understand if I'm stepping on any visitor state by doing this
+        m_unlinkedTxt.clear();
+        nodep->carp()->iterate(*this);
+        if (debug()>=9) nodep->dumpTree("-param-uvxr: ");
+        nodep->vxrp()->dotted(m_unlinkedTxt);
+        if (debug()>=9) nodep->vxrp()->dumpTree("-uvxr-flattened: ");
+        nodep->replaceWith(nodep->vxrp()->unlinkFrBack());
+        if (debug()>=9) nodep->dumpTree("-uvxr-leftover: ");
+        pushDeletep(nodep); VL_DANGLING(nodep);
+    }
+    virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
+        UINFO(9, "paraming CAR: "<<nodep<<endl);
+        // TODO - is tihs iterate necessary?
+        nodep->selp()->iterate(*this);
+        V3Const::constifyParamsEdit(nodep->selp());
+        if (debug()>=9) nodep->dumpTree("-param-carp: ");
+	if (AstConst* constp = nodep->selp()->castConst()) {
+	    string index = AstNode::encodeNumber(constp->toSInt());
+            m_unlinkedTxt += nodep->arrayName() + "__BRA__"+index+"__KET__";
+        } else {
+            nodep->v3error("Could not elaborate dotted reference");
+            return;
+        }
     }
 
     // Generate Statements
