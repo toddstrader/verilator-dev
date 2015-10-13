@@ -426,6 +426,11 @@ private:
 	    pushDeletep(nodep);
 	}
     }
+    virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
+        // Do nothing and don't iterate children
+        // Unroller will think we're trying to assign yet-to-be-expanded
+        //   select expressions
+    }
 
     //--------------------
     // Default: Just iterate
