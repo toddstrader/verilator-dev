@@ -14,9 +14,9 @@ module t (/*AUTOARG*/);
     foo_intf foos [0:0] ();
 
     generate
-    genvar i;
-        for (i = 0; i < 1; i++) begin : someLoop
-            assign foos[i].a = a_in[i];
+    genvar the_genvar;
+        for (the_genvar = 0; the_genvar < 1; the_genvar++) begin : someLoop
+            assign foos[the_genvar].a = a_in[the_genvar];
         end
     endgenerate
 

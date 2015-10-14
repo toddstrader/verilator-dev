@@ -13,13 +13,13 @@ endfunction
 
 module t (/*AUTOARG*/);
 
-    foo_intf foos [0:0] ();
+    foo_intf foos [1:0] ();
 
 //    generate
 //        genvar i;
 //        for (i = 0; i < 1; i++) begin
 //            assign foos[0].a = 1'b1;
-            assign foos[identity(0)].a = 1'b1;
+            assign foos[identity(1)].a = 1'b1;
 //        end
 //    endgenerate
 
