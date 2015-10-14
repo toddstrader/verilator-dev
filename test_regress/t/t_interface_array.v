@@ -40,9 +40,11 @@ module t (/*AUTOARG*/
     endgenerate
 
     always @(posedge clk) begin
-        assert(ack_out == a_out) else
-            $fatal(2, "Interface and non-interface paths do not match: 0b%b 0b%b",
+        if (ack_out != a_out) begin
+            $display("%%Error: Interface and non-interface paths do not match: 0b%b 0b%b",
                 ack_out, a_out);
+            $stop;
+        end
     end
 
     initial a_in = '0;
