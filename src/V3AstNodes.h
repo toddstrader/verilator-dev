@@ -1574,38 +1574,34 @@ public:
 class AstCellArrayRef : public AstNode {
     // As-of-yet unlinkable reference into an array of cells
 private:
-    string      m_arrayName;    // Array name
+    string      m_name;    // Array name
 public:
     AstCellArrayRef(FileLine* fl,
-	    string arrayName, AstNode* selectExprp)
+	    string name, AstNode* selectExprp)
 	: AstNode(fl),
-        m_arrayName(arrayName)
+        m_name(name)
         {
 	addNOp1p(selectExprp); }
     ASTNODE_NODE_FUNCS(CellArrayRef, CELLARRAYREF)
-    virtual void dump(ostream& str);
     // ACCESSORS
-    string arrayName()		const { return m_arrayName; }
-    void arrayName(const string& arrayName) { m_arrayName = arrayName; }
+    virtual string name()	const { return m_name; }        // * = Array name
     AstNode* selp()		const { return op1p(); }	// op1 = Select expression
 };
 
 class AstUnlinkedVarXRef : public AstNode {
     // As-of-yet unlinkable VarXRef
 private:
-    string      m_varName;    // Var name
+    string      m_name;    // Var name
 public:
     AstUnlinkedVarXRef(FileLine* fl,
-	    AstVarXRef* vxrp, string varName, AstCellArrayRef* carp)
+	    AstVarXRef* vxrp, string name, AstCellArrayRef* carp)
 	: AstNode(fl),
-        m_varName(varName)
+        m_name(name)
         {
 	addNOp1p(vxrp); addNOp2p(carp); }
     ASTNODE_NODE_FUNCS(UnlinkedVarXRef, UNLINKEDVARXREF)
-    virtual void dump(ostream& str);
     // ACCESSORS
-    string varName()		const { return m_varName; }
-    void varName(const string& varName) { m_varName = varName; }
+    virtual string name()	const { return m_name; }		        // * = Var name
     AstVarXRef* vxrp()		const { return op1p()->castVarXRef(); }	        // op1 = VarXRef
     AstCellArrayRef* carp()	const { return op2p()->castCellArrayRef(); }	// op1 = CellArrayRef
 };

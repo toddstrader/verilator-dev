@@ -273,7 +273,7 @@ private:
         if (debug()>=9) nodep->dumpTree("-param-carp: ");
 	if (AstConst* constp = nodep->selp()->castConst()) {
 	    string index = AstNode::encodeNumber(constp->toSInt());
-            m_unlinkedTxt += nodep->arrayName() + "__BRA__"+index+"__KET__";
+            m_unlinkedTxt += nodep->name() + "__BRA__"+index+"__KET__";
         } else {
             nodep->v3error("Could not elaborate dotted reference");
             return;

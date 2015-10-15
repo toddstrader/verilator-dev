@@ -2047,8 +2047,6 @@ private:
 	checkNoDot(nodep);
 	nodep->unlinkFrBack()->deleteTree(); VL_DANGLING(nodep);
     }
-    // TODO -- will need visitors to actually fix up VarXRef later
-    // Currently, noop for CellArrayRef and UnlinkedVarXRef -- avoid checkNoDot()
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
 	UINFO(9,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
 	nodep->iterateChildren(*this);
