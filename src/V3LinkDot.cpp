@@ -1524,9 +1524,12 @@ private:
 		}
                 if (m_ds.m_unresolved) {
                     UINFO(9, "Need to add reference to VarXRef"<<endl);
-                    // TODO -- need to move the VarXRef and CellArrayRef, not just copy
-                    AstCellArrayRef* carp = nodep->lhsp()->unlinkFrBack()->castCellArrayRef();
-                    AstUnlinkedVarXRef* ulNewp = new AstUnlinkedVarXRef(nodep->fileline(), newp->castVarXRef(), newp->name(), carp);
+                    AstNode* crp = nodep->lhsp()->unlinkFrBack();
+                    if (!(crp->castCellArrayRef() || crp->castCellRef())) {
+                        nodep->v3error("Cannot resolve dotted reference");
+                        m_ds.m_dotErr = true;
+                    }
+                    AstUnlinkedVarXRef* ulNewp = new AstUnlinkedVarXRef(nodep->fileline(), newp->castVarXRef(), newp->name(), crp);
                     newp = ulNewp;
                 }
 		if (debug()>=9) newp->dumpTree("-dot-out: ");
@@ -1534,6 +1537,14 @@ private:
 		pushDeletep(nodep); VL_DANGLING(nodep);
 	    } else {  // Dot midpoint
 		AstNode* newp = nodep->rhsp()->unlinkFrBack();
+                if (m_ds.m_unresolved) {
+                    UINFO(9, "Probably need to do something here: "<<nodep<<endl);
+                    UINFO(9, "newp: "<<newp<<endl);
+                    UINFO(9, "lhsp: "<<nodep->lhsp()<<endl);
+                    AstCellRef* crp = new AstCellRef(nodep->fileline(), nodep->name(), nodep->lhsp()->unlinkFrBack(), newp);
+                    newp = crp;
+                }
+                if (debug()>=9) newp->dumpTree("-dot-done: ");
 		nodep->replaceWith(newp);
 		pushDeletep(nodep); VL_DANGLING(nodep);
 	    }
@@ -1942,8 +1953,6 @@ private:
         if (m_ds.m_unresolved) {
             UINFO(9, "selbit unresolved dot state!!!!! should create new node type: "<<nodep<<endl);
             if (debug()>=9) nodep->dumpTree("-selbit-unres: ");
-            // TODO -- need to take bitp() FUNCREF, not just copy it so that pushDeletep(), etc. doesn't kill it
-            // TODO -- do this . . .
             AstNode* exprp = nodep->bitp()->unlinkFrBack();
             UINFO(9, "Got CAR expr: "<<exprp<<endl);
             AstCellArrayRef* newp = new AstCellArrayRef(nodep->fileline(), nodep->fromp()->name(), exprp);
@@ -2046,6 +2055,10 @@ private:
 	// No longer needed
 	checkNoDot(nodep);
 	nodep->unlinkFrBack()->deleteTree(); VL_DANGLING(nodep);
+    }
+    virtual void visit(AstCellRef* nodep, AstNUser*) {
+	UINFO(9,"  AstCellRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
+	nodep->iterateChildren(*this);
     }
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
 	UINFO(9,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);

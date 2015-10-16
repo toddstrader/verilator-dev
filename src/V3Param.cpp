@@ -257,7 +257,8 @@ private:
         UINFO(9, "paraming UVXR: "<<nodep<<endl);
         // TODO -- understand if I'm stepping on any visitor state by doing this
         m_unlinkedTxt.clear();
-        nodep->carp()->iterate(*this);
+        // TODO - possibly make a CARP / CRP parent class
+        nodep->crp()->iterate(*this);
         if (debug()>=9) nodep->dumpTree("-param-uvxr: ");
         nodep->vxrp()->dotted(m_unlinkedTxt);
         if (debug()>=9) nodep->vxrp()->dumpTree("-uvxr-flattened: ");
@@ -277,6 +278,26 @@ private:
         } else {
             nodep->v3error("Could not elaborate dotted reference");
             return;
+        }
+    }
+    virtual void visit(AstCellRef* nodep, AstNUser*) {
+        // Children must be CellArrayRef or ParseRef
+        UINFO(9, "paraming CR: "<<nodep<<endl);
+        if (debug()>=9) nodep->dumpTree("-param-crp: ");
+        if (nodep->cellp()->castCellArrayRef()) {
+            nodep->cellp()->iterate(*this);
+        } else if (nodep->cellp()->castParseRef()) {
+            m_unlinkedTxt += nodep->cellp()->name();
+        } else {
+            nodep->v3error("Could not elaborate dotted reference");
+        }
+        m_unlinkedTxt += ".";
+        if (nodep->exprp()->castCellArrayRef()) {
+            nodep->exprp()->iterate(*this);
+        } else if (nodep->exprp()->castParseRef()) {
+            m_unlinkedTxt += nodep->exprp()->name();
+        } else {
+            nodep->v3error("Could not elaborate dotted reference");
         }
     }
 
