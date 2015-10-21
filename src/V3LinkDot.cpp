@@ -1523,18 +1523,7 @@ private:
 		    newp = new AstConst(nodep->fileline(),AstConst::LogicFalse());
 		} else {
 		    // RHS is what we're left with
-                    // TODO - this may be redundant . . . try removing
-                    if (m_ds.m_unresolved && nodep->rhsp()->castVarXRef()) {
-                        AstNode* crp = nodep->lhsp()->unlinkFrBack();
-                        // Only CellArrayRef and CellRef allowed
-                        if (!(crp->castCellArrayRef() || crp->castCellRef())) {
-                            nodep->v3error("Cannot resolve dotted reference");
-                            m_ds.m_dotErr = true;
-                        }
-                        newp = new AstUnlinkedVarXRef(nodep->fileline(), nodep->rhsp()->castVarXRef(), nodep->rhsp()->name(), crp);
-                    } else {
-		        newp = nodep->rhsp()->unlinkFrBack();
-                    }
+		    newp = nodep->rhsp()->unlinkFrBack();
 		}
 		if (debug()>=9) newp->dumpTree("-dot-out: ");
 		nodep->replaceWith(newp);
@@ -1931,8 +1920,6 @@ private:
 	m_ds = lastStates;
     }
     virtual void visit(AstSelBit* nodep, AstNUser*) {
-        UINFO(1, "SELBIT enter ("<<m_ds.ascii()<<"): "<<nodep<<endl);
-	if (debug()>=1) nodep->dumpTree(cout,"-selbit-enter: ");
 	if (nodep->user3SetOnce()) return;
 	nodep->lhsp()->iterateAndNext(*this);
 	if (m_ds.m_dotPos == DP_SCOPE) { // Already under dot, so this is {modulepart} DOT {modulepart}

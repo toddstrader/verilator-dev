@@ -255,9 +255,9 @@ private:
     }
     virtual void visit(AstUnlinkedVarXRef* nodep, AstNUser*) {
         m_unlinkedTxt.clear();
-        nodep->crp()->iterate(*this);
-        nodep->vxrp()->dotted(m_unlinkedTxt);
-        nodep->replaceWith(nodep->vxrp()->unlinkFrBack());
+        nodep->cellrefp()->iterate(*this);
+        nodep->varxrefp()->dotted(m_unlinkedTxt);
+        nodep->replaceWith(nodep->varxrefp()->unlinkFrBack());
         pushDeletep(nodep); VL_DANGLING(nodep);
     }
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
@@ -266,7 +266,7 @@ private:
 	    string index = AstNode::encodeNumber(constp->toSInt());
             m_unlinkedTxt += nodep->name() + "__BRA__"+index+"__KET__";
         } else {
-            nodep->v3error("Could not constant elaborate dotted reference");
+            nodep->v3error("Could not expand constant selection inside dotted reference: "<<nodep->selp()->prettyName());
             return;
         }
     }
@@ -277,7 +277,7 @@ private:
         } else if (nodep->cellp()->castParseRef()) {
             m_unlinkedTxt += nodep->cellp()->name();
         } else {
-            nodep->v3error("Could not elaborate dotted reference (LHS)");
+            nodep->v3error("Could not elaborate dotted reference (LHS): "<<nodep->cellp()->prettyName());
         }
         m_unlinkedTxt += ".";
         if (nodep->exprp()->castCellArrayRef() || nodep->exprp()->castCellRef()) {
@@ -285,7 +285,7 @@ private:
         } else if (nodep->exprp()->castParseRef()) {
             m_unlinkedTxt += nodep->exprp()->name();
         } else {
-            nodep->v3error("Could not elaborate dotted reference (RHS)");
+            nodep->v3error("Could not elaborate dotted reference (RHS): "<<nodep->exprp()->prettyName());
         }
     }
 

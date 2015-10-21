@@ -1620,8 +1620,8 @@ public:
     ASTNODE_NODE_FUNCS(UnlinkedVarXRef, UNLINKEDVARXREF)
     // ACCESSORS
     virtual string name()	const { return m_name; }		        // * = Var name
-    AstVarXRef* vxrp()		const { return op1p()->castVarXRef(); }	        // op1 = VarXRef
-    AstNode* crp()	        const { return op2p(); }	                // op1 = CellArrayRef or CellRef
+    AstVarXRef* varxrefp()	const { return op1p()->castVarXRef(); }	        // op1 = VarXRef
+    AstNode* cellrefp()	        const { return op2p(); }	                // op1 = CellArrayRef or CellRef
 };
 
 class AstBind : public AstNode {
