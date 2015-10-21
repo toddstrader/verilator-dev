@@ -1,4 +1,5 @@
-// DESCRIPTION: Verilator: Verilog Test module
+// DESCRIPTION: Verilator: Demonstrate deferred linking across module
+// bondaries
 //
 // This file ONLY is placed into the Public Domain, for any use,
 // without warranty, 2015 by Todd Strader.
