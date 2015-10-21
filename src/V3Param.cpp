@@ -262,6 +262,7 @@ private:
     }
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
         UINFO(1, "CARP: "<<nodep<<endl);
+        UINFO(1, "CARP selp: "<<nodep->selp()<<endl);
         V3Const::constifyParamsEdit(nodep->selp());
 	if (AstConst* constp = nodep->selp()->castConst()) {
 	    string index = AstNode::encodeNumber(constp->toSInt());
