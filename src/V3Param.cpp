@@ -261,6 +261,7 @@ private:
         pushDeletep(nodep); VL_DANGLING(nodep);
     }
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
+        UINFO(1, "CARP: "<<nodep<<endl);
         V3Const::constifyParamsEdit(nodep->selp());
 	if (AstConst* constp = nodep->selp()->castConst()) {
 	    string index = AstNode::encodeNumber(constp->toSInt());

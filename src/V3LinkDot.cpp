@@ -2044,6 +2044,7 @@ private:
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
 	UINFO(5,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
         // All sorts of possible stuff down here, we'll just save for V3Param
+        if (debug()>=1) nodep->dumpTree("-carp-skip: ");
     }
     virtual void visit(AstUnlinkedVarXRef* nodep, AstNUser*) {
 	UINFO(5,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
