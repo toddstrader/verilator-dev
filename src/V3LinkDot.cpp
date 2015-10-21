@@ -1323,13 +1323,14 @@ private:
 	VSymEnt*	m_dotSymp;	// SymEnt for dotted AstParse lookup
 	AstDot*		m_dotp;		// Current dot
         bool            m_unresolved;   // Unresolved, needs help from V3Param
+        AstNode*        m_unlinkedScope;// Unresolved scope, needs corresponding VarXRef
 	bool		m_dotErr;	// Error found in dotted resolution, ignore upwards
 	string		m_dotText;	// String of dotted names found in below parseref
 	DotStates() { init(NULL); }
 	~DotStates() {}
 	void init(VSymEnt* curSymp) {
 	    m_dotPos = DP_NONE; m_dotSymp = curSymp; m_dotp = NULL; m_dotErr = false; m_dotText = "";
-            m_unresolved = false;
+            m_unresolved = false; m_unlinkedScope = NULL;
 	}
 	string ascii() const {
 	    static const char* names[] = { "NONE","PACKAGE","SCOPE","FINAL","MEMBER" };
@@ -1508,6 +1509,9 @@ private:
 		nodep->lhsp()->iterateAndNext(*this);
 		//if (debug()>=9) nodep->dumpTree("-dot-lho: ");
 	    }
+            if (m_ds.m_unresolved && (nodep->lhsp()->castCellRef() || nodep->lhsp()->castCellArrayRef())) {
+                m_ds.m_unlinkedScope = nodep->lhsp();
+            }
 	    if (!m_ds.m_dotErr) {  // Once something wrong, give up
 		if (start && m_ds.m_dotPos==DP_SCOPE) m_ds.m_dotPos = DP_FINAL;  // Top 'final' dot RHS is final RHS, else it's a DOT(DOT(x,*here*),real-rhs) which we consider a RHS
 		nodep->rhsp()->iterateAndNext(*this);
@@ -1519,18 +1523,19 @@ private:
 		    newp = new AstConst(nodep->fileline(),AstConst::LogicFalse());
 		} else {
 		    // RHS is what we're left with
-		    newp = nodep->rhsp()->unlinkFrBack();
-		}
-                if (m_ds.m_unresolved) {
-                    AstNode* crp = nodep->lhsp()->unlinkFrBack();
-                    // Only CellArrayRef and CellRef allowed
-                    if (!(crp->castCellArrayRef() || crp->castCellRef())) {
-                        nodep->v3error("Cannot resolve dotted reference");
-                        m_ds.m_dotErr = true;
+                    // TODO - this may be redundant . . . try removing
+                    if (m_ds.m_unresolved && nodep->rhsp()->castVarXRef()) {
+                        AstNode* crp = nodep->lhsp()->unlinkFrBack();
+                        // Only CellArrayRef and CellRef allowed
+                        if (!(crp->castCellArrayRef() || crp->castCellRef())) {
+                            nodep->v3error("Cannot resolve dotted reference");
+                            m_ds.m_dotErr = true;
+                        }
+                        newp = new AstUnlinkedVarXRef(nodep->fileline(), nodep->rhsp()->castVarXRef(), nodep->rhsp()->name(), crp);
+                    } else {
+		        newp = nodep->rhsp()->unlinkFrBack();
                     }
-                    AstUnlinkedVarXRef* ulNewp = new AstUnlinkedVarXRef(nodep->fileline(), newp->castVarXRef(), newp->name(), crp);
-                    newp = ulNewp;
-                }
+		}
 		if (debug()>=9) newp->dumpTree("-dot-out: ");
 		nodep->replaceWith(newp);
 		pushDeletep(nodep); VL_DANGLING(nodep);
@@ -1659,17 +1664,23 @@ private:
 		}
 		else if (allowVar) {
 		    AstNodeVarRef* newp;
+                    AstUnlinkedVarXRef* ulNewp = NULL;
 		    if (m_ds.m_dotText != "") {
 			newp = new AstVarXRef(nodep->fileline(), nodep->name(), m_ds.m_dotText, false);  // lvalue'ness computed later
 			newp->varp(varp);
 			m_ds.m_dotText = "";
+                        if (m_ds.m_unresolved && m_ds.m_unlinkedScope) {
+                            ulNewp = new AstUnlinkedVarXRef(nodep->fileline(), newp->castVarXRef(), newp->name(), m_ds.m_unlinkedScope->unlinkFrBack());
+                            m_ds.m_unlinkedScope = NULL;
+                            m_ds.m_unresolved = false;
+                        }
 		    } else {
 			newp = new AstVarRef(nodep->fileline(), nodep->name(), false);  // lvalue'ness computed later
 			newp->varp(varp);
 			newp->packagep(foundp->packagep());
 			UINFO(9,"    new "<<newp<<endl);
 		    }
-		    nodep->replaceWith(newp); pushDeletep(nodep); VL_DANGLING(nodep);
+		    nodep->replaceWith(ulNewp ? ulNewp->castNode() : newp->castNode()); pushDeletep(nodep); VL_DANGLING(nodep);
 		    m_ds.m_dotPos = DP_MEMBER;
 		    ok = true;
 		}
@@ -1920,19 +1931,16 @@ private:
 	m_ds = lastStates;
     }
     virtual void visit(AstSelBit* nodep, AstNUser*) {
+        UINFO(1, "SELBIT enter ("<<m_ds.ascii()<<"): "<<nodep<<endl);
+	if (debug()>=1) nodep->dumpTree(cout,"-selbit-enter: ");
 	if (nodep->user3SetOnce()) return;
 	nodep->lhsp()->iterateAndNext(*this);
 	if (m_ds.m_dotPos == DP_SCOPE) { // Already under dot, so this is {modulepart} DOT {modulepart}
-	    if (AstConst* constp = nodep->rhsp()->castConst()) {
-		string index = AstNode::encodeNumber(constp->toSInt());
-		m_ds.m_dotText += "__BRA__"+index+"__KET__";
-	    } else {
-                UINFO(9,"  deferring until after a V3Param pass: "<<nodep<<endl);
-                m_ds.m_dotText += "__BRA__??__KET__";
-                m_ds.m_unresolved = true;
-	    }
+            UINFO(9,"  deferring until after a V3Param pass: "<<nodep<<endl);
+            m_ds.m_dotText += "__BRA__??__KET__";
+            m_ds.m_unresolved = true;
 	    // And pass up m_ds.m_dotText
-	}
+        }
 	// Pass dot state down to fromp()
 	nodep->fromp()->iterateAndNext(*this);
 	DotStates lastStates = m_ds;
@@ -1940,9 +1948,9 @@ private:
 	    m_ds.init(m_curSymp);
 	    nodep->bitp()->iterateAndNext(*this);
 	    nodep->attrp()->iterateAndNext(*this);
-	}
+        }
 	m_ds = lastStates;
-        if (m_ds.m_unresolved) {
+        if (m_ds.m_unresolved && m_ds.m_dotPos == DP_SCOPE) {
             AstNode* exprp = nodep->bitp()->unlinkFrBack();
             AstCellArrayRef* newp = new AstCellArrayRef(nodep->fileline(), nodep->fromp()->name(), exprp);
             nodep->replaceWith(newp); pushDeletep(nodep); VL_DANGLING(nodep);
@@ -2048,11 +2056,11 @@ private:
     }
     virtual void visit(AstCellArrayRef* nodep, AstNUser*) {
 	UINFO(5,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
-	nodep->iterateChildren(*this);
+        // All sorts of possible stuff down here, we'll just save for V3Param
     }
     virtual void visit(AstUnlinkedVarXRef* nodep, AstNUser*) {
-	UINFO(5,"  AstUnlinkedVarXRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
-	nodep->iterateChildren(*this);
+	UINFO(5,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
+        // No need to iterate, if we have a UnlinkedVarXRef, we're already done
     }
     virtual void visit(AstNode* nodep, AstNUser*) {
 	// Default: Just iterate

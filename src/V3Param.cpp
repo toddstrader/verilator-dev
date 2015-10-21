@@ -266,26 +266,26 @@ private:
 	    string index = AstNode::encodeNumber(constp->toSInt());
             m_unlinkedTxt += nodep->name() + "__BRA__"+index+"__KET__";
         } else {
-            nodep->v3error("Could not elaborate dotted reference");
+            nodep->v3error("Could not constant elaborate dotted reference");
             return;
         }
     }
     virtual void visit(AstCellRef* nodep, AstNUser*) {
-        // Children must be CellArrayRef or ParseRef
-        if (nodep->cellp()->castCellArrayRef()) {
+        // Children must be CellArrayRef, CellRef or ParseRef
+        if (nodep->cellp()->castCellArrayRef() || nodep->cellp()->castCellRef()) {
             nodep->cellp()->iterate(*this);
         } else if (nodep->cellp()->castParseRef()) {
             m_unlinkedTxt += nodep->cellp()->name();
         } else {
-            nodep->v3error("Could not elaborate dotted reference");
+            nodep->v3error("Could not elaborate dotted reference (LHS)");
         }
         m_unlinkedTxt += ".";
-        if (nodep->exprp()->castCellArrayRef()) {
+        if (nodep->exprp()->castCellArrayRef() || nodep->exprp()->castCellRef()) {
             nodep->exprp()->iterate(*this);
         } else if (nodep->exprp()->castParseRef()) {
             m_unlinkedTxt += nodep->exprp()->name();
         } else {
-            nodep->v3error("Could not elaborate dotted reference");
+            nodep->v3error("Could not elaborate dotted reference (RHS)");
         }
     }
 
