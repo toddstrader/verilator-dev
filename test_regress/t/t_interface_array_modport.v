@@ -23,14 +23,14 @@ module t (/*AUTOARG*/);
     foo_mod
     foo_mod
     (
-        .foo (foos[2])
-        //.foo (foos)
+	.foo (foos[2])
+	//.foo (foos)
     );
 
 
     initial begin
-            $write("*-* All Finished *-*\n");
-            $finish;
+	$write("*-* All Finished *-*\n");
+	$finish;
     end
 
 endmodule

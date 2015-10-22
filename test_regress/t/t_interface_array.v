@@ -7,11 +7,11 @@ interface foo_intf;
     logic a;
 
     modport source (
-        output a
+	output a
     );
 
     modport sink (
-        input a
+	input a
     );
 endinterface
 
@@ -26,7 +26,7 @@ module t (/*AUTOARG*/
 
    input clk;
 
-    localparam N = 4;
+    localparam N = 5;
 
     logic [N-1:0] a_in;
     logic [N-1:0] a_out;
@@ -37,12 +37,23 @@ module t (/*AUTOARG*/
     // Deferred link dotting with genvars
     generate
     genvar i;
-        for (i = 0; i < N-1; i++) begin : someLoop
-            assign ack_out[i] = a_in[i];
-            assign foos[i].a = a_in[i];
-            assign a_out[i] = foos[i].a;
-        end
+	for (i = 0; i < N-1; i++) begin : someLoop
+	    assign ack_out[i] = a_in[i];
+	    assign foos[i].a = a_in[i];
+	    assign a_out[i] = foos[i].a;
+	end
     endgenerate
+
+    // Defferred link dotting with localparam
+    localparam THE_LP = N-3;
+    assign ack_out[THE_LP] = a_in[THE_LP];
+    assign foos[THE_LP].a = a_in[THE_LP];
+    assign a_out[THE_LP] = foos[THE_LP].a;
+
+    // Defferred link dotting with arithmetic expression
+    assign ack_out[N-2] = a_in[N-2];
+    assign foos[N-2].a = a_in[N-2];
+    assign a_out[N-2] = foos[N-2].a;
 
     // Defferred link dotting with funcrefs
     assign ack_out[identity(N-1)] = a_in[identity(N-1)];
@@ -51,18 +62,18 @@ module t (/*AUTOARG*/
 
     initial a_in = '0;
     always @(posedge clk) begin
-        a_in <= a_in + { {N-1 {1'b0}}, 1'b1 };
-
-        if (ack_out != a_out) begin
-            $display("%%Error: Interface and non-interface paths do not match: 0b%b 0b%b",
-                ack_out, a_out);
-            $stop;
-        end
-
-        if (& a_in) begin
-            $write("*-* All Finished *-*\n");
-            $finish;
-        end
+	a_in <= a_in + { {N-1 {1'b0}}, 1'b1 };
+	
+	if (ack_out != a_out) begin
+	    $display("%%Error: Interface and non-interface paths do not match: 0b%b 0b%b",
+		ack_out, a_out);
+	    $stop;
+	end
+	
+	if (& a_in) begin
+	    $write("*-* All Finished *-*\n");
+	    $finish;
+	end
     end
 
 endmodule

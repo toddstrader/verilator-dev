@@ -1311,7 +1311,7 @@ public:
     ASTNODE_NODE_FUNCS(VarXRef, VARXREF)
     virtual void dump(ostream& str);
     string	dotted() const { return m_dotted; }
-    void  	dotted(const string& dotted) { m_dotted = dotted; }
+    void	dotted(const string& dotted) { m_dotted = dotted; }
     string	prettyDotted() const { return prettyName(dotted()); }
     string	inlinedDots() const { return m_inlinedDots; }
     void	inlinedDots(const string& flag) { m_inlinedDots = flag; }
@@ -1579,12 +1579,12 @@ public:
     AstCellRef(FileLine* fl,
 	    string name, AstNode* cellp, AstNode* exprp)
 	: AstNode(fl),
-        m_name(name)
-        {
+	m_name(name)
+	{
 	addNOp1p(cellp); addNOp2p(exprp); }
     ASTNODE_NODE_FUNCS(CellRef, CELLREF)
     // ACCESSORS
-    virtual string name()	const { return m_name; }        // * = Array name
+    virtual string name()	const { return m_name; }	// * = Array name
     AstNode* cellp()		const { return op1p(); }	// op1 = Cell
     AstNode* exprp()		const { return op2p(); }	// op2 = Expression
 };
@@ -1597,12 +1597,12 @@ public:
     AstCellArrayRef(FileLine* fl,
 	    string name, AstNode* selectExprp)
 	: AstNode(fl),
-        m_name(name)
-        {
+	m_name(name)
+	{
 	addNOp1p(selectExprp); }
     ASTNODE_NODE_FUNCS(CellArrayRef, CELLARRAYREF)
     // ACCESSORS
-    virtual string name()	const { return m_name; }        // * = Array name
+    virtual string name()	const { return m_name; }	// * = Array name
     AstNode* selp()		const { return op1p(); }	// op1 = Select expression
 };
 
@@ -1614,14 +1614,14 @@ public:
     AstUnlinkedVarXRef(FileLine* fl,
 	    AstVarXRef* vxrp, string name, AstNode* crp)
 	: AstNode(fl),
-        m_name(name)
-        {
+	m_name(name)
+	{
 	addNOp1p(vxrp); addNOp2p(crp); }
     ASTNODE_NODE_FUNCS(UnlinkedVarXRef, UNLINKEDVARXREF)
     // ACCESSORS
-    virtual string name()	const { return m_name; }		        // * = Var name
-    AstVarXRef* varxrefp()	const { return op1p()->castVarXRef(); }	        // op1 = VarXRef
-    AstNode* cellrefp()	        const { return op2p(); }	                // op1 = CellArrayRef or CellRef
+    virtual string name()	const { return m_name; }			// * = Var name
+    AstVarXRef* varxrefp()	const { return op1p()->castVarXRef(); }		// op1 = VarXRef
+    AstNode* cellrefp()		const { return op2p(); }			// op1 = CellArrayRef or CellRef
 };
 
 class AstBind : public AstNode {

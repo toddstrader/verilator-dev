@@ -8,8 +8,8 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 # Version 2.0.
 
 compile (
-        fails=>1,
-        expect=>
+	fails=>1,
+	expect=>
 '%Error: t/t_interface_array_bad.v:\d+: Expecting expression to be constant, but variable isn\'t const: bar
 %Error: t/t_interface_array_bad.v:\d+: Could not expand constant selection inside dotted reference: bar
 %Error: t/t_interface_array_bad.v:\d+: Can\'t find definition of \'a\' in dotted signal: .a

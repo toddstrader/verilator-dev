@@ -15,9 +15,9 @@ endfunction
 module t (/*AUTOARG*/);
    genvar the_genvar;
    generate
-      for (the_genvar = 0; the_genvar < 4; the_genvar++) begin: foo_loop
-         foo foo_inst();
-      end
+	for (the_genvar = 0; the_genvar < 4; the_genvar++) begin: foo_loop
+	   foo foo_inst();
+	end
    endgenerate
 
    bar bar_inst();
@@ -28,8 +28,8 @@ module t (/*AUTOARG*/);
    //assign x = foo_loop[N].foo_inst.y;
 
    initial begin
-      $write("*-* All Finished *-*\n");
-      $finish;
+	$write("*-* All Finished *-*\n");
+	$finish;
    end
 endmodule
 

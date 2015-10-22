@@ -36,8 +36,8 @@ module t (/*AUTOARG*/);
     //assign the_other_func.x = 1'b1;
 
     initial begin
-        $write("*-* All Finished *-*\n");
-        $finish;
+	$write("*-* All Finished *-*\n");
+	$finish;
     end
 
 endmodule
@@ -46,7 +46,7 @@ module baz;
     typedef integer qux_t;
 
     function integer the_func (input integer val);
-        return val;
+	return val;
     endfunction
 
     localparam the_lp = 5;
