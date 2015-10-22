@@ -23,6 +23,13 @@ module t (/*AUTOARG*/);
 
    logic x;
    assign x = foo_loop[bar_inst.THE_LP].foo_inst.y;
+   //localparam N = 2;
+   //assign x = foo_loop[N].foo_inst.y;
+
+   initial begin
+      $write("*-* All Finished *-*\n");
+      $finish;
+   end
 endmodule
 
 module foo();
