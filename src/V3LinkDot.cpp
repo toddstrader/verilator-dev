@@ -371,6 +371,11 @@ public:
 	    AstVar* varp = varSymp->nodep()->castVar();
 	    UINFO(9, "  insAllIface se"<<(void*)varSymp<<" "<<varp<<endl);
 	    AstIfaceRefDType* ifacerefp = varp->subDTypep()->castIfaceRefDType();
+	    if (!ifacerefp) {
+		AstUnpackArrayDType *arrp = varp->subDTypep()->castUnpackArrayDType();
+		if (arrp)
+		    ifacerefp = arrp->subDTypep()->castIfaceRefDType();
+	    }
 	    if (!ifacerefp) varp->v3fatalSrc("Non-ifacerefs on list!");
 	    if (!ifacerefp->ifaceViaCellp()) {
 		if (!ifacerefp->cellp()) {  // Probably a NotFoundModule, or a normal module if made mistake
@@ -839,13 +844,20 @@ class LinkDotFindVisitor : public AstNVisitor {
 		}
 	    }
 	    if (ins) {
-		VSymEnt* insp = m_statep->insertSym(m_curSymp, nodep->name(), nodep, m_packagep);
+		VSymEnt *insp = m_statep->insertSym(m_curSymp, nodep->name(), nodep, m_packagep);
 		if (m_statep->forPrimary() && nodep->isGParam()) {
 		    m_paramNum++;
-		    VSymEnt* symp = m_statep->insertSym(m_curSymp, "__paramNumber"+cvtToStr(m_paramNum), nodep, m_packagep);
+		    VSymEnt *symp = m_statep->insertSym(m_curSymp, "__paramNumber" + cvtToStr(m_paramNum), nodep,
+							m_packagep);
 		    symp->exported(false);
 		}
-		if (nodep->subDTypep()->castIfaceRefDType()) {
+		AstIfaceRefDType *ifacerefp = nodep->subDTypep()->castIfaceRefDType();
+		if (!ifacerefp) {
+		    AstUnpackArrayDType *arrp = nodep->subDTypep()->castUnpackArrayDType();
+		    if (arrp)
+			ifacerefp = arrp->subDTypep()->castIfaceRefDType();
+		}
+		if (ifacerefp) {
 		    // Can't resolve until interfaces and modport names are known; see notes at top
 		    m_statep->insertIfaceVarSym(insp);
 		}
@@ -1111,7 +1123,13 @@ class LinkDotScopeVisitor : public AstNVisitor {
 		&& nodep->varp()->isIfaceParent()) {
 		UINFO(9,"Iface parent ref var "<<nodep->varp()->name()<<" "<<nodep<<endl);
 		// Find the interface cell the var references
-		AstIfaceRefDType* dtypep = nodep->varp()->dtypep()->castIfaceRefDType();
+		AstIfaceRefDType *dtypep= nodep->varp()->dtypep()->castIfaceRefDType();
+		if (!dtypep) {
+		    AstUnpackArrayDType *arrp = nodep->varp()->dtypep()->castUnpackArrayDType();
+		    if (arrp)
+			dtypep = arrp->subDTypep()->castIfaceRefDType();
+		}
+
 		if (!dtypep) nodep->v3fatalSrc("Non AstIfaceRefDType on isIfaceRef() var");
 		UINFO(9,"Iface parent dtype "<<dtypep<<endl);
 		string ifcellname = dtypep->cellName();
@@ -1647,7 +1665,14 @@ private:
 		}
 	    }
 	    else if (AstVar* varp = foundp->nodep()->castVar()) {
-		if (AstIfaceRefDType* ifacerefp = varp->subDTypep()->castIfaceRefDType()) {
+		AstIfaceRefDType *ifacerefp= varp->subDTypep()->castIfaceRefDType();
+		if (!ifacerefp) {
+		    AstUnpackArrayDType *arrp = varp->subDTypep()->castUnpackArrayDType();
+		    if (arrp)
+			ifacerefp = arrp->subDTypep()->castIfaceRefDType();
+		}
+
+		if (ifacerefp) {
 		    if (!ifacerefp->ifaceViaCellp()) ifacerefp->v3fatalSrc("Unlinked interface");
 		    // Really this is a scope reference into an interface
 		    UINFO(9,"varref-ifaceref "<<m_ds.m_dotText<<"  "<<nodep<<endl);
@@ -2068,6 +2093,7 @@ private:
 	UINFO(5,"  AstCellArrayRef: "<<nodep<<" "<<m_ds.ascii()<<endl);
 	// No need to iterate, if we have a UnlinkedVarXRef, we're already done
     }
+
     virtual void visit(AstNode* nodep, AstNUser*) {
 	// Default: Just iterate
 	checkNoDot(nodep);

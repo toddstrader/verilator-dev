@@ -2060,7 +2060,7 @@ instnameParen<cellp>:
 
 instRangeE<rangep>:
 		/* empty */				{ $$ = NULL; }
-	|	'[' constExpr ']'			{ $$ = new AstRange($1,$2,$2->cloneTree(true)); }
+	|	'[' constExpr ']'			{ $$ = new AstRange($1,new AstConst($1,0),$2); }
 	|	'[' constExpr ':' constExpr ']'		{ $$ = new AstRange($1,$2,$4); }
 	;
 
@@ -3735,9 +3735,6 @@ AstVar* V3ParseGrammar::createVariable(FileLine* fileline, string name, AstRange
 	return NULL;
     }
     AstVarType type = GRAMMARP->m_varIO;
-    if (dtypep->castIfaceRefDType()) {
-	if (arrayp) { fileline->v3error("Unsupported: Arrayed interfaces"); VL_DANGLING(arrayp); }
-    }
     if (!dtypep) {  // Created implicitly
 	dtypep = new AstBasicDType(fileline, LOGIC_IMPLICIT);
     } else {  // May make new variables with same type, so clone

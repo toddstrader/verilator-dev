@@ -105,7 +105,9 @@ private:
 		     exprp);
 		m_modp->addStmtp(assp);
 		if (debug()>=9) assp->dumpTree(cout,"     _new: ");
-	    } else if (nodep->modVarp()->isIfaceRef()) {
+	    } else if (nodep->modVarp()->isIfaceRef()
+		       || (nodep->modVarp()->subDTypep()->castUnpackArrayDType()
+			   && nodep->modVarp()->subDTypep()->castUnpackArrayDType()->subDTypep()->castIfaceRefDType())) {
 		// Create an AstAssignVarScope for Vars to Cells so we can link with their scope later
 		AstNode* lhsp = new AstVarXRef (exprp->fileline(), nodep->modVarp(), m_cellp->name(), false);
 		AstVarRef* refp = exprp->castVarRef();
@@ -193,6 +195,8 @@ private:
 		// the IfaceRef.
 		if (isIface) {
 		    AstUnpackArrayDType *arrdtype = ifaceVarp->dtypep()->castUnpackArrayDType();
+		    AstIfaceRefDType *origIfaceRefp = arrdtype->subDTypep()->castIfaceRefDType();
+		    origIfaceRefp->cellp(NULL);
 		    AstVar* varNewp = ifaceVarp->cloneTree(false);
 		    AstIfaceRefDType *ifaceRefp = arrdtype->subDTypep()->castIfaceRefDType()->cloneTree(false);
 		    arrdtype->addNextHere(ifaceRefp);
@@ -217,6 +221,31 @@ private:
 	    nodep->unlinkFrBack(); pushDeletep(nodep); VL_DANGLING(nodep);
 	}
 	nodep->iterateChildren(*this);
+    }
+
+    virtual void visit(AstVar* nodep, AstNUser*) {
+	bool isIface = nodep->dtypep()->castUnpackArrayDType()
+	    && nodep->dtypep()->castUnpackArrayDType()->subDTypep()->castIfaceRefDType();
+	if (!isIface)
+	    return;
+	AstUnpackArrayDType *arrdtype = nodep->dtypep()->castUnpackArrayDType();
+	AstNode *prev = NULL;
+	for (int i = arrdtype->lsb(); i <= arrdtype->msb();i++) {
+	    AstVar *varNewp = nodep->cloneTree(false);
+	    AstIfaceRefDType *ifaceRefp = arrdtype->subDTypep()->castIfaceRefDType()->cloneTree(false);
+	    arrdtype->addNextHere(ifaceRefp);
+	    ifaceRefp->cellp(NULL);
+	    varNewp->name(varNewp->name() + "__BRA__" + cvtToStr(i) + "__KET__");
+	    varNewp->origName(varNewp->origName() + "__BRA__" + cvtToStr(i) + "__KET__");
+	    varNewp->dtypep(ifaceRefp);
+	    if (prev == NULL) {
+		prev = varNewp;
+	    } else {
+		prev->addNextHere(varNewp);
+	    }
+	}
+	nodep->addNextHere(prev);
+	if (debug()==9) { prev->dumpTree(cout, "newintf: "); cout << endl; }
     }
 
     virtual void visit(AstPin* nodep, AstNUser*) {
@@ -268,6 +297,50 @@ private:
 		arrselp->addNextHere(newp);
 		arrselp->unlinkFrBack()->deleteTree();
 	    }
+	} else {
+	    AstVar *pinVarp = nodep->modVarp();
+	    AstUnpackArrayDType *pinArrp = pinVarp->dtypep()->castUnpackArrayDType();
+	    if (!pinArrp || !pinArrp->subDTypep()->castIfaceRefDType())
+		return;
+	    AstIfaceRefDType *ifaceref = pinArrp->subDTypep()->castIfaceRefDType();
+	    AstNode *prev = NULL;
+	    AstNode *prevPin = NULL;
+	    // Clone the var referenced by the pin, and clone each var referenced by the varref
+	    // Clone pin varp:
+	    for (int i = pinArrp->lsb(); i <= pinArrp->msb();i++) {
+		AstVar *varNewp = pinVarp->cloneTree(false);
+		AstIfaceRefDType *ifaceRefp = pinArrp->subDTypep()->castIfaceRefDType();
+		ifaceRefp->cellp(NULL);
+		varNewp->name(varNewp->name() + "__BRA__" + cvtToStr(i) + "__KET__");
+		varNewp->origName(varNewp->origName() + "__BRA__" + cvtToStr(i) + "__KET__");
+		varNewp->dtypep(ifaceRefp);
+		if (prev == NULL) {
+		    prev = varNewp;
+		} else {
+		    prev->addNextHere(varNewp);
+		}
+		// Now also clone the pin itself and update it's varref
+		AstPin* newp = nodep->cloneTree(false);
+		newp->modVarp(varNewp);
+		newp->name(newp->name() + "__BRA__" + cvtToStr(i) + "__KET__");
+		// And replace exprp with a new varxref
+		AstVarRef *varrefp = newp->exprp()->castVarRef();
+		AstVarXRef *newVarXRefp = new AstVarXRef(nodep->fileline(), varrefp->name () + "__BRA__" + cvtToStr(i) + "__KET__", "", true);
+		newVarXRefp->varp(newp->modVarp());
+		newVarXRefp->dtypep(newp->modVarp()->dtypep());
+		newp->exprp()->unlinkFrBack()->deleteTree();
+		newp->exprp(newVarXRefp);
+		if (prevPin == NULL) {
+		    prevPin = newp;
+		} else {
+		    prevPin->addNextHere(newp);
+		}
+	    }
+	    pinVarp->replaceWith(prev);
+	    nodep->replaceWith(prevPin);
+	    pushDeletep(pinVarp);
+	    pushDeletep(nodep);
+
 	}
     }
 
