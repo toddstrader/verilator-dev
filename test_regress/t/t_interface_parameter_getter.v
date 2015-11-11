@@ -32,7 +32,9 @@ module t (/*AUTOARG*/
    test_if #( .FOO (5) ) i ();
 
    testmod testmod_i (.clk (clk),
-		      .i (i.mp));
+		      .i (i.mp),
+                      .i_no_mp (i)
+                      );
 
 endmodule
 
@@ -40,19 +42,27 @@ endmodule
 module testmod
   (
    input clk,
-   test_if.mp  i
+   test_if.mp  i,
+   test_if i_no_mp
    );
 
    localparam THE_FOO = i.getFoo();
+   localparam THE_OTHER_FOO = i_no_mp.getFoo();
 
    always @(posedge clk) begin
-      if (THE_FOO == 5) begin
-	 $write("*-* All Finished *-*\n");
-	 $finish;
-      end
-      else begin
+      if (THE_FOO != 5) begin
          $display("%%Error: THE_FOO = %0d", THE_FOO);
 	 $stop;
       end
+      if (THE_OTHER_FOO != 5) begin
+         $display("%%Error: THE_OTHER_FOO = %0d", THE_OTHER_FOO);
+	 $stop;
+      end
+      if (i.getFoo() != 5) begin
+         $display("%%Error: i.getFoo() = %0d", i.getFoo());
+	 $stop;
+      end
+      $write("*-* All Finished *-*\n");
+      $finish;
    end
 endmodule

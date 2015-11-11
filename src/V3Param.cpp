@@ -228,6 +228,58 @@ private:
 	// Must do ifaces first, so push to list and do in proper order
 	m_cellps.push_back(nodep);
     }
+    void remapFuncRef(AstFuncRef* nodep, AstIface* ifacep) {
+        for (AstNode* stmtp = ifacep->stmtsp(); stmtp; stmtp = stmtp->nextp()) {
+            UINFO(1,"Checking IFACE STMT: "<<stmtp<<endl);
+            if (nodep->name() == stmtp->name() && stmtp->castFunc()) {
+                UINFO(1,"This is really the replacement FUNC: "<<stmtp<<endl);
+                nodep->taskp(stmtp->castFunc());
+            }
+        }
+    }
+    virtual void visit(AstFuncRef* nodep, AstNUser*) {
+        UINFO(1,"Found a FUNCREF: "<<nodep<<endl);
+        UINFO(1,nodep->dotted()<<"   "<<nodep->inlinedDots()<<endl);
+        string dotted = nodep->dotted();
+        if (!dotted.empty()) {
+            AstNode* backp = nodep;
+            while ((backp = backp->backp())) {
+                UINFO(1,"Back: "<<backp<<endl);
+                if (backp->castNodeModule()) {
+                    UINFO(1,"Hit scope boundary, done searching"<<endl);
+                    break;
+                }
+                if (dotted == backp->name() &&
+                        backp->castVar() &&
+                        backp->castVar()->isIfaceRef() &&
+                        backp->castVar()->childDTypep() &&
+                        backp->castVar()->childDTypep()->castIfaceRefDType())
+                {
+                    UINFO(1,"This is my guy: "<<backp<<endl);
+                    AstIfaceRefDType* ifacerefp = backp->castVar()->childDTypep()->castIfaceRefDType();
+                    AstIface* ifacep = ifacerefp->ifacep();
+                    UINFO(1,"Iface:  "<<ifacep<<endl);
+
+                    if (ifacerefp->modportp()) {
+                        UINFO(1,"Modport: "<<ifacerefp->modportp()<<endl);
+                        AstNode* varsp = ifacerefp->modportp()->varsp();
+                        while (varsp) {
+                            if (nodep->name() == varsp->name()) {
+                                UINFO(1,"Found replacement funcref: "<<varsp);
+                                // For some reason, the modport isn't the new modport yet, but we should still be able to use it for membership
+                                remapFuncRef(nodep, ifacep);
+                            }
+                            varsp = varsp->nextp();
+                        }
+                    } else {
+                        UINFO(1,"No modport: "<<ifacep<<endl);
+                        remapFuncRef(nodep, ifacep);
+                    }
+                }
+            }
+        }
+	nodep->iterateChildren(*this);
+    }
 
     // Make sure all parameters are constantified
     virtual void visit(AstVar* nodep, AstNUser*) {
