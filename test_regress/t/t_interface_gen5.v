@@ -20,7 +20,8 @@ endmodule
 module t();
    generate
       begin : TestIf
-         intf #(.PARAM(1)) my_intf;
+         intf #(.PARAM(1)) my_intf ();
+         assign my_intf.val = '0;
          t1 t (.mod_intf(my_intf));
          initial begin
             $write("*-* All Finished *-*\n");
