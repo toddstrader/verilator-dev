@@ -9,6 +9,7 @@ interface intf
   #(parameter PARAM = 0)
    ();
    logic val;
+   function integer func (); return 5; endfunction
 endinterface
 
 module t1(intf mod_intf);
@@ -20,9 +21,11 @@ endmodule
 module t();
    generate
       begin : TestIf
-         intf #(.PARAM(1)) my_intf;
+         intf #(.PARAM(1)) my_intf ();
+         assign my_intf.val = '0;
          t1 t (.mod_intf(my_intf));
          initial begin
+            $display("%0d", my_intf.func());
             $write("*-* All Finished *-*\n");
             $finish;
          end
