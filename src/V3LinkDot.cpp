@@ -413,6 +413,9 @@ public:
 	// Track and later insert scope aliases; an interface referenced by a child cell connecting to that interface
 	// Typically lhsp=VAR w/dtype IFACEREF, rhsp=IFACE cell
 	UINFO(9,"   insertScopeAlias se"<<(void*)lhsp<<" se"<<(void*)rhsp<<endl);
+	if (rhsp->nodep()->castCell() && !rhsp->nodep()->castCell()->modp()->castIface()) {
+	    rhsp->nodep()->v3fatalSrc("Got a non-IFACE alias RHS");
+	}
 	m_scopeAliasMap[samn].insert(make_pair(lhsp, rhsp));
     }
     void computeScopeAliases() {
@@ -520,6 +523,17 @@ public:
 	return lookupSymp;
     }
 
+    static void removeLastInlineScope(string& inl) {
+	string dot = "__DOT__";
+	size_t dotLen = dot.length();
+	
+	size_t dotPos = inl.rfind(dot, inl.size() - dotLen - 2);
+	if (dotPos == string::npos)
+	    inl.erase();
+	else
+	    inl.erase(dotPos + dotLen, string::npos);
+    }
+
     VSymEnt* findSymPrefixed(VSymEnt* lookupSymp, const string& dotname, string& baddot) {
 	// Find symbol in given point in hierarchy, allowing prefix (post-Inline)
 	// For simplicity lookupSymp may be passed NULL result from findDotted
@@ -530,7 +544,14 @@ public:
 	      <<((lookupSymp->symPrefix()=="") ? "" : lookupSymp->symPrefix()+dotname)
 	      <<"  at se"<<lookupSymp
 	      <<endl);
-	VSymEnt* foundp = lookupSymp->findIdFallback(lookupSymp->symPrefix() + dotname);  // Might be NULL
+	string prefix = lookupSymp->symPrefix();
+	VSymEnt* foundp = NULL;
+	while(!foundp) {
+	    foundp = lookupSymp->findIdFallback(prefix + dotname);  // Might be NULL
+	    if (prefix == "")
+		break;
+	    removeLastInlineScope(prefix);
+	}
 	if (!foundp) baddot = dotname;
 	return foundp;
     }
@@ -1172,9 +1193,18 @@ class LinkDotScopeVisitor : public AstNVisitor {
 	    AstVarRef* refp = nodep->rhsp()->castVarRef();
 	    AstVarXRef* xrefp = nodep->rhsp()->castVarXRef();
 	    if (!refp && !xrefp) nodep->v3fatalSrc("Unsupported: Non Var(X)Ref attached to interface pin");
-	    string scopename = refp ? refp->name() : xrefp->name();
-	    string baddot; VSymEnt* okSymp;
-	    VSymEnt* symp = m_statep->findDotted(m_modSymp, scopename, baddot, okSymp);
+	    string inl = (xrefp && xrefp->inlinedDots().size()) ? (xrefp->inlinedDots() + "__DOT__") : "";
+	    VSymEnt* symp = NULL;
+	    string scopename;
+	    while (!symp) {
+		scopename = refp ? refp->name() : (inl.size() ? (inl + xrefp->name()) : xrefp->name());
+		string baddot; VSymEnt* okSymp;
+		symp = m_statep->findDotted(m_modSymp, scopename, baddot, okSymp);
+		if (inl == "")
+		    break;
+		LinkDotState::removeLastInlineScope(inl);
+	    }
+	    if (!symp) UINFO(9,"No symbol for interface alias rhs ("<<string(refp?"VARREF ":"VARXREF ")<<scopename<<")"<<endl);
 	    if (!symp) nodep->v3fatalSrc("No symbol for interface alias rhs");
 	    UINFO(5, "       Found a linked scope RHS: "<<scopename<<"  se"<<(void*)symp<<" "<<symp->nodep()<<endl);
 	    rhsSymp = symp;
