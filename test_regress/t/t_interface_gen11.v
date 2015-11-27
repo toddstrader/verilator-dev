@@ -18,13 +18,19 @@ module t1(intf mod_intf);
    end
 endmodule
 
+module t2(intf mod_intfs [1:0]);
+//    generate
+//    begin
+        t1 t(.mod_intf(mod_intfs[0]));
+//    end
+//    endgenerate
+endmodule
+
 module t();
-   generate
-      begin : TestIf
-         intf #(.PARAM(1)) my_intf [0:0] ();
-         t1 t (.mod_intf(my_intf[0]));
-      end
-   endgenerate
+
+   intf #(.PARAM(1)) my_intf [1:0] ();
+
+   t2 t2 (.mod_intfs(my_intf));
 
    initial begin
       $write("*-* All Finished *-*\n");
