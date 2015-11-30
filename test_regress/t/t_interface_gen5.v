@@ -24,7 +24,7 @@ module t();
          intf #(.PARAM(1)) my_intf ();
          assign my_intf.val = '0;
          t1 t (.mod_intf(my_intf));
-         initial $display("%0d", my_intf.func());
+//         initial $display("%0d", my_intf.func());
       end
    endgenerate
 
@@ -33,7 +33,7 @@ module t();
          intf #(.PARAM(1)) my_intf ();
          assign my_intf.val = '1;
          t1 t (.mod_intf(my_intf));
-         initial $display("%0d", my_intf.func());
+//         initial $display("%0d", my_intf.func());
       end
    endgenerate
 

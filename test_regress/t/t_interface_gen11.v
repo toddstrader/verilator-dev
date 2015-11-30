@@ -19,11 +19,11 @@ module t1(intf mod_intf);
 endmodule
 
 module t2(intf mod_intfs [1:0]);
-//    generate
-//    begin
+    generate
+    begin
         t1 t(.mod_intf(mod_intfs[0]));
-//    end
-//    endgenerate
+    end
+    endgenerate
 endmodule
 
 module t();
