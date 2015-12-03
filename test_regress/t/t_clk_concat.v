@@ -685,6 +685,8 @@ endmodule // dcfifo_async
 
 module t1(
    input [1:0] i_clks,
+   input i_clk0,
+   input i_clk1,
    input i_data,
    output o_data
 );
@@ -698,28 +700,25 @@ module t1(
       o_data <= data_q;
    end
 
-   generate
-      genvar i;
-      for (i = 0; i < 2; i++) begin: fifoLoop
-         dcfifo_async
-         dcfifo_async
-         (
-            .data (),
-            .aclr (),
-            .wrreq (),
-            .rdreq (),
-            .rdfull (),
-            .wrfull (),
-            .rdempty (),
-            .wrempty (),
-            .rdusedw (),
-            .wrusedw (),
-            .q (),
-            .rdclk (i_clks[0]),
-            .wrclk (i_clks[i])
-         );
-      end
-   endgenerate
+   dcfifo_async
+   dcfifo_async
+   (
+      .data (),
+      .aclr (),
+      .wrreq (),
+      .rdreq (),
+      .rdfull (),
+      .wrfull (),
+      .rdempty (),
+      .wrempty (),
+      .rdusedw (),
+      .wrusedw (),
+      .q (),
+      .rdclk (i_clks[0]),
+      .wrclk (i_clks[1])
+      //.rdclk (i_clk0),
+      //.wrclk (i_clk1)
+   );
 endmodule
 /*verilator lint_restore*/
 
@@ -740,6 +739,8 @@ module t();
    t1
    (
       .i_clks (clks),
+      .i_clk0 (clk0),
+      .i_clk1 (clk1),
       .i_data (data_in),
       .o_data (data_out)
    );
