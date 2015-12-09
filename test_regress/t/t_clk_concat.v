@@ -682,6 +682,9 @@ module dcfifo_async (data, rdclk, wrclk, aclr, rdreq, wrreq,
     assign rdusedw = w_rdusedw;
 
 endmodule // dcfifo_async
+/*verilator lint_restore*/
+
+`define BROKEN
 
 module t1(
    input [1:0] i_clks,
@@ -692,11 +695,13 @@ module t1(
 );
    logic data_q;
 
-   always @(posedge i_clks[0]) begin
+   //always @(posedge i_clks[0]) begin
+   always @(posedge i_clk0) begin
       data_q <= i_data;
    end
 
-   always @(posedge i_clks[1]) begin
+   //always @(posedge i_clks[1]) begin
+   always @(posedge i_clk1) begin
       o_data <= data_q;
    end
 
@@ -714,17 +719,22 @@ module t1(
       .rdusedw (),
       .wrusedw (),
       .q (),
+`ifdef BROKEN
       .rdclk (i_clks[0]),
       .wrclk (i_clks[1])
-      //.rdclk (i_clk0),
-      //.wrclk (i_clk1)
+`else
+      .rdclk (i_clk0),
+      .wrclk (i_clk1)
+`endif
    );
 endmodule
-/*verilator lint_restore*/
 
-module t();
-   logic clk0 /*verilator clocker*/ /*verilator public*/;
-   logic clk1 /*verilator clocker*/ /*verilator public*/;
+module t(
+   input clk0 /*verilator clocker*/,
+   input clk1 /*verilator clocker*/
+);
+//   logic clk0 /*verilator clocker*/ /*verilator public*/;
+//   logic clk1 /*verilator clocker*/ /*verilator public*/;
    //logic clk0 /*verilator public*/;
    //logic clk1 /*verilator public*/;
 
@@ -744,6 +754,24 @@ module t();
       .i_data (data_in),
       .o_data (data_out)
    );
+
+//   dcfifo_async
+//   dcfifo_async
+//   (
+//      .data (),
+//      .aclr (),
+//      .wrreq (),
+//      .rdreq (),
+//      .rdfull (),
+//      .wrfull (),
+//      .rdempty (),
+//      .wrempty (),
+//      .rdusedw (),
+//      .wrusedw (),
+//      .q (),
+//      .rdclk (clk0),
+//      .wrclk (clk1)
+//   );
 
    initial begin
       $write("*-* All Finished *-*\n");
