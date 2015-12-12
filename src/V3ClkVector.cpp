@@ -84,7 +84,8 @@ class ClkVectorFindVisitor : public AstNVisitor {
         int lhsWidth = nodep->lhsp()->dtypep()->width();
         if (lhsWidth <= 1)
             return;
-
+        if (nodep->lhsp()->castVarRef() == NULL)
+            return;
         m_lhsVector = nodep->lhsp()->castVarRef()->varScopep();
         m_rhsOffset = 0;
         nodep->rhsp()->iterate(*this);
