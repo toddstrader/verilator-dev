@@ -687,22 +687,27 @@ endmodule // dcfifo_async
 `define BROKEN
 
 module t1(
-   input [1:0] i_clks,
+   input [2:0] i_clks,
    input i_clk0,
    input i_clk1,
    input i_data,
    output o_data
 );
    logic data_q;
+   logic data_2q;
 
    //always @(posedge i_clks[0]) begin
    always @(posedge i_clk0) begin
       data_q <= i_data;
    end
 
+   always @(posedge i_clk0) begin
+      data_2q <= data_q;
+   end
+
    //always @(posedge i_clks[1]) begin
    always @(posedge i_clk1) begin
-      o_data <= data_q;
+      o_data <= data_2q;
    end
 
    dcfifo_async
@@ -729,24 +734,65 @@ module t1(
    );
 endmodule
 
+`define USE_T2
+
+`ifdef USE_T2
+module t2(
+   input [2:0] i_clks,
+   input i_clk0,
+   input i_clk1,
+   input i_data,
+   output o_data
+);
+   logic [2:0] clks;
+   logic data_q;
+
+// Uhhhh?
+///* verilator lint_off CLKDATA */
+//   assign clks = {1'b0, i_clk1, i_clk0};
+///* verilator lint_on CLKDATA */
+   assign clks = {i_clk1, i_clk1, i_clk0};
+
+   always @(posedge i_clk0) begin
+      data_q <= i_data;
+   end
+
+    t1 t1
+    (
+        .i_clks (clks),
+        .i_clk0 (i_clk0),
+        .i_clk1 (i_clk1),
+        .i_data (data_q),
+        .o_data (o_data)
+    );
+endmodule
+`endif
+
 module t(
    input clk0 /*verilator clocker*/,
-   input clk1 /*verilator clocker*/
+   input clk1 /*verilator clocker*/,
+   input data_in,
+   output data_out
 );
 //   logic clk0 /*verilator clocker*/ /*verilator public*/;
 //   logic clk1 /*verilator clocker*/ /*verilator public*/;
    //logic clk0 /*verilator public*/;
    //logic clk1 /*verilator public*/;
 
-   logic data_in;
-   logic data_out;
+//   logic data_in;
+//   logic data_out;
 
-   logic [1:0] clks;
+   logic [2:0] clks;
 
-   assign clks = {clk1, clk0};
+   assign clks = {1'b0, clk1, clk0};
 
+`ifdef USE_T2
+   t2
+   t2
+`else
    t1
    t1
+`endif
    (
       .i_clks (clks),
       .i_clk0 (clk0),

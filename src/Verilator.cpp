@@ -33,6 +33,7 @@
 #include "V3Cast.h"
 #include "V3Changed.h"
 #include "V3Clean.h"
+#include "V3ClkVector.h"
 #include "V3ClkGater.h"
 #include "V3Clock.h"
 #include "V3Combine.h"
@@ -349,6 +350,9 @@ void process () {
 	} else {
 	    v3info("Command Line disabled gate optimization with -Og/-O0.  This may cause ordering problems.");
 	}
+
+        // Decompose clock arrays
+        V3ClkVector::clkVectorDecompose(v3Global.rootp());
 
 	// Combine COVERINCs with duplicate terms
 	if (v3Global.opt.coverage()) {
