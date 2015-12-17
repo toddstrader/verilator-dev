@@ -147,6 +147,7 @@ DISTFILES_INC = $(INFOS) .gitignore Artistic COPYING COPYING.LESSER \
 INST_PROJ_FILES = \
 	bin/verilator \
 	bin/verilator_coverage \
+	bin/verilator_chunk_includer \
 	bin/verilator_includer \
 	bin/verilator_profcfunc \
 	include/verilated.mk \
@@ -265,7 +266,7 @@ internals.pdf: internals.pod Makefile
 
 # See uninstall also - don't put wildcards in this variable, it might uninstall other stuff
 VL_INST_BIN_FILES = verilator verilator_bin verilator_bin_dbg verilator_coverage_bin_dbg \
-	verilator_coverage verilator_includer verilator_profcfunc
+	verilator_coverage verilator_chunk_includer verilator_includer verilator_profcfunc
 # Some scripts go into both the search path and pkgdatadir,
 # so they can be found by the user, and under $VERILATOR_ROOT.
 
@@ -294,6 +295,7 @@ installbin:
 	( $(INSTALL_PROGRAM) verilator_bin_dbg $(DESTDIR)$(bindir)/verilator_bin_dbg )
 	( $(INSTALL_PROGRAM) verilator_coverage_bin_dbg $(DESTDIR)$(bindir)/verilator_coverage_bin_dbg )
 	$(SHELL) ${srcdir}/mkinstalldirs $(DESTDIR)$(pkgdatadir)/bin
+	( cd ${srcdir}/bin ; $(INSTALL_PROGRAM) verilator_chunk_includer $(DESTDIR)$(pkgdatadir)/bin/verilator_chunk_includer )
 	( cd ${srcdir}/bin ; $(INSTALL_PROGRAM) verilator_includer $(DESTDIR)$(pkgdatadir)/bin/verilator_includer )
 
 # Man files can either be part of the original kit, or built in current directory
