@@ -773,6 +773,10 @@ IData VL_FGETS_IXI(int obits, void* destp, IData fpi) {
     return got;
 }
 
+void Verilated::addReadPath(const char* dir) {
+    VerilatedImp::addReadPath(dir);
+}
+
 IData VL_FOPEN_NI(const string& filename, IData mode) {
     char modez[5];
     _VL_VINT_TO_STRING(VL_WORDSIZE, modez, &mode);
@@ -955,6 +959,7 @@ void VL_READMEM_W(bool hex, int width, int depth, int array_lsb, int fnwords,
 		  WDataInP ofilenamep, void* memp, IData start, IData end) {
     char ofilenamez[VL_TO_STRING_MAX_WORDS*VL_WORDSIZE+1];
     _VL_VINT_TO_STRING(fnwords*VL_WORDSIZE, ofilenamez, ofilenamep);
+    VerilatedImp::searchReadPath(ofilenamez);
     FILE* fp = fopen(ofilenamez, "r");
     if (VL_UNLIKELY(!fp)) {
 	// We don't report the Verilog source filename as it slow to have to pass it down

@@ -306,6 +306,9 @@ public:
     /// releases - contact the authors before production use.
     static void scopesDump();
 
+    // Adds a directory to the search path for files read from Verilog
+    static void addReadPath(const char* dir);
+
     // METHODS - INTERNAL USE ONLY
     // Internal: Create a new module name by concatenating two strings
     static const char* catName(const char* n1, const char* n2); // Returns new'ed data
