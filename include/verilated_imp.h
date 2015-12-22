@@ -67,7 +67,7 @@ class VerilatedImp {
     // Slow - somewhat static:
     ExportNameMap	m_exportMap;	///< Map of <export_func_proto, func number>
     int			m_exportNext;	///< Next export funcnum
-    ArgVec              m_readPath;     ///< Path for Verilog read file searching
+    string              m_verilogIODir; ///< Directory for Verilog file IO
 
     // File I/O
     vector<FILE*>	m_fdps;		///< File descriptors
@@ -257,25 +257,11 @@ public: // But only for verilated*.cpp
 	if (VL_UNLIKELY(!(fdi & (1ULL<<31)) || idx >= s_s.m_fdps.size())) return NULL;
 	return s_s.m_fdps[idx];
     }
-    static void addReadPath(const char* dir) {
-        s_s.m_readPath.push_back(string(dir));
+    static void setVerilogIODir(const char* dir) {
+        s_s.m_verilogIODir = string(dir) + "/";
     }
-    static void searchReadPath(char* file) {
-        for (ArgVec::iterator it=s_s.m_readPath.begin(); it!=s_s.m_readPath.end(); ++it) {
-            string fileAndPath = *it + "/" + string(file);
-            struct stat statBuffer;
-            if (stat(fileAndPath.c_str(), &statBuffer) == 0) {
-                size_t bufferSize = VL_TO_STRING_MAX_WORDS*VL_WORDSIZE;
-                if (fileAndPath.length() > bufferSize) {
-                    string msg = (string("%Error: Path and filename too long: ")+fileAndPath);
-	            vl_fatal("unknown",0,"", msg.c_str());
-                    return;
-                }
-                strncpy(file, fileAndPath.c_str(), bufferSize);
-                return;
-            }
-        }
-        // If no match, just leave file alone
+    static string getVerilogIODir() {
+        return s_s.m_verilogIODir;
     }
 };
 

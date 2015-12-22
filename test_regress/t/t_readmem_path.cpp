@@ -17,7 +17,7 @@ using namespace std;
 
 int main(int argc, char **argv, char **env) {
     Vt_readmem_path *top = new Vt_readmem_path("top");
-    Verilated::addReadPath("t");
+    Verilated::setVerilogIODir("t");
 
     top->eval();
     top->final();

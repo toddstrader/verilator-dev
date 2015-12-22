@@ -306,8 +306,8 @@ public:
     /// releases - contact the authors before production use.
     static void scopesDump();
 
-    // Adds a directory to the search path for files read from Verilog
-    static void addReadPath(const char* dir);
+    // Sets a directory (other than CWD) to use for all Verilog file IO
+    static void setVerilogIODir(const char* dir);
 
     // METHODS - INTERNAL USE ONLY
     // Internal: Create a new module name by concatenating two strings
