@@ -37,6 +37,7 @@
 #include "V3AstNodes.h"
 
 // TYPES
+typedef map<AstVarScope*, AstVarScope*> ClkMap;
 typedef map<int, AstVarScope*> ClkSourceMap;
 // TODO -- do I need this class, or just the ClkSourceMap?
 class ClkVectorInfo {
@@ -53,6 +54,7 @@ private:
 
     // Members
     ClkVectorMap        m_clkVectorMap;         // Clock vector map
+    ClkMap              m_clkMap;               // Clock replacement map
 
 public:
     // METHODS
@@ -64,6 +66,7 @@ public:
 
     // ACCESSORS
     ClkVectorMap* clkVectorMapp() { return &m_clkVectorMap; }
+    ClkMap* clkMapp() { return &m_clkMap; }
 };
 
 //======================================================================
@@ -72,7 +75,8 @@ class ClkVectorFindVisitor : public AstNVisitor {
     // STATE
     ClkVectorState*             m_statep;               // Clock vector pass state
     AstVarScope*                m_lhsVector;            // LHS vector
-    int                         m_rhsOffset;            // RHS offset for concatenation
+    int                         m_lhsOffset;            // Offset info LHS
+    bool                        m_inLhs;                // Iterating through LHS
 
     // METHODS
     int debug() { return ClkVectorState::debug(); }
@@ -80,19 +84,22 @@ class ClkVectorFindVisitor : public AstNVisitor {
     // VISITs
     virtual void visit(AstAssignW* nodep, AstNUser*) {
         UINFO(5,nodep<<endl);
-//	if (debug()>=9) nodep->dumpTree(cout,"-assignw: ");
-        int lhsWidth = nodep->lhsp()->dtypep()->width();
-        if (lhsWidth <= 1)
-            return;
-        if (nodep->lhsp()->castVarRef() == NULL)
-            return;
-        m_lhsVector = nodep->lhsp()->castVarRef()->varScopep();
-        m_rhsOffset = 0;
+        m_inLhs = true;
+        m_lhsOffset = 0;
+        nodep->lhsp()->iterate(*this);
+        m_inLhs = false;
         nodep->rhsp()->iterate(*this);
         m_lhsVector = NULL;
     }
 
-    // TODO - others
+    virtual void visit(AstSel* nodep, AstNUser*) {
+        UINFO(5,nodep<<endl);
+        if (m_inLhs && nodep->lsbp()->castConst()) {
+            m_lhsOffset = nodep->lsbConst();
+            nodep->fromp()->iterate(*this);
+        }
+    }
+
     virtual void visit(AstConcat* nodep, AstNUser*) {
         UINFO(5,nodep<<endl);
         nodep->rhsp()->iterate(*this);
@@ -101,18 +108,25 @@ class ClkVectorFindVisitor : public AstNVisitor {
 
     virtual void visit(AstVarRef* nodep, AstNUser*) {
         UINFO(5,nodep<<endl);
+        if (m_inLhs) {
+            int lhsWidth = nodep->dtypep()->width();
+            if (lhsWidth <= 1)
+                return;
+            m_lhsVector = nodep->varScopep();
+            return;
+        }
         if (nodep->varp()->attrClocker() == AstVarAttrClocker::CLOCKER_YES && m_lhsVector) {
             // TODO - handle decomposing into clockers > 1 bit?
             if (nodep->varp()->width() > 1) {
                 UINFO(9,"Clocker > 1 bit, not decomposing"<<endl);
             } else {
-                (*m_statep->clkVectorMapp())[m_lhsVector].m_clkSourceMap[m_rhsOffset] = nodep->varScopep();
-                UINFO(9,"CLOCK VECTOR: "<<m_lhsVector<<" ("<<m_rhsOffset<<") => "<<nodep->varScopep()<<endl);
+                (*m_statep->clkVectorMapp())[m_lhsVector].m_clkSourceMap[m_lhsOffset] = nodep->varScopep();
+                UINFO(9,"CLOCK VECTOR: "<<m_lhsVector<<" ("<<m_lhsOffset<<") => "<<nodep->varScopep()<<endl);
                 // TODO -- do we even need a warning?
 //	        nodep->v3warn(CLKVECTOR,"Clock array found: "<<nodep->prettyName());
 	    }
         }
-        m_rhsOffset += nodep->varp()->width();
+        m_lhsOffset += nodep->varp()->width();
     }
 
     virtual void visit(AstNode* nodep, AstNUser*) {
@@ -126,7 +140,8 @@ public:
 	UINFO(4,__FUNCTION__<<": "<<endl);
         m_statep = statep;
         m_lhsVector = NULL;
-        m_rhsOffset = 0;
+        m_lhsOffset = 0;
+        m_inLhs = false;
 	//
 	rootp->accept(*this);
     }
@@ -135,10 +150,11 @@ public:
 
 //======================================================================
 
-class ClkVectorReplaceVisitor : public AstNVisitor {
+class ClkVectorMapVisitor : public AstNVisitor {
     // STATE
     ClkVectorState*             m_statep;               // Clock vector pass state
     AstVarRef*                  m_lhs;                  // Candidate for replacement
+    bool                        m_removeAssign;         // Remove the assignment
 
     // METHODS
     int debug() { return ClkVectorState::debug(); }
@@ -152,8 +168,13 @@ class ClkVectorReplaceVisitor : public AstNVisitor {
         // TODO - handle > 1 bit RHSs?
         if (varrefp->varp()->width() == 1) {
             m_lhs = varrefp;
+            m_removeAssign = false;
             nodep->rhsp()->iterate(*this);
             m_lhs = NULL;
+            if (m_removeAssign) {
+                UINFO(9,"Removing assignment: "<<nodep<<endl);
+                nodep->unlinkFrBack()->deleteTree(); VL_DANGLING(nodep);
+            }
         }
     }
 
@@ -165,11 +186,11 @@ class ClkVectorReplaceVisitor : public AstNVisitor {
         if (fromVarrefp == NULL)
             return;
         // TODO - handle > 1 bit RHSs?
-        if (nodep->widthp()->castConst() == NULL || nodep->widthp()->castConst()->toUInt() != 1)
+        if (nodep->widthp()->castConst() == NULL || nodep->widthConst() != 1)
             return;
         if (nodep->lsbp()->castConst() == NULL)
             return;
-        uint32_t vectorIndex = nodep->lsbp()->castConst()->toUInt();
+        uint32_t vectorIndex = nodep->lsbConst();
         AstVarScope* lhsVarScopep = m_lhs->varScopep();
         AstVarScope* replacementVarScopep = NULL;
         ClkVectorMap::iterator vectorIt = m_statep->clkVectorMapp()->find(fromVarrefp->varScopep());
@@ -180,10 +201,48 @@ class ClkVectorReplaceVisitor : public AstNVisitor {
         UINFO(9,"Checking clkSourceMap for "<<vectorIndex<<endl);
         if (sourceIt == vectorIt->second.m_clkSourceMap.end())
             return;
-        UINFO(9,"Replacement clock: "<<sourceIt->second<<endl);
-        fromVarrefp->varScopep(sourceIt->second);
-        nodep->replaceWith(fromVarrefp->unlinkFrBack());
-        pushDeletep(nodep); VL_DANGLING(nodep);
+        UINFO(9,"Mapping clock: "<<lhsVarScopep<<" to: "<<sourceIt->second<<endl);
+        (*m_statep->clkMapp())[lhsVarScopep] = sourceIt->second;
+        m_removeAssign = true;
+    }
+
+    virtual void visit(AstNode* nodep, AstNUser*) {
+	// Default: Just iterate
+	nodep->iterateChildren(*this);
+    }
+
+public:
+    // CONSTUCTORS
+    ClkVectorMapVisitor(AstNetlist* rootp, ClkVectorState* statep) {
+	UINFO(4,__FUNCTION__<<": "<<endl);
+        m_statep = statep;
+        m_lhs = NULL;
+        m_removeAssign = false;
+	//
+	rootp->accept(*this);
+    }
+    virtual ~ClkVectorMapVisitor() {}
+};
+
+//======================================================================
+
+class ClkVectorReplaceVisitor : public AstNVisitor {
+    // STATE
+    ClkVectorState*             m_statep;               // Clock vector pass state
+
+    // METHODS
+    int debug() { return ClkVectorState::debug(); }
+
+    // VISITs
+    virtual void visit(AstVarRef* nodep, AstNUser*) {
+        UINFO(5,nodep<<endl);
+        ClkMap::iterator replacementClk = m_statep->clkMapp()->find(nodep->varScopep());
+        if (replacementClk != m_statep->clkMapp()->end()) {
+            UINFO(9,"Replacing clock: "<<nodep->varScopep()<<" with: "<<replacementClk->second<<endl);
+            nodep->varScopep(replacementClk->second);
+            nodep->varp(replacementClk->second->varp());
+            nodep->name(replacementClk->second->varp()->name());
+        }
     }
 
     virtual void visit(AstNode* nodep, AstNUser*) {
@@ -196,7 +255,6 @@ public:
     ClkVectorReplaceVisitor(AstNetlist* rootp, ClkVectorState* statep) {
 	UINFO(4,__FUNCTION__<<": "<<endl);
         m_statep = statep;
-        m_lhs = NULL;
 	//
 	rootp->accept(*this);
     }
@@ -212,6 +270,7 @@ void V3ClkVector::clkVectorDecompose(AstNetlist* nodep) {
 //    do {
         ClkVectorState state;
         ClkVectorFindVisitor findVisitor (nodep, &state);
+        ClkVectorMapVisitor mapVisitor (nodep, &state);
         ClkVectorReplaceVisitor replaceVisitor (nodep, &state);
 //    } while (!state.clkVectorMapp->empty());
     V3Global::dumpCheckGlobalTree("clkvector.tree", 0, v3Global.opt.dumpTreeLevel(__FILE__) >= 3);
