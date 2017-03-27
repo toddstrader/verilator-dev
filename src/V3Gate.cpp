@@ -442,6 +442,11 @@ private:
 		new V3GraphEdge(&m_graph, vvertexp, m_logicVertexp, 1);
 	    }
 	}
+	if (m_assignp && nodep == m_assignp->rhsp()) {
+	    m_inRhs = true;
+	    m_rhsOffset = 0;
+	    UINFO(9,"CLK DECOMP (found ASSIGNW RHS VARREF): "<<nodep<<endl);
+	}
 	UINFO(9,"CLOCK VECTOR OFFSET: "<<m_rhsOffset<<" => "<<nodep<<" in RHS : "<<m_inRhs<<endl);
 	if (m_inRhs && nodep->varp()->attrClocker() == AstVarAttrClocker::CLOCKER_YES) {
 	    if (nodep->varp()->width() > 1) {
@@ -458,6 +463,9 @@ private:
 	    }
 	}
 	m_rhsOffset += nodep->varp()->width();
+	if (m_assignp && nodep == m_assignp->rhsp()) {
+	    m_inRhs = false;
+	}
     }
     virtual void visit(AstAlways* nodep) {
 	iterateNewStmt(nodep, (nodep->isJustOneBodyStmt()?NULL:"Multiple Stmts"), NULL);
@@ -499,6 +507,7 @@ private:
     virtual void visit(AstAssignW* nodep) {
 	nodep->user3p(NULL);
 	m_assignp = nodep;
+	// TODO - not even sure which side (LHS/RHS) goes first -- need to account for assigning single bit to slice of vector
 	iterateNewStmt(nodep, NULL, NULL);
 	m_assignp = NULL;
     }
@@ -517,13 +526,30 @@ private:
 	}
 	if (m_assignp && nodep == m_assignp->rhsp()) {
 	    m_inRhs = true;
-            m_rhsOffset = 0;
+	    m_rhsOffset = 0;
+	    UINFO(9,"CLK DECOMP (found ASSIGNW RHS CONCAT): "<<nodep<<endl);
 	}
 	nodep->rhsp()->iterate(*this);
 	nodep->lhsp()->iterate(*this);
 	if (m_assignp && nodep == m_assignp->rhsp()) {
 	    m_inRhs = false;
 	}
+    }
+    virtual void visit(AstSel* nodep) {
+	if (m_assignp && nodep->lsbp()->castConst() != NULL) {
+	    if (ClkSourceMap* clkMap = (ClkSourceMap*)(m_assignp->user3p())) {
+		uint32_t offset = nodep->lsbConst();
+		ClkSourceMap newMap;
+		for (ClkSourceMap::iterator it = clkMap->begin(); it != clkMap->end(); it++) {
+		    newMap[it->first + offset] = it->second;
+		    UINFO(9,"CLK DECOMP (CLK MAP offset correction): "<<nodep<<" ("<<it->second<<" -> "<<it->first+offset<<")"<<endl);
+		}
+		// TODO - maybe there's a way to do this without the copy, but we're currently keeping a list of these things for memory managment purposes
+		*clkMap = newMap;
+	    }
+	}
+	nodep->iterateChildren(*this);
+	if (nodep->isOutputter() && m_logicVertexp) m_logicVertexp->setConsumed("outputter");
     }
 
     //--------------------
