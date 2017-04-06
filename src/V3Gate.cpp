@@ -113,6 +113,15 @@ public:
 	}
 	return ret;
     }
+    // Returns only the result from the LAST vertex iterated over
+    VNUser iterateOutEdges(GateGraphBaseVisitor& v, VNUser vu=VNUser(0)) {
+	VNUser ret = VNUser(0);
+	for (V3GraphEdge* edgep = outBeginp(); edgep; edgep = edgep->outNextp()) {
+	    UINFO(9,"Iterate from: "<<edgep->fromp()<<" to: "<<edgep->top()<<endl);
+	    ret = dynamic_cast<GateEitherVertex*>(edgep->top())->accept(v, vu);
+	}
+	return ret;
+    }
 };
 
 class GateVarVertex : public GateEitherVertex {
@@ -283,8 +292,6 @@ public:
 //######################################################################
 // Gate class functions
 
-typedef map<int, AstVarScope*> ClkSourceMap;
-typedef deque<ClkSourceMap*> ClkSourceMapList;
 class GateVisitor : public GateBaseVisitor {
 private:
     // NODE STATE
@@ -293,7 +300,7 @@ private:
     // {statement}Node::user1p	-> GateLogicVertex* for this statement
     // AstVarScope::user2	-> bool: Signal used in SenItem in *this* always statement
     // AstVar::user2		-> bool: Warned about SYNCASYNCNET
-    // AstAssignW::user3p	-> ClkSourceMap* for clock vector decomposition
+    // AstVarNodeRef::user2	-> bool: ConcatOffset visited
     AstUser1InUse	m_inuser1;
     AstUser2InUse	m_inuser2;
 
@@ -310,10 +317,6 @@ private:
     V3Double0		m_statRefs;	// Statistic tracking
     V3Double0		m_statDedupLogic;	// Statistic tracking
     V3Double0		m_statAssignMerged;	// Statistic tracking
-    AstAssignW*		m_assignp;	// Node for current assignment
-    bool		m_inRhs;	// Inside assignment RHS
-    int			m_rhsOffset;	// Concatenation offset in assignment RHS
-    ClkSourceMapList	m_clkSourceMapList;	// For object cleanup
 
     // METHODS
     void iterateNewStmt(AstNode* nodep, const char* nonReducibleReason, const char* consumeReason) {
@@ -373,12 +376,12 @@ private:
 	//if (debug()>6) m_graph.dump();
 	if (debug()>6) m_graph.dumpDotFilePrefixed("gate_pre");
 	warnSignals();  // Before loss of sync/async pointers
+	// Decompose clock vectors -- need to do this before removing redundant edges
+	decomposeClkVectors();
 	m_graph.removeRedundantEdgesSum(&V3GraphEdge::followAlwaysTrue);
 	m_graph.dumpDotFilePrefixed("gate_simp");
 	// Find gate interconnect and optimize
 	m_graph.userClearVertices();	// vertex->user(): bool.  True indicates we've set it as consumed
-	// Decompose clock vectors
-	decomposeClkVectors();
 	// Get rid of buffers first,
 	optimizeSignals(false);
 	// Then propagate more complicated equations
@@ -442,30 +445,6 @@ private:
 		new V3GraphEdge(&m_graph, vvertexp, m_logicVertexp, 1);
 	    }
 	}
-	if (m_assignp && nodep == m_assignp->rhsp()) {
-	    m_inRhs = true;
-	    m_rhsOffset = 0;
-	    UINFO(9,"CLK DECOMP (found ASSIGNW RHS VARREF): "<<nodep<<endl);
-	}
-	UINFO(9,"CLOCK VECTOR OFFSET: "<<m_rhsOffset<<" => "<<nodep<<" in RHS : "<<m_inRhs<<endl);
-	if (m_inRhs && nodep->varp()->attrClocker() == AstVarAttrClocker::CLOCKER_YES) {
-	    if (nodep->varp()->width() > 1) {
-		UINFO(9,"Clocker > 1 bit, not decomposing"<<endl);
-	    } else {
-		ClkSourceMap* clkMap = (ClkSourceMap*)(m_assignp->user3p());
-	        if (clkMap == NULL) {
-	            clkMap = new ClkSourceMap;
-	            m_assignp->user3p(clkMap);
-	            m_clkSourceMapList.push_back(clkMap);
-	        }
-	        (*clkMap)[m_rhsOffset] = nodep->varScopep();
-		UINFO(9,"CLOCK VECTOR: "<<m_assignp<<" ("<<m_rhsOffset<<") => "<<nodep->varScopep()<<" -- CLK MAP = "<<(void *)(m_assignp->user3p())<<endl);
-	    }
-	}
-	m_rhsOffset += nodep->varp()->width();
-	if (m_assignp && nodep == m_assignp->rhsp()) {
-	    m_inRhs = false;
-	}
     }
     virtual void visit(AstAlways* nodep) {
 	iterateNewStmt(nodep, (nodep->isJustOneBodyStmt()?NULL:"Multiple Stmts"), NULL);
@@ -505,11 +484,7 @@ private:
 	iterateNewStmt(nodep, NULL, NULL);
     }
     virtual void visit(AstAssignW* nodep) {
-	nodep->user3p(NULL);
-	m_assignp = nodep;
-	// TODO - not even sure which side (LHS/RHS) goes first -- need to account for assigning single bit to slice of vector
 	iterateNewStmt(nodep, NULL, NULL);
-	m_assignp = NULL;
     }
     virtual void visit(AstCoverToggle* nodep) {
 	iterateNewStmt(nodep, "CoverToggle", "CoverToggle");
@@ -524,32 +499,7 @@ private:
 	if (nodep->backp()->castNodeAssign() && nodep->backp()->castNodeAssign()->lhsp()==nodep) {
 	    nodep->v3fatalSrc("Concat on LHS of assignment; V3Const should have deleted it\n");
 	}
-	if (m_assignp && nodep == m_assignp->rhsp()) {
-	    m_inRhs = true;
-	    m_rhsOffset = 0;
-	    UINFO(9,"CLK DECOMP (found ASSIGNW RHS CONCAT): "<<nodep<<endl);
-	}
-	nodep->rhsp()->iterate(*this);
-	nodep->lhsp()->iterate(*this);
-	if (m_assignp && nodep == m_assignp->rhsp()) {
-	    m_inRhs = false;
-	}
-    }
-    virtual void visit(AstSel* nodep) {
-	if (m_assignp && nodep->lsbp()->castConst() != NULL) {
-	    if (ClkSourceMap* clkMap = (ClkSourceMap*)(m_assignp->user3p())) {
-		uint32_t offset = nodep->lsbConst();
-		ClkSourceMap newMap;
-		for (ClkSourceMap::iterator it = clkMap->begin(); it != clkMap->end(); it++) {
-		    newMap[it->first + offset] = it->second;
-		    UINFO(9,"CLK DECOMP (CLK MAP offset correction): "<<nodep<<" ("<<it->second<<" -> "<<it->first+offset<<")"<<endl);
-		}
-		// TODO - maybe there's a way to do this without the copy, but we're currently keeping a list of these things for memory managment purposes
-		*clkMap = newMap;
-	    }
-	}
 	nodep->iterateChildren(*this);
-	if (nodep->isOutputter() && m_logicVertexp) m_logicVertexp->setConsumed("outputter");
     }
 
     //--------------------
@@ -570,14 +520,9 @@ public:
 	m_activeReducible = true;
 	m_inSenItem = false;
 	m_inSlow = false;
-	m_assignp = NULL;
-	m_inRhs = false;
 	nodep->accept(*this);
     }
     virtual ~GateVisitor() {
-	for (ClkSourceMapList::iterator it = m_clkSourceMapList.begin(); it != m_clkSourceMapList.end(); it++) {
-	    delete *it;
-	}
 	V3Stats::addStat("Optimizations, Gate sigs deleted", m_statSigs);
 	V3Stats::addStat("Optimizations, Gate inputs replaced", m_statRefs);
 	V3Stats::addStat("Optimizations, Gate sigs deduped", m_statDedupLogic);
@@ -1306,49 +1251,170 @@ void GateVisitor::mergeAssigns() {
     m_statAssignMerged += merger.numMergedAssigns();
 }
 
-void GateVisitor::decomposeClkVectors() {
-    UINFO(9,"Starting clock decomposition"<<endl);
-    for (V3GraphVertex* itp = m_graph.verticesBeginp(); itp; itp=itp->verticesNextp()) {
-	UINFO(9,"CLK DECOMP - "<<itp<<endl);
-	// Look for assign statements
-	GateLogicVertex* vertp;
-	AstAssignW* assignwp;
-	if ((vertp = dynamic_cast<GateLogicVertex*>(itp)) &&
-	    (assignwp = vertp->nodep()->castAssignW())) {
-	    UINFO(9,"CLK DECOMP ASSIGNW - "<<assignwp<<" -- CLK MAP = "<<(void *)(assignwp->user3p())<<endl);
-	    // That make clock vectors
-	    if (ClkSourceMap* clkMap = (ClkSourceMap*)(assignwp->user3p())) {
-		UINFO(9,"Found clock vector assignment: "<<assignwp<<endl);
-		// Trace the assign to its vars
-		for (V3GraphEdge* assignItp = itp->outBeginp(); assignItp; assignItp = assignItp->outNextp()) {
-		    V3GraphVertex* vecVertexp = assignItp->top();
-		    for (V3GraphEdge* vecItp = vecVertexp->outBeginp(); vecItp; vecItp = vecItp->outNextp()) {
-                        UINFO(9,"CLK DECOMP possible slice vertex - "<<vecItp<<endl);
-			// Look to see if the var gets constantly sel'ed
-			GateLogicVertex* lVertexp;
-			AstAssignW* vassignp;
-			AstVarRef* varrefp;
-			AstSel* selp;
-			if ((lVertexp = dynamic_cast<GateLogicVertex*>(vecItp->top())) &&
-			    (vassignp = lVertexp->nodep()->castAssignW()) &&
-			    (varrefp = vassignp->lhsp()->castVarRef()) &&
-			    (selp = vassignp->rhsp()->castSel()) &&
-			    selp->widthp()->castConst() != NULL && selp->widthConst() == 1 &&
-			    selp->lsbp()->castConst() != NULL) {
-			    uint32_t vectorIndex = selp->lsbConst();
-			    UINFO(9,"CLK DECOMP CONST SLICE - "<<varrefp<<" -- CLK MAP ("<<vectorIndex<<") ="<<clkMap<<endl);
-			    // Check if the bit we want comes form a clock source
-			    ClkSourceMap::iterator clkIt = clkMap->find(vectorIndex);
-			    if (clkIt != clkMap->end()) {
-				AstVarScope* clkvarscopep = clkIt->second;
-				UINFO(9,"CLK DECOMP ACTUALLY DECOMPOSING - "<<varrefp<<" -- "<<clkvarscopep<<endl);
-				selp->replaceWith(new AstVarRef(selp->fileline(), clkvarscopep, false));
-			    }
-			}
+//######################################################################
+// Find a var's offset in a concatenation
+
+class GateConcatVisitor : public GateBaseVisitor {
+private:
+    // STATE
+    AstVarScope*	m_vscp;		// Varscope we're trying to find
+    int			m_offset;	// Current offset of varscope
+    int			m_found_offset;	// Found offset of varscope
+    bool		m_found;	// Offset found
+
+    // VISITORS
+    virtual void visit(AstNodeVarRef* nodep) {
+	UINFO(9,"CLK DECOMP Concat search var (off = "<<m_offset<<") - "<<nodep<<endl);
+	if (nodep->varScopep() == m_vscp && !nodep->user2() && !m_found) {
+	    // A concatenation may use the same var multiple times
+	    // But the graph will initially have an edge per instance
+	    nodep->user2(true);
+	    m_found_offset = m_offset;
+	    m_found = true;
+	    UINFO(9,"CLK DECOMP Concat found var (off = "<<m_offset<<") - "<<nodep<<endl);
+	}
+	m_offset += nodep->dtypep()->width();
+    }
+    virtual void visit(AstConcat* nodep) {
+	UINFO(9,"CLK DECOMP Concat search (off = "<<m_offset<<") - "<<nodep<<endl);
+	nodep->rhsp()->iterate(*this);
+	nodep->lhsp()->iterate(*this);
+    }
+    //--------------------
+    // Default
+    virtual void visit(AstNode* nodep) {
+	nodep->iterateChildren(*this);
+    }
+public:
+    // CONSTUCTORS
+    GateConcatVisitor() {
+    }
+    virtual ~GateConcatVisitor() {}
+    // PUBLIC METHODS
+    bool concatOffset(AstConcat* concatp, AstVarScope* vscp, int& offset) {
+	m_vscp = vscp;
+	m_offset = 0;
+	m_found = false;
+	// Iterate
+	concatp->accept(*this);
+	UINFO(9,"CLK DECOMP Concat Offset (found = "<<m_found<<") ("<<m_found_offset<<") - "<<concatp<<" : "<<vscp<<endl);
+	offset = m_found_offset;
+	return m_found;
+    }
+};
+
+//######################################################################
+// Recurse through the graph, looking for clock vectors to bypass
+
+class GateClkDecompGraphVisitor : public GateGraphBaseVisitor {
+private:
+    // NODE STATE
+    // AstVarScope::user2p	-> bool: already visited
+    V3Graph*			m_graphp;
+    int				m_seen_clk_vectors;
+    AstVarScope*		m_clk_vsp;
+    GateVarVertex*		m_clk_vvertexp;
+    GateConcatVisitor		m_concat_visitor;
+
+    virtual VNUser visit(GateVarVertex* vvertexp, VNUser vu) {
+	int clk_offset = vu.toInt();
+	// Check that we haven't been here before
+	AstVarScope* vsp = vvertexp->varScp();
+	if (vsp->user2()) return VNUser(0);
+	vsp->user2(true);
+	UINFO(9,"CLK DECOMP Var - "<<vvertexp<<" : "<<vsp<<endl);
+	if (vsp->varp()->width() > 1) {
+	    m_seen_clk_vectors++;
+	}
+	vvertexp->iterateOutEdges(*this, VNUser(clk_offset));
+	if (vsp->varp()->width() > 1) {
+	    m_seen_clk_vectors--;
+	}
+	vsp->user2(false);
+	return VNUser(0);
+    }
+
+    virtual VNUser visit(GateLogicVertex* lvertexp, VNUser vu) {
+	int clk_offset = vu.toInt();
+	AstAssignW* assignp = lvertexp->nodep()->castAssignW();
+	if (assignp) {
+	    UINFO(9,"CLK DECOMP Logic - "<<lvertexp<<endl);
+	    if (AstSel* rselp = assignp->rhsp()->castSel()) {
+		if (rselp->lsbp()->castConst() && rselp->widthp()->castConst()) {
+		    if (clk_offset < rselp->lsbConst() || clk_offset > rselp->msbConst()) {
+			UINFO(9,"CLK DECOMP Sel [ "<<rselp->msbConst()<<" : "<<rselp->lsbConst()<<" ] dropped clock ("<<clk_offset<<")"<<endl);
+			return VNUser(0);
 		    }
+		    clk_offset -= rselp->lsbConst();
+		} else {
+		    return VNUser(0);
+		}
+	    } else if (AstConcat* catp = assignp->rhsp()->castConcat()) {
+		UINFO(9,"CLK DECOMP Concat searching - "<<assignp->lhsp()<<endl);
+		int concat_offset;
+		if (!m_concat_visitor.concatOffset(catp, m_clk_vsp, concat_offset)) {
+		    return VNUser(0);
+		}
+		clk_offset += concat_offset;
+	    }
+	    if (AstSel* lselp = assignp->lhsp()->castSel()) {
+		if (lselp->lsbp()->castConst() && lselp->widthp()->castConst()) {
+		    clk_offset += lselp->lsbConst();
+		} else {
+		    return VNUser(0);
+		}
+	    } else if (AstVarRef* vrp = assignp->lhsp()->castVarRef()) {
+		if (vrp->dtypep()->width() == 1 && m_seen_clk_vectors) {
+		    if (clk_offset != 0) {
+			UINFO(9,"Should only make it here with clk_offset = 0"<<endl);
+			return VNUser(0);
+		    }
+		    UINFO(9,"CLK DECOMP Connecting - "<<assignp->lhsp()<<" <-> "<<m_clk_vsp<<endl);
+		    AstNode* rhsp = assignp->rhsp();
+		    rhsp->replaceWith(new AstVarRef(rhsp->fileline(), m_clk_vsp, false));
+		    for (V3GraphEdge* edgep = lvertexp->inBeginp(); edgep; ) {
+			edgep->unlinkDelete(); VL_DANGLING(edgep);
+		    }
+		    // TODO - Wilson, what is an edge's weight (header says: Weight of the connection) and how should I set it here?
+		    new V3GraphEdge(m_graphp, m_clk_vvertexp, lvertexp, 1);
 		}
 	    }
+	    return lvertexp->iterateOutEdges(*this, VNUser(clk_offset));
 	}
+    }
+
+public:
+    GateClkDecompGraphVisitor(V3Graph* graphp) {
+	m_graphp = graphp;
+    }
+    void clkDecomp(GateVarVertex* vvertexp) {
+	UINFO(9,"CLK DECOMP Starting Var - "<<vvertexp<<endl);
+	m_seen_clk_vectors = 0;
+	m_clk_vsp = vvertexp->varScp();
+	m_clk_vvertexp = vvertexp;
+	vvertexp->accept(*this, VNUser(0));
+    }
+};
+
+void GateVisitor::decomposeClkVectors() {
+    UINFO(9,"Starting clock decomposition"<<endl);
+    AstNode::user2ClearTree();
+    GateClkDecompGraphVisitor decomposer(&m_graph);
+    for (V3GraphVertex* itp = m_graph.verticesBeginp(); itp; itp=itp->verticesNextp()) {
+	GateVarVertex* vertp = dynamic_cast<GateVarVertex*>(itp);
+	if (!vertp) {
+	    continue;
+	}
+	AstVarScope* vsp = vertp->varScp();
+	if (vsp->varp()->attrClocker() != AstVarAttrClocker::CLOCKER_YES) {
+	    continue;
+	}
+	if (vsp->varp()->width() > 1) {
+	    UINFO(9,"Clocker > 1 bit, not decomposing: "<<vsp<<endl);
+	    continue;
+	}
+	UINFO(9,"CLK DECOMP - "<<vertp<<" : "<<vsp<<endl);
+	decomposer.clkDecomp(vertp);
     }
 }
 
