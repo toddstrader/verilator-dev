@@ -114,10 +114,15 @@ public:
 	return ret;
     }
     // Returns only the result from the LAST vertex iterated over
-    VNUser iterateOutEdges(GateGraphBaseVisitor& v, VNUser vu=VNUser(0)) {
+    // Note: This behaves differently than iterateInEdges() in that it will traverse
+    //		all edges that exist when it is initially called, whereas
+    //		iterateInEdges() will stop traversing edges if one is deleted
+    VNUser iterateCurrentOutEdges(GateGraphBaseVisitor& v, VNUser vu=VNUser(0)) {
 	VNUser ret = VNUser(0);
-	for (V3GraphEdge* edgep = outBeginp(); edgep; edgep = edgep->outNextp()) {
-	    UINFO(9,"Iterate from: "<<edgep->fromp()<<" to: "<<edgep->top()<<endl);
+	V3GraphEdge* next_edgep = NULL;
+	for (V3GraphEdge* edgep = outBeginp(); edgep; edgep = next_edgep) {
+	    // Need to find the next edge before visiting in case the edge is deleted
+	    next_edgep = edgep->outNextp();
 	    ret = dynamic_cast<GateEitherVertex*>(edgep->top())->accept(v, vu);
 	}
 	return ret;
@@ -1317,7 +1322,6 @@ private:
     GateConcatVisitor		m_concat_visitor;
 
     virtual VNUser visit(GateVarVertex* vvertexp, VNUser vu) {
-	int clk_offset = vu.toInt();
 	// Check that we haven't been here before
 	AstVarScope* vsp = vvertexp->varScp();
 	if (vsp->user2()) return VNUser(0);
@@ -1326,7 +1330,11 @@ private:
 	if (vsp->varp()->width() > 1) {
 	    m_seen_clk_vectors++;
 	}
-	vvertexp->iterateOutEdges(*this, VNUser(clk_offset));
+	// TODO -- remove
+	for (V3GraphEdge* edgep = vvertexp->outBeginp(); edgep; edgep = edgep->outNextp()) {
+	    UINFO(9,"Should iterate (vu = "<<vu.toInt()<<") from: "<<edgep->fromp()<<" to: "<<edgep->top()<<endl);
+	}
+	vvertexp->iterateCurrentOutEdges(*this, vu);
 	if (vsp->varp()->width() > 1) {
 	    m_seen_clk_vectors--;
 	}
@@ -1338,7 +1346,7 @@ private:
 	int clk_offset = vu.toInt();
 	AstAssignW* assignp = lvertexp->nodep()->castAssignW();
 	if (assignp) {
-	    UINFO(9,"CLK DECOMP Logic - "<<lvertexp<<endl);
+	    UINFO(9,"CLK DECOMP Logic (off = "<<clk_offset<<") - "<<lvertexp<<endl);
 	    if (AstSel* rselp = assignp->rhsp()->castSel()) {
 		if (rselp->lsbp()->castConst() && rselp->widthp()->castConst()) {
 		    if (clk_offset < rselp->lsbConst() || clk_offset > rselp->msbConst()) {
@@ -1379,7 +1387,7 @@ private:
 		    new V3GraphEdge(m_graphp, m_clk_vvertexp, lvertexp, 1);
 		}
 	    }
-	    return lvertexp->iterateOutEdges(*this, VNUser(clk_offset));
+	    return lvertexp->iterateCurrentOutEdges(*this, VNUser(clk_offset));
 	}
     }
 
