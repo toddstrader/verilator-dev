@@ -5,13 +5,13 @@
 //
 
 module some_module (
-    input wrclk
+    input [3:0] i_clks
 );
 
     logic [ 1 : 0 ] some_state;
     logic [1:0] some_other_state;
 
-    always @(posedge wrclk) begin
+    always @(posedge i_clks[3]) begin
         case (some_state)
             2'b11:
                 if (some_other_state == 0)
@@ -20,8 +20,11 @@ module some_module (
                 $display ("This is a display statement");
         endcase
 
-        if (wrclk)
+        if (i_clks[3])
             some_other_state <= 0;
+
+        $write("*-* All Finished *-*\n");
+        $finish;
     end
 
 endmodule
@@ -37,11 +40,7 @@ module t1(
    some_module
    some_module
    (
-`ifdef BROKEN
-      .wrclk (i_clks[3])
-`else
-      .wrclk (i_clk1)
-`endif
+      .i_clks (i_clks)
    );
 endmodule
 
@@ -98,9 +97,8 @@ module t(
       .i_data (data_in)
    );
 
-   always @(posedge clk) begin
-      $write("*-* All Finished *-*\n");
-      $finish;
-   end
-
+//   initial begin
+//      $write("*-* All Finished *-*\n");
+//      $finish;
+//   end
 endmodule

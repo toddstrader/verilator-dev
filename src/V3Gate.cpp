@@ -1311,6 +1311,16 @@ public:
 //######################################################################
 // Recurse through the graph, looking for clock vectors to bypass
 
+class GateClkDecompState {
+public:
+    int				m_offset;
+    AstVarScope*		m_last_vsp;
+    GateClkDecompState(int offset, AstVarScope* vsp) {
+	m_offset = offset;
+	m_last_vsp = vsp;
+    }
+};
+
 class GateClkDecompGraphVisitor : public GateGraphBaseVisitor {
 private:
     // NODE STATE
@@ -1330,11 +1340,9 @@ private:
 	if (vsp->varp()->width() > 1) {
 	    m_seen_clk_vectors++;
 	}
-	// TODO -- remove
-	for (V3GraphEdge* edgep = vvertexp->outBeginp(); edgep; edgep = edgep->outNextp()) {
-	    UINFO(9,"Should iterate (vu = "<<vu.toInt()<<") from: "<<edgep->fromp()<<" to: "<<edgep->top()<<endl);
-	}
-	vvertexp->iterateCurrentOutEdges(*this, vu);
+	GateClkDecompState* currState = (GateClkDecompState*) vu.c();
+	GateClkDecompState nextState(currState->m_offset, vsp);
+	vvertexp->iterateCurrentOutEdges(*this, VNUser(&nextState));
 	if (vsp->varp()->width() > 1) {
 	    m_seen_clk_vectors--;
 	}
@@ -1343,10 +1351,11 @@ private:
     }
 
     virtual VNUser visit(GateLogicVertex* lvertexp, VNUser vu) {
-	int clk_offset = vu.toInt();
+	GateClkDecompState* currState = (GateClkDecompState*) vu.c();
+	int clk_offset = currState->m_offset;
 	AstAssignW* assignp = lvertexp->nodep()->castAssignW();
 	if (assignp) {
-	    UINFO(9,"CLK DECOMP Logic (off = "<<clk_offset<<") - "<<lvertexp<<endl);
+	    UINFO(9,"CLK DECOMP Logic (off = "<<clk_offset<<") - "<<lvertexp<<" : "<<m_clk_vsp<<endl);
 	    if (AstSel* rselp = assignp->rhsp()->castSel()) {
 		if (rselp->lsbp()->castConst() && rselp->widthp()->castConst()) {
 		    if (clk_offset < rselp->lsbConst() || clk_offset > rselp->msbConst()) {
@@ -1360,7 +1369,7 @@ private:
 	    } else if (AstConcat* catp = assignp->rhsp()->castConcat()) {
 		UINFO(9,"CLK DECOMP Concat searching - "<<assignp->lhsp()<<endl);
 		int concat_offset;
-		if (!m_concat_visitor.concatOffset(catp, m_clk_vsp, concat_offset)) {
+		if (!m_concat_visitor.concatOffset(catp, currState->m_last_vsp, concat_offset)) {
 		    return VNUser(0);
 		}
 		clk_offset += concat_offset;
@@ -1387,7 +1396,8 @@ private:
 		    new V3GraphEdge(m_graphp, m_clk_vvertexp, lvertexp, 1);
 		}
 	    }
-	    return lvertexp->iterateCurrentOutEdges(*this, VNUser(clk_offset));
+	    GateClkDecompState nextState(clk_offset, currState->m_last_vsp);
+	    return lvertexp->iterateCurrentOutEdges(*this, VNUser(&nextState));
 	}
     }
 
@@ -1400,7 +1410,8 @@ public:
 	m_seen_clk_vectors = 0;
 	m_clk_vsp = vvertexp->varScp();
 	m_clk_vvertexp = vvertexp;
-	vvertexp->accept(*this, VNUser(0));
+	GateClkDecompState nextState(0, m_clk_vsp);
+	vvertexp->accept(*this, VNUser(&nextState));
     }
 };
 
