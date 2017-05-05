@@ -44,11 +44,23 @@
 #include "V3Task.h"
 
 #include <deque>
+#include <sstream>
 
 //============================================================================
 
 //######################################################################
 // Simulate class functions
+
+class SimulateStackNode {
+public:
+    SimulateStackNode (AstFuncRef* funcp, V3TaskConnects* tconnects):
+	m_funcp (funcp),
+	m_tconnects (tconnects)
+    {}
+
+    AstFuncRef*		m_funcp;
+    V3TaskConnects*	m_tconnects;
+};
 
 class SimulateVisitor : public AstNVisitor {
     // Simulate a node tree, returning value of variables
@@ -90,6 +102,7 @@ private:
     // Simulating:
     deque<V3Number*>	m_numFreeps;	///< List of all numbers free and not in use
     deque<V3Number*>	m_numAllps; 	///< List of all numbers free and in use
+    deque<SimulateStackNode*>	m_callStack;	///< Call stack for verbose error messages
 
     // Cleanup
     // V3Numbers that represents strings are a bit special and the API for V3Number does not allow changing them.
@@ -119,6 +132,26 @@ public:
 		cout<<endl;
 	    }
 	    m_whyNotOptimizable = why;
+            // TODO -- remove
+            UINFO(9,"STACK DEBUG -- I AM RIGHT HERE"<<endl);
+	    ostringstream stack;
+	    for (deque<SimulateStackNode*>::iterator it=m_callStack.begin(); it !=m_callStack.end(); ++it) {
+		AstFuncRef* funcp = (*it)->m_funcp;
+		stack<<"\nCalled from:\n"<<funcp->fileline()<<" "<<funcp->prettyName()<<"() with parameters";
+		V3TaskConnects* tconnects = (*it)->m_tconnects;
+		for (V3TaskConnects::iterator conIt = tconnects->begin(); conIt != tconnects->end(); ++conIt) {
+		    AstVar* portp = conIt->first;
+		    AstNode* pinp = conIt->second->exprp();
+		    AstNodeDType* dtypep = pinp->dtypep();
+		    if (AstRefDType* refdtypep = dtypep->castRefDType())
+			dtypep = refdtypep->skipRefp();
+		    if (AstStructDType* stp = dtypep->castStructDType()) {
+			UINFO(9, "STACK DEBUG STRUCT -- "<<stp<<endl);
+		    }
+		    stack<<"\n    "<<portp->prettyName()<<" = "<<*fetchNumber(pinp);
+		}
+	    }
+	    m_whyNotOptimizable += stack.str();
 	}
     }
     inline bool optimizable() const { return m_whyNotNodep==NULL; }
@@ -717,9 +750,17 @@ private:
 		    newNumber(portp)->opAssign(*fetchNumber(pinp));
 		}
 	    }
+            // TODO -- remove
+            UINFO(9,"FUNC PARAM PORT "<<portp<<endl);
+            UINFO(9,"FUNC PARAM PIN "<<pinp<<endl);
+            UINFO(9,"FUNC PARAM DTYPE "<<pinp->dtypep()<<endl);
+            UINFO(9,"FUNC PARAM NUMBER "<<fetchNumber(pinp)<<endl);
 	}
+	SimulateStackNode stackNode(nodep, &tconnects);
+	m_callStack.push_front(&stackNode);
 	// Evaluate the function
 	funcp->accept(*this);
+	m_callStack.pop_front();
 	if (!m_checkOnly && optimizable()) {
 	    // Grab return value from output variable (if it's a function)
 	    if (!funcp->fvarp()) nodep->v3fatalSrc("Function reference points at non-function");
