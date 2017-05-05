@@ -1293,17 +1293,21 @@ private:
 public:
     // CONSTUCTORS
     GateConcatVisitor() {
+	m_vscp = NULL;
+	m_offset = 0;
+	m_found_offset = 0;
+	m_found = false;
     }
     virtual ~GateConcatVisitor() {}
     // PUBLIC METHODS
-    bool concatOffset(AstConcat* concatp, AstVarScope* vscp, int& offset) {
+    bool concatOffset(AstConcat* concatp, AstVarScope* vscp, int& offsetr) {
 	m_vscp = vscp;
 	m_offset = 0;
 	m_found = false;
 	// Iterate
 	concatp->accept(*this);
 	UINFO(9,"CLK DECOMP Concat Offset (found = "<<m_found<<") ("<<m_found_offset<<") - "<<concatp<<" : "<<vscp<<endl);
-	offset = m_found_offset;
+	offsetr = m_found_offset;
 	return m_found;
     }
 };
@@ -1319,6 +1323,7 @@ public:
 	m_offset = offset;
 	m_last_vsp = vsp;
     }
+    virtual ~GateClkDecompState() {}
 };
 
 class GateClkDecompGraphVisitor : public GateGraphBaseVisitor {
@@ -1330,15 +1335,17 @@ private:
     AstVarScope*		m_clk_vsp;
     GateVarVertex*		m_clk_vvertexp;
     GateConcatVisitor		m_concat_visitor;
+    int				m_total_seen_clk_vectors;
+    int				m_total_decomposed_clk_vectors;
 
     virtual VNUser visit(GateVarVertex* vvertexp, VNUser vu) {
 	// Check that we haven't been here before
 	AstVarScope* vsp = vvertexp->varScp();
-	if (vsp->user2()) return VNUser(0);
-	vsp->user2(true);
+	if (vsp->user2SetOnce()) return VNUser(0);
 	UINFO(9,"CLK DECOMP Var - "<<vvertexp<<" : "<<vsp<<endl);
 	if (vsp->varp()->width() > 1) {
 	    m_seen_clk_vectors++;
+	    m_total_seen_clk_vectors++;
 	}
 	GateClkDecompState* currState = (GateClkDecompState*) vu.c();
 	GateClkDecompState nextState(currState->m_offset, vsp);
@@ -1353,8 +1360,7 @@ private:
     virtual VNUser visit(GateLogicVertex* lvertexp, VNUser vu) {
 	GateClkDecompState* currState = (GateClkDecompState*) vu.c();
 	int clk_offset = currState->m_offset;
-	AstAssignW* assignp = lvertexp->nodep()->castAssignW();
-	if (assignp) {
+	if (AstAssignW* assignp = lvertexp->nodep()->castAssignW()) {
 	    UINFO(9,"CLK DECOMP Logic (off = "<<clk_offset<<") - "<<lvertexp<<" : "<<m_clk_vsp<<endl);
 	    if (AstSel* rselp = assignp->rhsp()->castSel()) {
 		if (rselp->lsbp()->castConst() && rselp->widthp()->castConst()) {
@@ -1392,8 +1398,8 @@ private:
 		    for (V3GraphEdge* edgep = lvertexp->inBeginp(); edgep; ) {
 			edgep->unlinkDelete(); VL_DANGLING(edgep);
 		    }
-		    // TODO - Wilson, what is an edge's weight (header says: Weight of the connection) and how should I set it here?
 		    new V3GraphEdge(m_graphp, m_clk_vvertexp, lvertexp, 1);
+		    m_total_decomposed_clk_vectors++;
 		}
 	    }
 	    GateClkDecompState nextState(clk_offset, currState->m_last_vsp);
@@ -1404,6 +1410,15 @@ private:
 public:
     GateClkDecompGraphVisitor(V3Graph* graphp) {
 	m_graphp = graphp;
+	m_seen_clk_vectors = 0;
+	m_clk_vsp = NULL;
+	m_clk_vvertexp = NULL;
+	m_total_seen_clk_vectors = 0;
+	m_total_decomposed_clk_vectors = 0;
+    }
+    virtual ~GateClkDecompGraphVisitor() {
+	V3Stats::addStat("Optimizations, Clocker seen vectors", m_total_seen_clk_vectors);
+	V3Stats::addStat("Optimizations, Clocker decomposed vectors", m_total_decomposed_clk_vectors);
     }
     void clkDecomp(GateVarVertex* vvertexp) {
 	UINFO(9,"CLK DECOMP Starting Var - "<<vvertexp<<endl);
@@ -1420,20 +1435,17 @@ void GateVisitor::decomposeClkVectors() {
     AstNode::user2ClearTree();
     GateClkDecompGraphVisitor decomposer(&m_graph);
     for (V3GraphVertex* itp = m_graph.verticesBeginp(); itp; itp=itp->verticesNextp()) {
-	GateVarVertex* vertp = dynamic_cast<GateVarVertex*>(itp);
-	if (!vertp) {
-	    continue;
+	if (GateVarVertex* vertp = dynamic_cast<GateVarVertex*>(itp)) {
+	    AstVarScope* vsp = vertp->varScp();
+	    if (vsp->varp()->attrClocker() == AstVarAttrClocker::CLOCKER_YES) {
+		if (vsp->varp()->width() > 1) {
+		    UINFO(9,"Clocker > 1 bit, not decomposing: "<<vsp<<endl);
+		} else {
+		    UINFO(9,"CLK DECOMP - "<<vertp<<" : "<<vsp<<endl);
+		    decomposer.clkDecomp(vertp);
+		}
+	    }
 	}
-	AstVarScope* vsp = vertp->varScp();
-	if (vsp->varp()->attrClocker() != AstVarAttrClocker::CLOCKER_YES) {
-	    continue;
-	}
-	if (vsp->varp()->width() > 1) {
-	    UINFO(9,"Clocker > 1 bit, not decomposing: "<<vsp<<endl);
-	    continue;
-	}
-	UINFO(9,"CLK DECOMP - "<<vertp<<" : "<<vsp<<endl);
-	decomposer.clkDecomp(vertp);
     }
 }
 
