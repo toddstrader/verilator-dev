@@ -116,6 +116,54 @@ private:
 	return level;
     }
 
+    // Potentially very slow, intended for debugging
+    string prettyNumber(V3Number* nump, AstNodeDType* dtypep) {
+	if (AstRefDType* refdtypep = dtypep->castRefDType())
+	    dtypep = refdtypep->skipRefp();
+	if (AstStructDType* stp = dtypep->castStructDType()) {
+	    if (stp->packed()) {
+		ostringstream out;
+		out<<"'{";
+		for (AstMemberDType* itemp = stp->membersp(); itemp; itemp=itemp->nextp()->castMemberDType()) {
+		    int width = itemp->width();
+		    int lsb = itemp->lsb();
+		    int msb = lsb + width - 1;
+		    V3Number fieldNum = V3Number(nump->fileline(), width);
+		    fieldNum.opSel(*nump, msb, lsb);
+		    out<<itemp->name()<<": ";
+		    if (AstNodeDType * childTypep = itemp->subDTypep())
+			out<<prettyNumber(&fieldNum, childTypep);
+		    else
+			out<<fieldNum;
+		    if (itemp->nextp())
+			out<<", ";
+		}
+		out<<"}";
+		return out.str();
+	    }
+	} else if (AstPackArrayDType * arrayp = dtypep->castPackArrayDType()) {
+	    if (AstNodeDType * childTypep = arrayp->subDTypep()) {
+		ostringstream out;
+		out<<"[";
+		int arrayElements = arrayp->elementsConst();
+		for (int element = 0; element < arrayElements; ++element) {
+		    int width = childTypep->width();
+		    int lsb = width * element;
+		    int msb = lsb + width - 1;
+		    V3Number fieldNum = V3Number(nump->fileline(), width);
+		    fieldNum.opSel(*nump, msb, lsb);
+		    int arrayElem = arrayp->lsb() + element;
+		    out<<arrayElem<<" = "<<prettyNumber(&fieldNum, childTypep);
+		    if (element < arrayElements - 1)
+			out<<", ";
+		}
+		out<<"]";
+		return out.str();
+	    }
+	}
+	return nump->ascii();
+    }
+
     // Checking METHODS
 public:
     /// Call other-this function on all new *non-constant* var references
@@ -132,8 +180,6 @@ public:
 		cout<<endl;
 	    }
 	    m_whyNotOptimizable = why;
-            // TODO -- remove
-            UINFO(9,"STACK DEBUG -- I AM RIGHT HERE"<<endl);
 	    ostringstream stack;
 	    for (deque<SimulateStackNode*>::iterator it=m_callStack.begin(); it !=m_callStack.end(); ++it) {
 		AstFuncRef* funcp = (*it)->m_funcp;
@@ -143,12 +189,7 @@ public:
 		    AstVar* portp = conIt->first;
 		    AstNode* pinp = conIt->second->exprp();
 		    AstNodeDType* dtypep = pinp->dtypep();
-		    if (AstRefDType* refdtypep = dtypep->castRefDType())
-			dtypep = refdtypep->skipRefp();
-		    if (AstStructDType* stp = dtypep->castStructDType()) {
-			UINFO(9, "STACK DEBUG STRUCT -- "<<stp<<endl);
-		    }
-		    stack<<"\n    "<<portp->prettyName()<<" = "<<*fetchNumber(pinp);
+		    stack<<"\n    "<<portp->prettyName()<<" = "<<prettyNumber(fetchNumber(pinp), dtypep);
 		}
 	    }
 	    m_whyNotOptimizable += stack.str();
@@ -750,11 +791,6 @@ private:
 		    newNumber(portp)->opAssign(*fetchNumber(pinp));
 		}
 	    }
-            // TODO -- remove
-            UINFO(9,"FUNC PARAM PORT "<<portp<<endl);
-            UINFO(9,"FUNC PARAM PIN "<<pinp<<endl);
-            UINFO(9,"FUNC PARAM DTYPE "<<pinp->dtypep()<<endl);
-            UINFO(9,"FUNC PARAM NUMBER "<<fetchNumber(pinp)<<endl);
 	}
 	SimulateStackNode stackNode(nodep, &tconnects);
 	m_callStack.push_front(&stackNode);

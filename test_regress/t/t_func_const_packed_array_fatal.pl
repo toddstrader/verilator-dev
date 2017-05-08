@@ -13,13 +13,13 @@ compile (
 	 expect=>
 q{%Warning-USERFATAL: f_add = 15
 %Warning-USERFATAL: Use "/* verilator lint_off USERFATAL */" and lint_on around source to disable this message.
-%Error: t/t_func_const_struct_fatal.v:16: Expecting expression to be constant, but can't determine constant for FUNCREF 'f_add2'
-%Error: t/t_func_const_struct_fatal.v:27: ... Location of non-constant STOP: $stop executed during function constification; maybe indicates assertion firing
+%Error: t/t_func_const_packed_array_fatal.v:11: Expecting expression to be constant, but can't determine constant for FUNCREF 'f_add2'
+%Error: t/t_func_const_packed_array_fatal.v:22: ... Location of non-constant STOP: $stop executed during function constification; maybe indicates assertion firing
 Called from:
-t/t_func_const_struct_fatal.v:37:  f_add() with parameters
-    params = '{a: 32'h7, b: 32'h8}
+t/t_func_const_packed_array_fatal.v:30:  f_add() with parameters
+    params = [0 = 32'h7, 1 = 32'h8]
 Called from:
-t/t_func_const_struct_fatal.v:16:  f_add2() with parameters
+t/t_func_const_packed_array_fatal.v:11:  f_add2() with parameters
     a = ?32?sh7
     b = ?32?sh8
     c = ?32?sh9
