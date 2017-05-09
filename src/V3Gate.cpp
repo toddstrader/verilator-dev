@@ -1405,6 +1405,7 @@ private:
 	    GateClkDecompState nextState(clk_offset, currState->m_last_vsp);
 	    return lvertexp->iterateCurrentOutEdges(*this, VNUser(&nextState));
 	}
+	return VNUser(0);
     }
 
 public:
