@@ -46,6 +46,8 @@ module testmod
    test_if intf_no_mp
    );
 
+`define ELAB_TIME
+
 `ifdef ELAB_TIME
    localparam THE_FOO = intf.FOO;
    //   localparam THE_OTHER_FOO = intf_no_mp.FOO;
