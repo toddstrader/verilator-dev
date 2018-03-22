@@ -652,6 +652,10 @@ void ParamVisitor::visitCell(AstCell* nodep) {
 			longname += "_" + paramSmallName(srcModp, pinp->modVarp()) + paramValueNumber(pinIrefp);
 			any_overrides = true;
 			ifaceRefRefs.push_back(make_pair(portIrefp,pinIrefp));
+			if (portIrefp->ifacep() != pinIrefp->ifacep()) {
+			    pinp->v3error("Expected "<<portIrefp->ifaceName()<<" interface but got "<<pinIrefp->ifaceName()<<" interface instead"<<endl);
+			    return;
+			}
 		    }
 		}
 	    }
