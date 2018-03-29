@@ -10,7 +10,7 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 compile (
     fails=>1,
     expect =>
-q{%Error: t/t_wrong_interface_bad.v:31: Expected foo_intf interface but got bar_intf interface instead},
+q{%Error: t/t_interface_wrong_bad.v:31: Port 'foo_port' expects 'foo_intf' interface but pin connects 'bar_intf' interface},
     );
 
 #execute (
