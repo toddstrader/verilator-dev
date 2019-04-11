@@ -1073,6 +1073,17 @@ void AstNode::v3errorEnd(std::ostringstream& str) const {
     if (!m_fileline) {
 	V3Error::v3errorEnd(str);
     } else {
+        // TODO - maybe do this in the clause above as well?
+        // TODO -- have to cast away constness because castModule() isn't const -- should we generate const versions in V3Ast__gen_impl.h?
+        AstNode* backp = const_cast<AstNode*>(this);
+        UINFO(1,"Yo: "<<backp<<endl);
+        AstModule* modp;
+        while (backp && !(modp = backp->castModule())) {
+            backp = backp->backp();
+        }
+        if (modp) {
+            UINFO(1,"Found the nearest module: "<<modp<<endl);
+        }
         std::ostringstream nsstr;
 	nsstr<<str.str();
 	if (debug()) {
