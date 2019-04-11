@@ -1226,6 +1226,13 @@ private:
         simvis.mainParamEmulate(nodep);
         if (!simvis.optimizable()) {
             AstNode* errorp = simvis.whyNotNodep(); if (!errorp) errorp = nodep;
+// TODO --- remove V
+           AstNode* backp = nodep;
+           do {
+               UINFO(1,"Tracing back: "<<backp<<endl);
+           } while ((backp = backp->backp()));
+           v3Global.rootp()->dumpTree(cout,"--ModTraceBack: ");
+// TODO --- remove ^
             nodep->v3error("Expecting expression to be constant, but can't determine constant for "
                            <<nodep->prettyTypeName()<<endl
                            <<errorp->warnMore()<<"... Location of non-constant "
