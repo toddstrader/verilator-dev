@@ -183,7 +183,7 @@ public:
 	return strp;
     }
     V3Number* newNumber(FileLine* fl, const char* text) {
-        V3Number* nump = new V3Number(fl, text);
+        V3Number* nump = new V3Number(text, fl);
 	m_numberps.push_back(nump);
 	return nump;
     }

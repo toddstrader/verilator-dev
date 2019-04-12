@@ -128,7 +128,7 @@ private:
 		    int width = itemp->width();
 		    int lsb = itemp->lsb();
 		    int msb = lsb + width - 1;
-		    V3Number fieldNum = V3Number(nump->fileline(), width);
+		    V3Number fieldNum = V3Number(nump, width);
 		    fieldNum.opSel(*nump, msb, lsb);
 		    out<<itemp->name()<<": ";
 		    if (AstNodeDType * childTypep = itemp->subDTypep()) {
@@ -150,7 +150,7 @@ private:
 		    int width = childTypep->width();
 		    int lsb = width * element;
 		    int msb = lsb + width - 1;
-		    V3Number fieldNum = V3Number(nump->fileline(), width);
+		    V3Number fieldNum = V3Number(nump, width);
 		    fieldNum.opSel(*nump, msb, lsb);
 		    int arrayElem = arrayp->lsb() + element;
 		    out<<arrayElem<<" = "<<prettyNumber(&fieldNum, childTypep);
@@ -213,11 +213,11 @@ private:
 	    //UINFO(7,"Num Reuse "<<nodep->width()<<endl);
 	    nump = m_numFreeps.back(); m_numFreeps.pop_back();
 	    nump->width(nodep->width());
-	    nump->fileline(nodep->fileline());
+	    nump->nodep(nodep);
 	    nump->setLong(value);  // We do support more than 32 bit numbers, just valuep=0 in that case
 	} else {
 	    //UINFO(7,"Num New "<<nodep->width()<<endl);
-            nump = new V3Number(nodep->fileline(), nodep->width(), value);
+            nump = new V3Number(nodep, nodep->width(), value);
 	    m_numAllps.push_back(nump);
 	}
 	nump->isDouble(nodep->isDouble());
@@ -521,7 +521,7 @@ private:
             iterate(nodep->lhsp());
 	    if (optimizable()) {
 		if (fetchNumber(nodep->lhsp())->isEqZero()) {
-                    newNumber(nodep, V3Number(nodep->fileline(), 1, 1));  // a one
+                    newNumber(nodep, V3Number(nodep, 1, 1));  // a one
 		} else {
                     iterate(nodep->rhsp());
                     newNumber(nodep, *fetchNumber(nodep->rhsp()));
@@ -552,19 +552,19 @@ private:
 
     void handleAssignSel(AstNodeAssign* nodep, AstSel* selp) {
 	AstVarRef* varrefp = NULL;
-	V3Number lsb = V3Number(nodep->fileline());
+	V3Number lsb = V3Number(nodep);
         iterateAndNextNull(nodep->rhsp());  // Value to assign
 	handleAssignSelRecurse(nodep, selp, varrefp/*ref*/, lsb/*ref*/, 0);
 	if (!m_checkOnly && optimizable()) {
 	    if (!varrefp) nodep->v3fatalSrc("Indicated optimizable, but no variable found on RHS of select");
 	    AstNode* vscp = varOrScope(varrefp);
-	    V3Number outnum = V3Number(nodep->fileline());
+	    V3Number outnum = V3Number(nodep);
 	    if (V3Number* vscpnump = fetchOutNumberNull(vscp)) {
 		outnum = *vscpnump;
 	    } else if (V3Number* vscpnump = fetchNumberNull(vscp)) {
 		outnum = *vscpnump;
 	    } else {  // Assignment to unassigned variable, all bits are X or 0
-		outnum = V3Number(nodep->fileline(), varrefp->varp()->widthMin());
+		outnum = V3Number(nodep, varrefp->varp()->widthMin());
 		if (varrefp->varp()->basicp() && varrefp->varp()->basicp()->isZeroInit()) {
 		    outnum.setAllBits0();
 		} else {
@@ -588,7 +588,7 @@ private:
 	    lsbRef = *fetchNumber(selp->lsbp());
 	    return;  // And presumably still optimizable()
         } else if (AstSel* subselp = VN_CAST(selp->lhsp(), Sel)) {
-	    V3Number sublsb = V3Number(nodep->fileline());
+	    V3Number sublsb = V3Number(nodep);
 	    handleAssignSelRecurse(nodep, subselp, outVarrefpRef, sublsb/*ref*/, depth+1);
 	    if (optimizable()) {
 		lsbRef = sublsb;
@@ -649,7 +649,7 @@ private:
 			if (hit) break;
                         iterateAndNextNull(ep);
 			if (optimizable()) {
-			    V3Number match (nodep->fileline(), 1);
+			    V3Number match (nodep, 1);
 			    match.opEq(*fetchNumber(nodep->exprp()), *fetchNumber(ep));
 			    if (match.isNeqZero()) {
                                 iterateAndNextNull(itemp->bodysp());
@@ -872,7 +872,7 @@ private:
 		}
 	    }
 
-	    V3Number* resultNump = new V3Number(V3Number::String(), nodep->fileline(), result);
+	    V3Number* resultNump = new V3Number(V3Number::String(), nodep, result);
 	    setNumber(nodep, resultNump);
 	    m_stringNumbersp.push_back(resultNump);
 

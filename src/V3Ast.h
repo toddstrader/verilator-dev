@@ -1628,8 +1628,7 @@ public:
 	else if (expr2p) dtypeFrom(expr2p);
     }
     ASTNODE_BASE_FUNCS(NodeCond)
-    virtual void numberOperate(V3Number& out, const V3Number& lhs, const V3Number& rhs, const V3Number& ths) {
-	if (lhs.isNeqZero()) out.opAssign(rhs); else out.opAssign(ths); }
+    virtual void numberOperate(V3Number& out, const V3Number& lhs, const V3Number& rhs, const V3Number& ths);
     AstNode*	condp() 	const { return op1p(); }	// op1 = Condition
     AstNode*	expr1p() 	const { return op2p(); }	// op2 = If true...
     AstNode*	expr2p() 	const { return op3p(); }	// op3 = If false...
