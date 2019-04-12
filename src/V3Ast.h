@@ -2153,7 +2153,7 @@ class AstNodeModule : public AstNode {
 private:
     string	m_name;		// Name of the module
     string	m_origName;	// Name of the module, ignoring name() changes, for dot lookup
-    string      m_hierName;     // Hierachical name for errors, etc.
+    string	m_hierName;	// Hierachical name for errors, etc.
     bool	m_modPublic:1;	// Module has public references
     bool	m_modTrace:1;	// Tracing this module
     bool	m_inLibrary:1;	// From a library, no error if not used, never top level
