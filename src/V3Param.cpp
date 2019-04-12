@@ -230,10 +230,10 @@ private:
 		for (int nonIf=0; nonIf<2; ++nonIf) {
 		    for (CellList::iterator it=m_cellps.begin(); it!=m_cellps.end(); ++it) {
 			AstCell* nodep = *it;
-                        if ((nonIf==0 && VN_IS(nodep->modp(), Iface))
-                            || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
-                            string hierName = m_modp->hierName().empty() ?
-                                m_modp->origName() : m_modp->hierName();
+			if ((nonIf==0 && VN_IS(nodep->modp(), Iface))
+			    || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
+			    string hierName = m_modp->hierName().empty() ?
+				m_modp->origName() : m_modp->hierName();
 			    visitCell(nodep, hierName);
 			}
 		    }
