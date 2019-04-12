@@ -221,7 +221,7 @@ private:
             }
         }
     }
-    void visitCell(AstCell* nodep);
+    void visitCell(AstCell* nodep, string& hierName);
     void visitModules() {
         // Loop on all modules left to process
         // Hitting a cell adds to the appropriate level of this level-sorted list,
@@ -242,7 +242,9 @@ private:
                         AstCell* nodep = *it;
                         if ((nonIf==0 && VN_IS(nodep->modp(), Iface))
                             || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
-                            visitCell(nodep);
+                            string hierName = m_modp->hierName().empty() ?
+                                m_modp->origName() : m_modp->hierName();
+			    visitCell(nodep, hierName);
                         }
                     }
                 }
@@ -557,7 +559,7 @@ public:
 //----------------------------------------------------------------------
 // VISITs
 
-void ParamVisitor::visitCell(AstCell* nodep) {
+void ParamVisitor::visitCell(AstCell* nodep, string& hierName) {
     // Cell: Check for parameters in the instantiation.
     iterateChildren(nodep);
     if (!nodep->modp()) nodep->v3fatalSrc("Not linked?");
@@ -570,6 +572,7 @@ void ParamVisitor::visitCell(AstCell* nodep) {
         // Evaluate all module constants
         V3Const::constifyParamsEdit(nodep);
         AstNodeModule* srcModp = nodep->modp();
+        srcModp->hierName(hierName + "." + nodep->name());
 
         // Make sure constification worked
         // Must be a separate loop, as constant conversion may have changed some pointers.

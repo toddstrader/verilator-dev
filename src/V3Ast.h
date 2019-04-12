@@ -2171,6 +2171,7 @@ class AstNodeModule : public AstNode {
 private:
     string      m_name;         // Name of the module
     string      m_origName;     // Name of the module, ignoring name() changes, for dot lookup
+    string      m_hierName;     // Hierachical name for errors, etc.
     bool        m_modPublic:1;  // Module has public references
     bool        m_modTrace:1;   // Tracing this module
     bool        m_inLibrary:1;  // From a library, no error if not used, never top level
@@ -2201,6 +2202,8 @@ public:
     // ACCESSORS
     virtual void name(const string& name) { m_name = name; }
     string origName() const { return m_origName; }
+    string hierName() const	{ return m_hierName; }
+    void hierName(const string& hierName) { m_hierName = hierName; }
     bool inLibrary() const { return m_inLibrary; }
     void inLibrary(bool flag) { m_inLibrary = flag; }
     void level(int level) { m_level = level; }
