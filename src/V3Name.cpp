@@ -62,13 +62,6 @@ private:
 		string rsvd = m_words.isKeyword(nodep->name());
 		if (rsvd != "") {
 		    nodep->v3warn(SYMRSVDWORD,"Symbol matches "+rsvd+": '"<<nodep->prettyName()<<"'");
-// TODO --- remove V
-           AstNode* backp = nodep;
-           do {
-               UINFO(1,"Tracing back: "<<backp<<endl);
-           } while ((backp = backp->backp()));
-           v3Global.rootp()->dumpTree(cout,"--ModTraceBack: ");
-// TODO --- remove ^
                     string newname = string("__SYM__")+nodep->name();
 		    nodep->name(newname);
 		}
