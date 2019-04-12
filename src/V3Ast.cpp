@@ -1070,22 +1070,20 @@ void AstNode::dumpTreeFile(const string& filename, bool append, bool doDump) {
 void AstNode::v3errorEndFatal(std::ostringstream& str) const { v3errorEnd(str); assert(0); }
 
 void AstNode::v3errorEnd(std::ostringstream& str) const {
+    std::ostringstream nsstr;
+    const AstNode* backp = this;
+    const AstModule* modp;
+    while (backp && !(modp = VN_CAST_CONST(backp, Module))) {
+        backp = backp->backp();
+    }
+    if (modp) {
+        nsstr<<"("<<modp->hierName()<<") ";
+    }
+    nsstr<<str.str();
+
     if (!m_fileline) {
-	V3Error::v3errorEnd(str);
+	V3Error::v3errorEnd(nsstr);
     } else {
-        // TODO - maybe do this in the clause above as well?
-        // TODO -- have to cast away constness because castModule() isn't const -- should we generate const versions in V3Ast__gen_impl.h?
-        AstNode* backp = const_cast<AstNode*>(this);
-        UINFO(1,"Yo: "<<backp<<endl);
-        AstModule* modp;
-        while (backp && !(modp = backp->castModule())) {
-            backp = backp->backp();
-        }
-        if (modp) {
-            UINFO(1,"Found the nearest module: "<<modp<<endl);
-        }
-        std::ostringstream nsstr;
-	nsstr<<str.str();
 	if (debug()) {
 	    nsstr<<endl;
             nsstr<<"-node: ";
