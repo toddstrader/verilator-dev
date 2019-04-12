@@ -1074,10 +1074,10 @@ void AstNode::v3errorEnd(std::ostringstream& str) const {
     const AstNode* backp = this;
     const AstModule* modp;
     while (backp && !(modp = VN_CAST_CONST(backp, Module))) {
-        backp = backp->backp();
+	backp = backp->backp();
     }
     if (modp) {
-        nsstr<<"("<<modp->hierName()<<") ";
+	nsstr<<"("<<modp->hierName()<<") ";
     }
     nsstr<<str.str();
 
