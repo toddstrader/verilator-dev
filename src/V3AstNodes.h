@@ -49,10 +49,7 @@ class AstConst : public AstNodeMath {
     // A constant
 private:
     V3Number	m_num;		// Constant value
-public:
-    AstConst(FileLine* fl, const V3Number& num)
-	:AstNodeMath(fl)
-        ,m_num(num) {
+    void initWithV3Number() {
 	if (m_num.isDouble()) {
 	    dtypeSetDouble();
         } else if (m_num.isString()) {
@@ -62,6 +59,28 @@ public:
                                m_num.isSigned() ? AstNumeric::SIGNED
 			       : AstNumeric::UNSIGNED);
         }
+    }
+public:
+    class V3NumberConstructor {}
+    AstConst(FileLine* fl, V3NumberConstructor)
+	:AstNodeMath(fl)
+        ,m_num(this) {
+        initWithV3Number();
+    }
+    AstConst(FileLine* fl, V3NumberConstructor, int width)
+	:AstNodeMath(fl)
+        ,m_num(this, width) {
+        initWithV3Number();
+    }
+    AstConst(FileLine* fl, V3NumberConstructor, const char* sourcep)
+	:AstNodeMath(fl)
+        ,m_num(this, sourcep) {
+        initWithV3Number();
+    }
+    AstConst(FileLine* fl, V3NumberConstructor, V3Number::VerilogStringLieral literal, const string& str)
+	:AstNodeMath(fl)
+        ,m_num(this, literal, str) {
+        initWithV3Number();
     }
     AstConst(FileLine* fl, uint32_t num)
 	:AstNodeMath(fl)
