@@ -25,11 +25,12 @@
 #include "verilatedos.h"
 
 #include "V3Error.h"
-#include "V3Ast.h"
 
 #include <vector>
 
 //============================================================================
+
+class AstNode;
 
 class V3Number {
     // Large 4-state number handling
@@ -41,6 +42,7 @@ class V3Number {
     bool	m_fromString:1;	// True if from string literal
     bool	m_autoExtend:1;	// True if SystemVerilog extend-to-any-width
     AstNode*	m_nodep;
+    FileLine*	m_fileline;     // In case there is no m_nodep
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
     string		m_stringVal;	// If isString, the value of the string
@@ -50,6 +52,8 @@ class V3Number {
     void opCleanThis(bool warnOnTruncation = false);
 public:
     AstNode*	nodep() const { return m_nodep; }
+    void nodep(AstNode* nodep) { m_nodep = nodep; }
+    FileLine*	fileline() const;
     V3Number& setZero();
     V3Number& setQuad(vluint64_t value);
     V3Number& setLong(uint32_t value);
@@ -133,11 +137,12 @@ public:
     explicit V3Number(AstNode* nodep) { init(nodep, 1); }
     V3Number(AstNode* nodep, int width) { init(nodep, width); }  // 0=unsized
     V3Number(AstNode* nodep, int width, uint32_t value) { init(nodep, width); m_value[0]=value; opCleanThis(); }
-    V3Number(AstNode* nodep, const char* sourcep);  // Create from a verilog 32'hxxxx number.
+    V3Number(AstNode* nodep, const char* sourcep, FileLine* fl = nullptr);  // Create from a verilog 32'hxxxx number.
     class VerilogStringLiteral {};  // For creator type-overload selection
     V3Number(VerilogStringLiteral, AstNode* nodep, const string& str);
     class String {};
     V3Number(String, AstNode* nodep, const string& value) { init(nodep, 0); setString(value); }
+    V3Number(V3Number* nump, int width) { init(nump->nodep(), width); }
 
 private:
     void init(AstNode* nodep, int swidth) {

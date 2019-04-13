@@ -213,7 +213,7 @@ private:
 	    //UINFO(7,"Num Reuse "<<nodep->width()<<endl);
 	    nump = m_numFreeps.back(); m_numFreeps.pop_back();
 	    nump->width(nodep->width());
-	    nump->fileline(nodep->fileline());
+	    nump->nodep(nodep);
 	    nump->setLong(value);  // We do support more than 32 bit numbers, just valuep=0 in that case
 	} else {
 	    //UINFO(7,"Num New "<<nodep->width()<<endl);
@@ -552,13 +552,13 @@ private:
 
     void handleAssignSel(AstNodeAssign* nodep, AstSel* selp) {
 	AstVarRef* varrefp = NULL;
-	V3Number lsb = V3Number(nodep->fileline());
+	V3Number lsb = V3Number(nodep);
         iterateAndNextNull(nodep->rhsp());  // Value to assign
 	handleAssignSelRecurse(nodep, selp, varrefp/*ref*/, lsb/*ref*/, 0);
 	if (!m_checkOnly && optimizable()) {
 	    if (!varrefp) nodep->v3fatalSrc("Indicated optimizable, but no variable found on RHS of select");
 	    AstNode* vscp = varOrScope(varrefp);
-	    V3Number outnum = V3Number(nodep->fileline());
+	    V3Number outnum = V3Number(nodep);
 	    if (V3Number* vscpnump = fetchOutNumberNull(vscp)) {
 		outnum = *vscpnump;
 	    } else if (V3Number* vscpnump = fetchNumberNull(vscp)) {
@@ -588,7 +588,7 @@ private:
 	    lsbRef = *fetchNumber(selp->lsbp());
 	    return;  // And presumably still optimizable()
         } else if (AstSel* subselp = VN_CAST(selp->lhsp(), Sel)) {
-	    V3Number sublsb = V3Number(nodep->fileline());
+	    V3Number sublsb = V3Number(nodep);
 	    handleAssignSelRecurse(nodep, subselp, outVarrefpRef, sublsb/*ref*/, depth+1);
 	    if (optimizable()) {
 		lsbRef = sublsb;
@@ -854,7 +854,7 @@ private:
 			    break;
 			}
 			string format = string("%") + pos[0];
-			result += nump->displayed(nodep->fileline(), format);
+			result += nump->displayed(format);
 		    } else {
 			switch (tolower(pos[0])) {
 			case '%':

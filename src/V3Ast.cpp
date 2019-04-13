@@ -1151,6 +1151,9 @@ AstBasicDType* AstNode::findInsertSameDType(AstBasicDType* nodep) {
 	->findInsertSameDType(nodep);
 }
 
+void AstNodeCond::numberOperate(V3Number& out, const V3Number& lhs, const V3Number& rhs, const V3Number& ths) {
+	if (lhs.isNeqZero()) out.opAssign(rhs); else out.opAssign(ths); }
+
 //######################################################################
 // AstNVisitor
 
