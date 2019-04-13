@@ -292,7 +292,7 @@ private:
 		AstVarScope* invscp = *it;
 		// LSB is first variable, so extract it that way
                 simvis.newNumber(invscp,
-                                 V3Number(invscp->fileline(), invscp->width(),
+                                 V3Number(invscp, invscp->width(),
                                           VL_MASK_I(invscp->width()) & (inValue>>shift)));
 		shift += invscp->width();
 		// We're just using32 bit arithmetic, because there's no way the input table can be 2^32 bytes!
@@ -309,7 +309,7 @@ private:
 
 	    // If a output changed, add it to table
 	    int outnum = 0;
-	    V3Number outputChgMask (nodep->fileline(), m_outVarps.size(), 0);
+	    V3Number outputChgMask (nodep, m_outVarps.size(), 0);
             for (std::deque<AstVarScope*>::iterator it = m_outVarps.begin(); it!=m_outVarps.end(); ++it) {
 		AstVarScope* outvscp = *it;
 		V3Number* outnump = simvis.fetchOutNumberNull(outvscp);
@@ -319,7 +319,7 @@ private:
 		    m_outNotSet[outnum] = true;
 		    // Value in table is arbitrary, but we need something
                     setp = new AstConst(outvscp->fileline(),
-                                        V3Number(outvscp->fileline(), outvscp->width(), 0));
+                                        V3Number(outvscp, outvscp->width(), 0));
 		} else {
 		    UINFO(8,"   Output "<<outvscp->name()<<" = "<<*outnump<<endl);
 		    //  m_tableVarps[inValue] = num;
@@ -385,7 +385,7 @@ private:
 
 	    // Is the value set in only some branches of the table?
 	    if (m_outNotSet[outnum]) {
-		V3Number outputChgMask (nodep->fileline(), m_outVarps.size(), 0);
+		V3Number outputChgMask (nodep, m_outVarps.size(), 0);
 		outputChgMask.setBit(outnum,1);
                 outsetp = new AstIf(nodep->fileline(),
                                     new AstAnd(nodep->fileline(),

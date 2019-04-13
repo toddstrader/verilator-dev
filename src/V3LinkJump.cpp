@@ -142,7 +142,7 @@ private:
 	AstNode* decp = new AstAssign(nodep->fileline(), new AstVarRef(nodep->fileline(), varp, true),
 				      new AstSub(nodep->fileline(), new AstVarRef(nodep->fileline(), varp, false),
 						 new AstConst(nodep->fileline(), 1)));
-	V3Number zero (nodep->fileline(), 32, 0);  zero.isSigned(true);
+	V3Number zero (nodep, 32, 0);  zero.isSigned(true);
 	AstNode* zerosp = new AstConst(nodep->fileline(), zero);
 	AstNode* condp = new AstGtS(nodep->fileline(), new AstVarRef(nodep->fileline(), varp, false),
 				    zerosp);
