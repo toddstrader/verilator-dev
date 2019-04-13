@@ -654,9 +654,9 @@ class TristateVisitor : public TristateBaseVisitor {
 	    else if (m_tgraph.isTristate(nodep)) {
 		m_tgraph.didProcess(nodep);
 		FileLine* fl = nodep->fileline();
-		V3Number numz (fl,nodep->width()); numz.opBitsZ(nodep->num());  //Z->1, else 0
-		V3Number numz0(fl,nodep->width()); numz0.opNot(numz); // Z->0, else 1
-		V3Number num1 (fl,nodep->width()); num1.opAnd(nodep->num(),numz0);  // 01X->01X, Z->0
+		V3Number numz (nodep,nodep->width()); numz.opBitsZ(nodep->num());  //Z->1, else 0
+		V3Number numz0(nodep,nodep->width()); numz0.opNot(numz); // Z->0, else 1
+		V3Number num1 (nodep,nodep->width()); num1.opAnd(nodep->num(),numz0);  // 01X->01X, Z->0
 		AstConst* newconstp = new AstConst(fl, num1);
 		AstConst* enp       = new AstConst(fl, numz0);
 		nodep->replaceWith(newconstp);

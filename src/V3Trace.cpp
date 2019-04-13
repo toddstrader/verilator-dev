@@ -511,7 +511,7 @@ private:
             }
         } else {
             AstNode* clrp = new AstAssign(fl, new AstVarRef(fl, m_activityVscp, true),
-                                          new AstConst(fl, V3Number(fl, m_activityVscp->width())));
+                                          new AstConst(fl, AstConst::V3NumberConstructor(), m_activityVscp->width()));
             m_fullFuncp->addFinalsp(clrp->cloneTree(true));
             m_chgFuncp->addFinalsp(clrp);
         }
