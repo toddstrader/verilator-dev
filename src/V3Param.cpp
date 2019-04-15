@@ -219,7 +219,7 @@ private:
             }
         }
     }
-    void visitCell(AstCell* nodep, string& hierName);
+    void visitCell(AstCell* nodep, const string& hierName);
     void visitModules() {
         // Loop on all modules left to process
         // Hitting a cell adds to the appropriate level of this level-sorted list,
@@ -231,6 +231,8 @@ private:
             if (!nodep->user5SetOnce()) {  // Process once; note clone() must clear so we do it again
                 m_modp = nodep;
                 UINFO(4," MOD   "<<nodep<<endl);
+		if (m_modp->hierName().empty())
+		    m_modp->hierName(m_modp->origName());
                 iterateChildren(nodep);
                 // Note above iterate may add to m_todoModps
                 //
@@ -240,9 +242,7 @@ private:
                         AstCell* nodep = *it;
                         if ((nonIf==0 && VN_IS(nodep->modp(), Iface))
                             || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
-                            string hierName = m_modp->hierName().empty() ?
-                                m_modp->origName() : m_modp->hierName();
-			    visitCell(nodep, hierName);
+			    visitCell(nodep, m_modp->hierName());
                         }
                     }
                 }
@@ -557,7 +557,7 @@ public:
 //----------------------------------------------------------------------
 // VISITs
 
-void ParamVisitor::visitCell(AstCell* nodep, string& hierName) {
+void ParamVisitor::visitCell(AstCell* nodep, const string& hierName) {
     // Cell: Check for parameters in the instantiation.
     iterateChildren(nodep);
     UASSERT_OBJ(nodep->modp(), nodep, "Not linked?");
