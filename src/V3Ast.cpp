@@ -1072,12 +1072,17 @@ void AstNode::v3errorEndFatal(std::ostringstream& str) const { v3errorEnd(str); 
 void AstNode::v3errorEnd(std::ostringstream& str) const {
     std::ostringstream nsstr;
     const AstNode* backp = this;
-    const AstModule* modp;
-    while (backp && !(modp = VN_CAST_CONST(backp, Module))) {
+    while (backp) {
+	const AstModule* modp;
+	const AstNodeVarRef* nvrp;
+	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
+	    nsstr<<"("<<modp->hierName()<<") ";
+	    break;
+	} else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
+	    nsstr<<"("<<nvrp->prettyName()<<") ";
+	    break;
+	}
 	backp = backp->backp();
-    }
-    if (modp) {
-	nsstr<<"("<<modp->hierName()<<") ";
     }
     nsstr<<str.str();
 
