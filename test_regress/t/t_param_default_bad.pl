@@ -11,10 +11,7 @@ scenarios(simulator => 1);
 
 compile(
      fails => 1,
-     expect =>
-'%Error: Internal Error: t/t_param_default_bad.v:6: ../V3Param.cpp:\d+: Parameter without initial value
-%Error: Internal Error: See the manual and http://www.veripool.org/verilator for more assistance.
-.*%Error: Command Failed.*',
+     expect_filename => $Self->{golden_filename},
      );
 
 ok(1);
