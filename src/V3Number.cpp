@@ -32,10 +32,9 @@
 
 #define MAX_SPRINTF_DOUBLE_SIZE 100  // Maximum characters with a sprintf %e/%f/%g (probably < 30)
 
-
-#define V3NumberError(msg) if (m_nodep) { m_nodep->v3error(msg); } else { m_fileline->v3error(msg); }
-#define V3NumberWarn(code,msg) if (m_nodep) { m_nodep->v3warn(code,msg); } else { m_fileline->v3warn(code,msg); }
-#define V3NumberFatalSrc(msg) if (m_nodep) { m_nodep->v3fatalSrc(msg); } else { m_fileline->v3fatalSrc(msg); }
+#define V3NumberError(msg) m_fileline->v3error(m_hierName<<msg);
+#define V3NumberWarn(code,msg) m_fileline->v3warn(code, m_hierName<<msg);
+#define V3NumberFatalSrc(msg) m_fileline->v3fatalSrc(m_hierName<<msg);
 
 //######################################################################
 // Read class functions
@@ -140,9 +139,9 @@ V3Number::V3Number(AstNode* nodep, const char* sourcep, FileLine* fl) {
 		} else { // Wide; all previous digits are already in m_value[0]
 		    // this = (this * 10)/*product*/ + (*cp-'0')/*addend*/
 		    // Assumed rare; lots of optimizations are possible here
-		    V3Number product (m_nodep, width()+4);  // +4 for overflow detection
-		    V3Number ten (m_nodep, width()+4, 10);
-		    V3Number addend (m_nodep, width(), (*cp-'0'));
+		    V3Number product (this, width()+4);  // +4 for overflow detection
+		    V3Number ten (this, width()+4, 10);
+		    V3Number addend (this, width(), (*cp-'0'));
 		    product.opMul(*this,ten);
 		    this->opAdd(product,addend);
 		    if (product.bitsValue(width(), 4)) {  // Overflowed
@@ -272,6 +271,14 @@ V3Number::V3Number(AstNode* nodep, const char* sourcep, FileLine* fl) {
     //printf("Dump \"%s\"  CP \"%s\"  B '%c' %d W %d\n", sourcep, value_startp, base, width(), m_value[0]);
 }
 
+void V3Number::setNames(AstNode* nodep) {
+    if (!nodep)
+        return;
+
+    m_fileline = nodep->fileline();
+    m_hierName = nodep->locationStr();
+}
+
 //======================================================================
 // Global
 
@@ -279,11 +286,6 @@ int V3Number::log2b(uint32_t num) {
     // See also opCLog2
     for (int bit=31; bit>0; bit--) if (num & (VL_ULL(1)<<bit)) return(bit);
     return(0);
-}
-
-FileLine* V3Number::fileline() const {
-    if (m_nodep) return m_nodep->fileline();
-    return m_fileline;
 }
 
 //======================================================================
@@ -636,9 +638,9 @@ string V3Number::toDecimalU() const {
     int maxdecwidth = (width()+3)*4/3;
 
     // Or (maxdecwidth+7)/8], but can't have more than 4 BCD bits per word
-    V3Number bcd (nodep(), maxdecwidth+4);
-    V3Number tmp (nodep(), maxdecwidth+4);
-    V3Number tmp2 (nodep(), maxdecwidth+4);
+    V3Number bcd (this, maxdecwidth+4);
+    V3Number tmp (this, maxdecwidth+4);
+    V3Number tmp2 (this, maxdecwidth+4);
 
     int from_bit = width()-1;
     // Skip all leading zeros
@@ -657,7 +659,7 @@ string V3Number::toDecimalU() const {
         }
         // Shift; bcd = bcd << 1
         tmp.opAssign(bcd);
-        bcd.opShiftL(tmp, V3Number(nodep(), 32, 1));
+        bcd.opShiftL(tmp, V3Number(this, 32, 1));
         // bcd[0] = this[from_bit]
         if (bitIs1(from_bit)) bcd.setBit(0, 1);
     }
@@ -1365,9 +1367,9 @@ V3Number& V3Number::opAbsS(const V3Number& lhs) {
 V3Number& V3Number::opNegate(const V3Number& lhs) {
     // op i, L(lhs) bit return
     if (lhs.isFourState()) return setAllBitsX();
-    V3Number notlhs (lhs.nodep(), width());
+    V3Number notlhs (&lhs, width());
     notlhs.opNot(lhs);
-    V3Number one (lhs.nodep(), width(), 1);
+    V3Number one (&lhs, width(), 1);
     opAdd(notlhs,one);
     return *this;
 }
@@ -1389,7 +1391,7 @@ V3Number& V3Number::opAdd(const V3Number& lhs, const V3Number& rhs) {
 V3Number& V3Number::opSub(const V3Number& lhs, const V3Number& rhs) {
     // i op j, max(L(lhs),L(rhs)) bit return, if any 4-state, 4-state return
     if (lhs.isFourState() || rhs.isFourState()) return setAllBitsX();
-    V3Number negrhs (rhs.nodep(), rhs.width());
+    V3Number negrhs (&rhs, rhs.width());
     negrhs.opNegate(rhs);
     return opAdd(lhs, negrhs);
 }
@@ -1625,14 +1627,14 @@ V3Number& V3Number::opPow(const V3Number& lhs, const V3Number& rhs, bool lsign, 
     if (lhs.isEqZero()) return setZero();
     setZero();
     m_value[0] = 1;
-    V3Number power (lhs.nodep(), width());  power.opAssign(lhs);
+    V3Number power (&lhs, width());  power.opAssign(lhs);
     for (int bit=0; bit<rhs.width(); bit++) {
 	if (bit>0) {  // power = power*power
-	    V3Number lastPower (lhs.nodep(), width());  lastPower.opAssign(power);
+	    V3Number lastPower (&lhs, width());  lastPower.opAssign(power);
 	    power.opMul(lastPower, lastPower);
 	}
 	if (rhs.bitIs1(bit)) {  // out *= power
-	    V3Number lastOut (lhs.nodep(), width()); lastOut.opAssign(*this);
+	    V3Number lastOut (&lhs, width()); lastOut.opAssign(*this);
 	    this->opMul(lastOut, power);
 	    //UINFO(0, "pow "<<lhs<<" "<<rhs<<" b"<<bit<<" pow="<<power<<" now="<<*this<<endl);
 	}
@@ -1732,7 +1734,7 @@ V3Number& V3Number::opSelInto(const V3Number& lhs, int lsbval, int width) {
 }
 
 V3Number& V3Number::opCond(const V3Number& lhs, const V3Number& if1s, const V3Number& if0s) {
-    V3Number lhstrue (lhs.nodep());  lhstrue.opRedOr(lhs);
+    V3Number lhstrue (&lhs);  lhstrue.opRedOr(lhs);
     if (lhstrue.bitIs0(0)) {
 	this->opAssign(if0s);
     }

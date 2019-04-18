@@ -41,8 +41,8 @@ class V3Number {
     bool	m_isString:1;	// True if string
     bool	m_fromString:1;	// True if from string literal
     bool	m_autoExtend:1;	// True if SystemVerilog extend-to-any-width
-    AstNode*	m_nodep;
-    FileLine*	m_fileline;     // In case there is no m_nodep
+    string	m_hierName;	// Module hierarchy for errors/warnings
+    FileLine*	m_fileline;
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
     string		m_stringVal;	// If isString, the value of the string
@@ -51,9 +51,9 @@ class V3Number {
     V3Number& setString(const string& str) { m_isString=true; m_stringVal=str; return *this; }
     void opCleanThis(bool warnOnTruncation = false);
 public:
-    AstNode*	nodep() const { return m_nodep; }
-    void nodep(AstNode* nodep) { m_nodep = nodep; }
-    FileLine*	fileline() const;
+    void nodep(AstNode* nodep) { setNames(nodep); }
+    FileLine*	fileline() const { return m_fileline; };
+    const string&	hierName() const { return m_hierName; }
     V3Number& setZero();
     V3Number& setQuad(vluint64_t value);
     V3Number& setLong(uint32_t value);
@@ -142,11 +142,22 @@ public:
     V3Number(VerilogStringLiteral, AstNode* nodep, const string& str);
     class String {};
     V3Number(String, AstNode* nodep, const string& value) { init(nodep, 0); setString(value); }
-    V3Number(V3Number* nump, int width) { init(nump->nodep(), width); }
+    V3Number(const V3Number* nump, int width = 1) {
+        init(NULL, width);
+        m_hierName = nump->hierName();
+        m_fileline = nump->fileline();
+    }
+    V3Number(const V3Number* nump, int width, uint32_t value) {
+        init(NULL, width);
+        m_value[0]=value;
+        opCleanThis();
+        m_hierName = nump->hierName();
+        m_fileline = nump->fileline();
+    }
 
 private:
     void init(AstNode* nodep, int swidth) {
-	m_nodep = nodep;
+	setNames(nodep);
 	m_signed = false;
 	m_double = false;
 	m_isString = false;
@@ -155,6 +166,7 @@ private:
 	width(swidth);
 	for (int i=0; i<words(); i++) m_value[i]=m_valueX[i] = 0;
     }
+    void setNames(AstNode* nodep);
 public:
     void width(int width, bool sized=true) {
 	// Set width.  Only set m_width here, as we need to tweak vector size
