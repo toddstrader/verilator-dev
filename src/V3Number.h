@@ -43,6 +43,8 @@ class V3Number {
     bool	m_autoExtend:1;	// True if SystemVerilog extend-to-any-width
     AstNode*	m_nodep;
     FileLine*	m_fileline;     // In case there is no m_nodep
+    V3Number*	m_nodeListNext; // List of V3Numbers belonging to AstNode parent
+    V3Number*	m_nodeListPrev;
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
     string		m_stringVal;	// If isString, the value of the string
@@ -52,8 +54,17 @@ class V3Number {
     void opCleanThis(bool warnOnTruncation = false);
 public:
     AstNode*	nodep() const { return m_nodep; }
-    void nodep(AstNode* nodep) { m_nodep = nodep; }
+    void nodep(AstNode* nodep) {
+        removeFromNode();
+        m_nodep = nodep;
+        linkToNode();
+    }
     FileLine*	fileline() const;
+    void linkToNode();
+    void removeFromNode();
+    void destroyNode();
+    void listPrev(V3Number* prev) { m_nodeListPrev = prev; checkListPtrs(); }
+    void listNext(V3Number* next) { m_nodeListNext = next; checkListPtrs(); }
     V3Number& setZero();
     V3Number& setQuad(vluint64_t value);
     V3Number& setLong(uint32_t value);
@@ -143,10 +154,31 @@ public:
     class String {};
     V3Number(String, AstNode* nodep, const string& value) { init(nodep, 0); setString(value); }
     V3Number(V3Number* nump, int width) { init(nump->nodep(), width); }
+    V3Number(V3Number const & other) {
+        *this = other;
+        m_nodep = NULL;
+        m_nodeListNext = NULL;
+        m_nodeListPrev = NULL;
+    }
+
+    // DESTRUCTOR
+    ~V3Number() {
+        UINFO(1, "DESTROYING "<<(void *)this<<endl); // TODO -- remove
+        removeFromNode();
+        UINFO(1, "DESTROYED "<<(void *)this<<endl); // TODO -- remove
+    }
 
 private:
+    void ack(); // TODO -- remove
+    void checkListPtrs(); // TODO -- remove
+    void checkPrevForLoop(V3Number * num); // TODO -- remove
+    void checkNextForLoop(V3Number * num); // TODO -- remove
     void init(AstNode* nodep, int swidth) {
 	m_nodep = nodep;
+	m_nodeListNext = NULL;
+	m_nodeListPrev = NULL;
+	linkToNode();
+        ack(); // TODO -- remove
 	m_signed = false;
 	m_double = false;
 	m_isString = false;

@@ -60,69 +60,81 @@ private:
 				: AstNumeric::UNSIGNED);
 	}
     }
+    inline void checkNum() { UASSERT(m_num.nodep() == this, "My number is not my number"); }
 public:
     class V3NumberConstructor {};
     AstConst(FileLine* fl, const V3Number& num)
 	:AstNodeMath(fl)
 	,m_num(num) {
+	m_num.nodep(this);
 	initWithV3Number();
+	checkNum();
     }
     AstConst(FileLine* fl, V3NumberConstructor)
 	:AstNodeMath(fl)
 	,m_num(this) {
 	initWithV3Number();
+	checkNum();
     }
     AstConst(FileLine* fl, V3NumberConstructor, int width)
 	:AstNodeMath(fl)
 	,m_num(this, width) {
 	initWithV3Number();
+	checkNum();
     }
     AstConst(FileLine* fl, V3NumberConstructor, int width, uint32_t value)
 	:AstNodeMath(fl)
 	,m_num(this, width, value) {
 	initWithV3Number();
+	checkNum();
     }
     AstConst(FileLine* fl, V3NumberConstructor, const char* sourcep)
 	:AstNodeMath(fl)
 	,m_num(this, sourcep) {
 	initWithV3Number();
+	checkNum();
     }
     AstConst(FileLine* fl, V3NumberConstructor, V3Number::VerilogStringLiteral literal, const string& str)
 	:AstNodeMath(fl)
 	,m_num(literal, this, str) {
 	initWithV3Number();
+	checkNum();
     }
     AstConst(FileLine* fl, uint32_t num)
 	:AstNodeMath(fl)
 	,m_num(V3Number(this,32,num)) { dtypeSetLogicSized(m_num.width(),
 							 m_num.sized()?0:m_num.widthMin(),
-							 AstNumeric::UNSIGNED); }
+							 AstNumeric::UNSIGNED);
+					checkNum(); }
     class Unsized32 {};  // for creator type-overload selection
     AstConst(FileLine* fl, Unsized32, uint32_t num)  // Unsized 32-bit integer of specified value
 	:AstNodeMath(fl)
 	,m_num(V3Number(this,32,num)) { m_num.width(32,false); dtypeSetLogicSized(32,m_num.widthMin(),
-										AstNumeric::UNSIGNED); }
+										AstNumeric::UNSIGNED);
+					checkNum(); }
     class Signed32 {};		// for creator type-overload selection
     AstConst(FileLine* fl, Signed32, int32_t num)  // Signed 32-bit integer of specified value
 	:AstNodeMath(fl)
 	,m_num(V3Number(this,32,num)) { m_num.width(32,32); dtypeSetLogicSized(32,m_num.widthMin(),
-									     AstNumeric::SIGNED); }
+									     AstNumeric::SIGNED);
+					checkNum(); }
     class RealDouble {};		// for creator type-overload selection
     AstConst(FileLine* fl, RealDouble, double num)
 	:AstNodeMath(fl)
-	,m_num(V3Number(this,64)) { m_num.setDouble(num); dtypeSetDouble(); }
+	,m_num(V3Number(this,64)) { m_num.setDouble(num); dtypeSetDouble(); checkNum(); }
     class String {};		// for creator type-overload selection
     AstConst(FileLine* fl, String, const string& num)
         :AstNodeMath(fl)
-	,m_num(V3Number(V3Number::String(), this, num)) { dtypeSetString(); }
+	,m_num(V3Number(V3Number::String(), this, num)) { dtypeSetString(); checkNum(); }
     class LogicFalse {};
     AstConst(FileLine* fl, LogicFalse) // Shorthand const 0, know the dtype should be a logic of size 1
 	:AstNodeMath(fl)
-	,m_num(V3Number(this,1,0)) { dtypeSetLogicBool(); }
+	,m_num(V3Number(this,1,0)) { dtypeSetLogicBool(); checkNum(); }
     class LogicTrue {};
     AstConst(FileLine* fl, LogicTrue) // Shorthand const 1, know the dtype should be a logic of size 1
 	:AstNodeMath(fl)
-	,m_num(V3Number(this,1,1)) { dtypeSetLogicBool(); }
+	,m_num(V3Number(this,1,1)) { dtypeSetLogicBool(); checkNum(); }
+    virtual void cloneRelink() { m_num.nodep(this); checkNum(); }
 
     ASTNODE_NODE_FUNCS(Const)
     virtual string name()	const { return num().ascii(); }		// * = Value

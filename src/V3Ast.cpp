@@ -78,6 +78,7 @@ void AstNode::init() {
     m_dtypep = NULL;
     m_clonep = NULL;
     m_cloneCnt = 0;
+    m_numsHead = NULL;
     // Attributes
     m_didWidth = false;
     m_doingWidth = false;
@@ -673,6 +674,9 @@ void AstNode::deleteNode() {
     this->m_nextp = reinterpret_cast<AstNode*>(0x1);
     this->m_backp = reinterpret_cast<AstNode*>(0x1);
     this->m_headtailp = reinterpret_cast<AstNode*>(0x1);
+    if (m_numsHead) {
+	m_numsHead->destroyNode();
+    }
     this->m_op1p = reinterpret_cast<AstNode*>(0x1);
     this->m_op2p = reinterpret_cast<AstNode*>(0x1);
     this->m_op3p = reinterpret_cast<AstNode*>(0x1);

@@ -41,6 +41,12 @@
 // Read class functions
 // CREATION
 
+// TODO -- remove
+void V3Number::ack() {
+    UINFO(1, "ACK_CHECKING "<<(void *)this<<" - "<<(void *)nodep()<<endl);
+        if (nodep() && nodep()->backp() && nodep()->backp() == reinterpret_cast<void *>(0x1)) abort(); // TODO -- remove
+}
+
 V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
     // Create a number using a verilog string as the value, thus 8 bits per character.
     // cppcheck bug - doesn't see init() resets these
@@ -270,6 +276,74 @@ V3Number::V3Number(AstNode* nodep, const char* sourcep, FileLine* fl) {
     opCleanThis(true);
 
     //printf("Dump \"%s\"  CP \"%s\"  B '%c' %d W %d\n", sourcep, value_startp, base, width(), m_value[0]);
+}
+
+void V3Number::checkListPtrs() {
+    UASSERT(m_nodeListNext != this, "next == this");
+    UASSERT(m_nodeListPrev != this, "prev == this");
+    // TODO -- remove
+    checkPrevForLoop(this);
+    checkNextForLoop(this);
+}
+
+void V3Number::checkPrevForLoop(V3Number* num) {
+    UASSERT(m_nodeListPrev != num, "Found loop in prev");
+    if (m_nodeListPrev) m_nodeListPrev->checkPrevForLoop(num);
+}
+
+void V3Number::checkNextForLoop(V3Number* num) {
+    UINFO(1, "CHECK NEXT "<<(void *)this<<" - "<<(void *)m_nodeListNext<<endl);
+    UASSERT(m_nodeListNext != num, "Found loop in next");
+    if (m_nodeListNext) m_nodeListNext->checkNextForLoop(num);
+}
+
+void V3Number::linkToNode() {
+    if (VL_UNLIKELY(!m_nodep))
+	return;
+
+    m_fileline = m_nodep->fileline();
+
+    // m_nodeListPrev == NULL means that the node's m_numsHead is pointing at this V3Number
+    m_nodeListPrev = NULL;
+    m_nodeListNext = m_nodep->numsHead();
+    if (m_nodeListNext) {
+	m_nodeListNext->listPrev(this);
+    }
+    m_nodep->numsHead(this);
+    checkListPtrs();
+    UINFO(1, "LINK NUMSHEAD "<<(void *)this<<" -- "<<(void *)m_nodep<<" : "<<(void *)m_nodeListNext<<endl); // TODO -- remove
+}
+
+void V3Number::removeFromNode() {
+    checkListPtrs();
+    if (VL_UNLIKELY(!m_nodep))
+	return;
+
+    if (m_nodeListPrev == NULL) {
+	m_nodep->numsHead(m_nodeListNext);
+    UINFO(1, "REMOVE NUMSHEAD "<<(void *)m_nodeListNext<<" -- "<<(void *)m_nodep<<endl); // TODO -- remove
+    } else {
+	m_nodeListPrev->listNext(m_nodeListPrev);
+    }
+    if (m_nodeListNext) {
+	m_nodeListNext->listPrev(m_nodeListPrev);
+    }
+
+    m_nodeListPrev = NULL;
+    m_nodeListNext = NULL;
+    m_nodep = NULL;
+}
+
+void V3Number::destroyNode() {
+    checkListPtrs();
+    UINFO(1, "DESTROY "<<(void *)this<<" - "<<(void*)m_nodeListNext<<endl); // TODO -- remove
+    if (m_nodeListNext) {
+	m_nodeListNext->destroyNode();
+    }
+
+    m_nodeListPrev = NULL;
+    m_nodeListNext = NULL;
+    m_nodep = NULL;
 }
 
 //======================================================================

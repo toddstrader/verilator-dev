@@ -1140,6 +1140,7 @@ class AstNode {
     AstNode*	m_clonep;	// Pointer to clone of/ source of this module (for *LAST* cloneTree() ONLY)
     int		m_cloneCnt;	// Mark of when userp was set
     static int	s_cloneCntGbl;	// Count of which userp is set
+    V3Number*	m_numsHead;	// List of number children
 
     // Attributes
     bool	m_didWidth:1;	// Did V3Width computation
@@ -1227,6 +1228,8 @@ public:
         return ((backp() && backp()->nextp()!=this) ? backp() : NULL); }
     bool	brokeExists() const;
     bool	brokeExistsAbove() const;
+    V3Number*	numsHead() { return m_numsHead; }
+    void	numsHead(V3Number* numsHead) { m_numsHead = numsHead; }
 
     // CONSTRUCTORS
     virtual ~AstNode();
