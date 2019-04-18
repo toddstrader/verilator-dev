@@ -1090,10 +1090,10 @@ void AstNode::v3errorEnd(std::ostringstream& str) const {
     const AstModule* modp;
 	const AstNodeVarRef* nvrp;
 	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
-        nsstr<<"("<<modp->hierName()<<") ";
+	    nsstr<<"(Location: "<<modp->hierName()<<") ";
 	    break;
 	} else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
-	    nsstr<<"("<<nvrp->prettyName()<<") ";
+	    nsstr<<"(Location: "<<nvrp->prettyName()<<") ";
 	    break;
 	}
 	backp = backp->backp();
