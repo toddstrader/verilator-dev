@@ -1091,7 +1091,10 @@ string AstNode::locationStr() const {
 	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
 	    return "(Location: " + modp->hierName() + ") ";
 	} else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
-	    return "(Location: " + nvrp->prettyName() + ") ";
+	    string prettyName = nvrp->prettyName();
+	    // VarRefs have not been flattened yet and do not contain location information
+	    if (prettyName != nvrp->name())
+		return "(Location: " + prettyName + ") ";
 	}
 	backp = backp->backp();
         }
