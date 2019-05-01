@@ -96,7 +96,7 @@ private:
     LongMap	m_longMap;	// Hash of very long names to unique identity number
     int		m_longId;
 
-    typedef std::map<AstNode*,int> ValueMap;
+    typedef std::map<string,int> ValueMap;
     typedef std::map<int,int> NextValueMap;
     ValueMap	m_valueMap;	// Hash of node to param value
     NextValueMap m_nextValueMap;// Hash of param value to next value to be used
@@ -152,19 +152,12 @@ private:
 	// Ideally would be relatively stable if design changes (not use pointer value),
 	// and must return same value given same input node
 	// Return must presently be numeric so doesn't collide with 'small' alphanumeric parameter names
-	ValueMap::iterator it = m_valueMap.find(nodep);
+	ValueMap::iterator it = m_valueMap.find(nodep->name());
 	if (it != m_valueMap.end()) {
 	    return cvtToStr(it->second);
 	} else {
-	    static int BUCKETS = 1000;
-	    V3Hash hash (nodep->name());
-	    int bucket = hash.hshval() % BUCKETS;
-	    int offset = 0;
-	    NextValueMap::iterator it = m_nextValueMap.find(bucket);
-	    if (it != m_nextValueMap.end()) { offset = it->second; it->second = offset + 1; }
-	    else { m_nextValueMap.insert(make_pair(bucket, offset + 1)); }
-	    int num = bucket + offset * BUCKETS;
-	    m_valueMap.insert(make_pair(nodep, num));
+	    int num = static_cast<int>(m_valueMap.size());
+	    m_valueMap.emplace(nodep->name(), num);
 	    // 'z' just to make sure we don't collide with a normal non-hashed number
             return string("z")+cvtToStr(num);
 	}
