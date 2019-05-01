@@ -210,6 +210,18 @@ typedef PLI_UINT32 *vpiHandle;
 #define vpiContAssignBit     128   /* Bit of a vector continuous assignment */
 #define vpiNamedEventArray   129   /* multidimensional named event */
 
+#define vpiInterface           601
+#define vpiInterfaceArray      603
+#define vpiModport             606
+#define vpiRefObj              608
+#define vpiIntVar              612
+#define vpiEnumVar             617
+#define vpiStructVar           618
+#define vpiPackedArrayVar      623
+#define vpiEnumNet             680  /* SystemVerilog */
+#define vpiIntegerNet          681
+#define vpiStructNet           683
+
 /********************** object types added with 1364-2005 *********************/
 
 #define vpiIndexedPartSelect 130   /* Indexed part-select object */

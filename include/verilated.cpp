@@ -1779,7 +1779,7 @@ void Verilated::scopesDump() VL_MT_SAFE {
     VerilatedImp::scopesDump();
 }
 
-const VerilatedScope* Verilated::scopeFind(const char* namep) VL_MT_SAFE {
+VerilatedScope* Verilated::scopeFind(const char* namep) VL_MT_SAFE {
     return VerilatedImp::scopeFind(namep);
 }
 
@@ -1967,6 +1967,9 @@ VerilatedScope::VerilatedScope() {
     m_funcnumMax = 0;
     m_symsp = NULL;
     m_varsp = NULL;
+    m_localName = NULL;
+    m_children = new std::vector<VerilatedScope*>();
+    m_ownedScopes = NULL;
 }
 
 VerilatedScope::~VerilatedScope() {
@@ -1976,6 +1979,15 @@ VerilatedScope::~VerilatedScope() {
     if (m_callbacksp) { delete [] m_callbacksp; m_callbacksp = NULL; }
     if (m_varsp) { delete m_varsp; m_varsp = NULL; }
     m_funcnumMax = 0;  // Force callback table to empty
+
+    if (m_ownedScopes) {
+        for (int i = 0; i < m_ownedScopes->size(); i++)
+            delete (*m_ownedScopes)[i];
+        delete m_ownedScopes;
+    }
+
+    free((void*)m_localName);
+    delete m_children;
 }
 
 void VerilatedScope::configure(VerilatedSyms* symsp, const char* prefixp, const char* suffixp) VL_MT_UNSAFE {
@@ -1987,7 +1999,33 @@ void VerilatedScope::configure(VerilatedSyms* symsp, const char* prefixp, const 
     if (*prefixp && *suffixp) strcat(namep,".");
     strcat(namep, suffixp);
     m_namep = namep;
+
     VerilatedImp::scopeInsert(this);
+
+    // also insert intermediate scopes so we can walk down to the object
+    const char* dot = strrchr(namep, '.');
+    if (dot) {
+        int offset = dot - namep;
+        char* dup = strdup(namep);
+        dup[offset] = '\0';
+
+        VerilatedScope* scope = VerilatedImp::scopeFind(dup);
+        if (!scope) {
+            scope = new VerilatedScope();
+            if (!m_ownedScopes)
+                m_ownedScopes = new std::vector<VerilatedScope*>();
+            m_ownedScopes->push_back(scope);
+            scope->configure(NULL, "", dup);
+        }
+        free(dup);
+
+        // insert ourselves into our parent so we can be iterated
+        scope->children().push_back(this);
+        m_localName = strdup(dot+1);
+    }
+    else {
+        m_localName = strdup(namep);
+    }
 }
 
 void VerilatedScope::exportInsert(int finalize, const char* namep, void* cb) VL_MT_UNSAFE {

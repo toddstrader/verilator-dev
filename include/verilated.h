@@ -36,6 +36,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 // <iostream> avoided to reduce compile time
 // <map> avoided and instead in verilated_heavy.h to reduce compile time
 // <string> avoided and instead in verilated_heavy.h to reduce compile time
@@ -297,6 +298,9 @@ class VerilatedScope {
     // 4 bytes padding (on -m64), for rent.
     VerilatedVarNameMap* m_varsp;	///< Variable map
     const char* 	m_namep;	///< Scope name (Slowpath)
+    const char*     m_localName;
+    std::vector<VerilatedScope*>* m_children;
+    std::vector<VerilatedScope*>* m_ownedScopes;
 
 public:  // But internals only - called from VerilatedModule's
     VerilatedScope();
@@ -322,6 +326,11 @@ public:  // But internals only - called from VerilatedModule's
 	    return scopep->exportFindError(funcnum);
 	}
     }
+
+    const char* localName() const { return m_localName; }
+
+    std::vector<VerilatedScope*>& children() { return *m_children; }
+    const std::vector<VerilatedScope*>& children() const { return *m_children; }
 };
 
 //===========================================================================
@@ -474,7 +483,7 @@ public:
     static void overWidthError(const char* signame) VL_MT_SAFE;
 
     // Internal: Find scope
-    static const VerilatedScope* scopeFind(const char* namep) VL_MT_SAFE;
+    static VerilatedScope* scopeFind(const char* namep) VL_MT_SAFE;
     static const VerilatedScopeNameMap* scopeNameMap() VL_MT_SAFE;
 
     // Internal: Get and set DPI context

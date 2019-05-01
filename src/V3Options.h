@@ -128,6 +128,7 @@ class V3Options {
     bool        m_profCFuncs;   // main switch: --prof-cfuncs
     bool        m_profThreads;  // main switch: --prof-threads
     bool	m_public;	// main switch: --public
+    bool	m_publicParams = true;	// main switch: --public-params
     bool	m_relativeCFuncs; // main switch: --relative-cfuncs
     bool	m_relativeIncludes; // main switch: --relative-includes
     bool	m_reportUnoptflat; // main switch: --report-unoptflat
@@ -301,6 +302,7 @@ class V3Options {
     bool profCFuncs() const { return m_profCFuncs; }
     bool profThreads() const { return m_profThreads; }
     bool allPublic() const { return m_public; }
+    bool publicParams() const { return m_publicParams; }
     bool lintOnly() const { return m_lintOnly; }
     bool ignc() const { return m_ignc; }
     bool inhibitSim() const { return m_inhibitSim; }

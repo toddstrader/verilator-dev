@@ -49,7 +49,7 @@ struct VerilatedCStrCmp {
 
 /// Map of sorted scope names to find associated scope class
 class VerilatedScopeNameMap
-    : public std::map<const char*, const VerilatedScope*, VerilatedCStrCmp> {
+    : public std::map<const char*, VerilatedScope*, VerilatedCStrCmp> {
 public:
     VerilatedScopeNameMap() {}
     ~VerilatedScopeNameMap() {}

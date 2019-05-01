@@ -47,6 +47,10 @@ public:
     static void callValueCbs() VL_MT_UNSAFE_ONE;
     /// Self test, for internal use only
     static void selfTest() VL_MT_UNSAFE_ONE;
+
+    static void callCbs(vluint32_t reason);
+
+    static void* getVarPointer(vpiHandle vh);
 };
 
 #endif  // Guard

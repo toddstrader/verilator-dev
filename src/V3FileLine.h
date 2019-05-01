@@ -115,6 +115,7 @@ public:
 #endif
 
     int lineno() const { return m_lineno; }
+    int filenameno() const { return m_filenameno; }
     V3LangCode language() const { return singleton().numberToLang(m_filenameno); }
     string ascii() const;
     const string filename() const { return singleton().numberToName(m_filenameno); }
@@ -171,6 +172,6 @@ private:
 };
 std::ostream& operator<<(std::ostream& os, FileLine* fileline);
 
-inline void FileLine::v3errorEndFatal(std::ostringstream& str) { v3errorEnd(str); assert(0); }
+inline void FileLine::v3errorEndFatal(std::ostringstream& str) { v3errorEnd(str); assert(0); __builtin_unreachable(); }
 
 #endif // Guard

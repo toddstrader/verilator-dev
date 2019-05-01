@@ -189,6 +189,17 @@ private:
 	    m_modp->modTrace(false);
 	    nodep->trace(false);
 	}
+
+    // If this is a parameter, mark it automatically as readable
+    if (nodep->isParam() && v3Global.opt.publicParams())
+        nodep->sigUserRdPublic(true);
+    else {
+        // if we're in a top level module just automatically mark
+        // everything as public for convenience.
+        if (nodep->isSignal() && m_modp->level() <= 2)
+            nodep->sigUserRWPublic(true);
+    }
+
 	m_varp = nodep;
         iterateChildren(nodep);
 	m_varp = NULL;
