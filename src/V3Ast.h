@@ -1290,6 +1290,7 @@ public:
     bool didWidthAndSet() { if (didWidth()) return true; didWidth(true); return false; }
     void doingWidth(bool flag) { m_doingWidth = flag; }
     bool doingWidth() const { return m_doingWidth; }
+    string	locationStr() const;
 
     //TODO stomp these width functions out, and call via dtypep() instead
     int width() const;

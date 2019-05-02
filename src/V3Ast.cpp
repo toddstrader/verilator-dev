@@ -1083,21 +1083,23 @@ void AstNode::v3errorEndFatal(std::ostringstream& str) const {
     v3errorEnd(str); assert(0); VL_UNREACHABLE
 }
 
-void AstNode::v3errorEnd(std::ostringstream& str) const {
-    std::ostringstream nsstr;
+string AstNode::locationStr() const {
     const AstNode* backp = this;
     while (backp) {
     const AstModule* modp;
 	const AstNodeVarRef* nvrp;
 	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
-	    nsstr<<"(Location: "<<modp->hierName()<<") ";
-	    break;
+	    return "(Location: " + modp->hierName() + ") ";
 	} else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
-	    nsstr<<"(Location: "<<nvrp->prettyName()<<") ";
-	    break;
+	    return "(Location: " + nvrp->prettyName() + ") ";
 	}
 	backp = backp->backp();
         }
+    return "";
+}
+void AstNode::v3errorEnd(std::ostringstream& str) const {
+    std::ostringstream nsstr;
+    nsstr<<locationStr();
         nsstr<<str.str();
 
     if (!m_fileline) {
