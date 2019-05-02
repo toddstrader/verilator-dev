@@ -274,6 +274,7 @@ void V3Number::setNames(AstNode* nodep) {
         return;
 
     m_fileline = nodep->fileline();
+    m_hierName = nodep->locationStr();
 }
 
 //======================================================================
