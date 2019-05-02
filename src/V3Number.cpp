@@ -291,6 +291,7 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 void V3Number::setNames(AstNode* nodep) {
     if (!nodep) return;
     m_fileline = nodep->fileline();
+    m_hierName = nodep->locationStr();
 }
 
 //======================================================================
