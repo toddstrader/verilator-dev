@@ -2002,7 +2002,7 @@ private:
 			if (argp) {
 			    AstNode* nextp=argp->nextp();
                             if (argp && VN_IS(argp, Const)) {  // Convert it
-                                string out = VN_CAST(argp, Const)->num().displayed(fmt);
+                                string out = VN_CAST(argp, Const)->num().displayed(nodep->fileline(), fmt);
 				UINFO(9,"     DispConst: "<<fmt<<" -> "<<out<<"  for "<<argp<<endl);
 				// fmt = out w/ replace % with %% as it must be literal.
 				fmt = VString::quotePercent(out);

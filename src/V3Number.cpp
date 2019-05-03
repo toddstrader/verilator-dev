@@ -57,7 +57,7 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
     opCleanThis(true);
 }
 
-V3Number::V3Number(AstNode* nodep, const char* sourcep, FileLine* fl) {
+void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl) {
     init(nodep, 0);
     m_fileline = fl;
     const char* value_startp = sourcep;
@@ -413,12 +413,12 @@ string V3Number::ascii(bool prefixed, bool cleanVerilog) const {
 
     if (binary) {
 	out<<"b";
-	out<<displayed("%0b");
+	out<<displayed(m_fileline, "%0b");
     }
     else {
 	if (prefixed) out<<"h";
 	// Always deal with 4 bits at once.  Note no 4-state, it's above.
-	out<<displayed("%0h");
+	out<<displayed(m_fileline, "%0h");
     }
     return out.str();
 }
@@ -472,7 +472,7 @@ bool V3Number::displayedFmtLegal(char format) {
     }
 }
 
-string V3Number::displayed(const string& vformat) const {
+string V3Number::displayed(FileLine*fl, const string& vformat) const {
     string::const_iterator pos = vformat.begin();
     UASSERT(pos != vformat.end() && pos[0]=='%', "$display-like function with non format argument "<<*this);
     ++pos;
@@ -517,7 +517,7 @@ string V3Number::displayed(const string& vformat) const {
 	return str;
     }
     case 'c': {
-	if (this->width()>8) V3NumberWarn(WIDTH,"$display-like format of %c format of > 8 bit value");
+	if (this->width()>8) fl->v3warn(WIDTH, m_hierName<<"$display-like format of %c format of > 8 bit value");
 	unsigned int v = bitsValue(0, 8);
 	char strc[2]; strc[0] = v&0xff; strc[1] = '\0';
 	str = strc;
@@ -616,7 +616,7 @@ string V3Number::displayed(const string& vformat) const {
 	return toString();
     }
     default:
-	V3NumberFatalSrc("Unknown $display-like format code for number: %"<<pos[0]);
+	fl->v3fatalSrc(m_hierName<<"Unknown $display-like format code for number: %"<<pos[0]);
 	return "ERR";
     }
 }
@@ -1685,7 +1685,7 @@ void V3Number::opCleanThis(bool warnOnTruncation) {
     uint32_t newValueXMsb = m_valueX[words()-1] & hiWordMask();
     if (warnOnTruncation && (newValueMsb != m_value[words()-1] || newValueXMsb != m_valueX[words()-1])) {
 	// Displaying in decimal avoids hiWordMask truncation
-	V3NumberWarn(WIDTH,"Value too large for "<<width()<<" bit number: "<<displayed("%d"));
+	V3NumberWarn(WIDTH,"Value too large for "<<width()<<" bit number: "<<displayed(m_fileline, "%d"));
     }
     m_value[words()-1]  = newValueMsb;
     m_valueX[words()-1] = newValueXMsb;

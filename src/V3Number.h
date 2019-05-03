@@ -137,7 +137,9 @@ public:
     explicit V3Number(AstNode* nodep) { init(nodep, 1); }
     V3Number(AstNode* nodep, int width) { init(nodep, width); }  // 0=unsized
     V3Number(AstNode* nodep, int width, uint32_t value) { init(nodep, width); m_value[0]=value; opCleanThis(); }
-    V3Number(AstNode* nodep, const char* sourcep, FileLine* fl = nullptr);  // Create from a verilog 32'hxxxx number.
+    // Create from a verilog 32'hxxxx number.
+    V3Number(AstNode* nodep, const char* sourcep) { V3NumberCreate(nodep, sourcep, NULL); }
+    V3Number(const char* sourcep, FileLine* fl) { V3NumberCreate(NULL, sourcep, fl); }
     class VerilogStringLiteral {};  // For creator type-overload selection
     V3Number(VerilogStringLiteral, AstNode* nodep, const string& str);
     class String {};
@@ -156,6 +158,7 @@ public:
     }
 
 private:
+    void V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl);
     void init(AstNode* nodep, int swidth) {
 	setNames(nodep);
 	m_signed = false;
@@ -189,7 +192,7 @@ public:
     // ACCESSORS
     string ascii(bool prefixed=true, bool cleanVerilog=false) const;
     static string quoteNameControls(const string& namein); // Add backslash quotes to strings
-    string displayed(const string& vformat) const;
+    string displayed(FileLine* fl, const string& vformat) const;
     static bool displayedFmtLegal(char format);  // Is this a valid format letter?
     int width() const { return m_width; }
     int widthMin() const;	// Minimum width that can represent this number (~== log2(num)+1)
