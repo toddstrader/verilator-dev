@@ -170,6 +170,10 @@ private:
 	for (int i=0; i<words(); i++) m_value[i]=m_valueX[i] = 0;
     }
     void setNames(AstNode* nodep);
+    string displayed(FileLine* fl, const string& hierName, const string& vformat) const;
+    string displayed(const string& vformat) const {
+        return displayed(m_fileline, m_hierName, vformat);
+    }
 public:
     void width(int width, bool sized=true) {
 	// Set width.  Only set m_width here, as we need to tweak vector size
@@ -192,7 +196,7 @@ public:
     // ACCESSORS
     string ascii(bool prefixed=true, bool cleanVerilog=false) const;
     static string quoteNameControls(const string& namein); // Add backslash quotes to strings
-    string displayed(FileLine* fl, const string& vformat) const;
+    string displayed(AstNode* nodep, const string& vformat) const;
     static bool displayedFmtLegal(char format);  // Is this a valid format letter?
     int width() const { return m_width; }
     int widthMin() const;	// Minimum width that can represent this number (~== log2(num)+1)

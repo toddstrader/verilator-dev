@@ -3988,7 +3988,7 @@ void V3ParseGrammar::argWrapList(AstNodeFTaskRef* nodep) {
 
 AstNode* V3ParseGrammar::createSupplyExpr(FileLine* fileline, string name, int value) {
     return new AstAssignW(fileline, new AstVarRef(fileline, name, true),
-                          new AstConst(fileline, AstConst::StringToParse(), value ? "'1" : "'0"));
+                          new AstConst(fileline, AstConst::StringToParse(), (value ? "'1" : "'0")));
 }
 
 AstRange* V3ParseGrammar::scrubRange(AstNodeRange* nrangep) {

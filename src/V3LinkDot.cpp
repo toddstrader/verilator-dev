@@ -631,7 +631,7 @@ class LinkDotFindVisitor : public AstNVisitor {
             if ((v != 0) && (endp[0] == 0)) { // C literal
                 return new AstConst(fl, AstConst::WidthedValue(), 32, v);
             } else { // Try a Verilog literal (fatals if not)
-                return new AstConst(fl, AstConst::VerilogStringLiteral(), literal.c_str());
+                return new AstConst(fl, AstConst::StringToParse(), literal.c_str());
             }
         }
 	return NULL;
