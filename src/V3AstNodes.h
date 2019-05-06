@@ -61,35 +61,27 @@ private:
         }
     }
 public:
-    class V3NumberConstructor {};
     AstConst(FileLine* fl, const V3Number& num)
 	:AstNodeMath(fl)
         ,m_num(num) {
         initWithV3Number();
     }
-    AstConst(FileLine* fl, V3NumberConstructor)
-	:AstNodeMath(fl)
-        ,m_num(this) {
-        initWithV3Number();
-    }
-    AstConst(FileLine* fl, V3NumberConstructor, int width)
-	:AstNodeMath(fl)
-        ,m_num(this, width) {
-        initWithV3Number();
-    }
-    AstConst(FileLine* fl, V3NumberConstructor, int width, uint32_t value)
+    class WidthedValue {};  // for creator type-overload selection
+    AstConst(FileLine* fl, WidthedValue, int width, uint32_t value)
 	:AstNodeMath(fl)
         ,m_num(this, width, value) {
         initWithV3Number();
     }
-    AstConst(FileLine* fl, V3NumberConstructor, const char* sourcep)
+    class StringToParse {};  // for creator type-overload selection
+    AstConst(FileLine* fl, StringToParse, const char* sourcep)
 	:AstNodeMath(fl)
         ,m_num(this, sourcep) {
         initWithV3Number();
     }
-    AstConst(FileLine* fl, V3NumberConstructor, V3Number::VerilogStringLiteral literal, const string& str)
+    class VerilogStringLiteral {};  // for creator type-overload selection
+    AstConst(FileLine* fl, VerilogStringLiteral, const string& str)
 	:AstNodeMath(fl)
-        ,m_num(literal, this, str) {
+        ,m_num(V3Number::VerilogStringLiteral(), this, str) {
         initWithV3Number();
     }
     AstConst(FileLine* fl, uint32_t num)
