@@ -297,6 +297,7 @@ class VerilatedScope {
     // 4 bytes padding (on -m64), for rent.
     VerilatedVarNameMap* m_varsp;	///< Variable map
     const char* 	m_namep;	///< Scope name (Slowpath)
+    const char*     m_localName;
 
 public:  // But internals only - called from VerilatedModule's
     VerilatedScope();
@@ -322,6 +323,8 @@ public:  // But internals only - called from VerilatedModule's
 	    return scopep->exportFindError(funcnum);
 	}
     }
+
+    const char* localName() const { return m_localName; }
 };
 
 //===========================================================================

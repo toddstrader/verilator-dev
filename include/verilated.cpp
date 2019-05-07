@@ -1967,6 +1967,7 @@ VerilatedScope::VerilatedScope() {
     m_funcnumMax = 0;
     m_symsp = NULL;
     m_varsp = NULL;
+    m_localName = NULL;
 }
 
 VerilatedScope::~VerilatedScope() {
@@ -1976,6 +1977,8 @@ VerilatedScope::~VerilatedScope() {
     if (m_callbacksp) { delete [] m_callbacksp; m_callbacksp = NULL; }
     if (m_varsp) { delete m_varsp; m_varsp = NULL; }
     m_funcnumMax = 0;  // Force callback table to empty
+
+    free((void*)m_localName);
 }
 
 void VerilatedScope::configure(VerilatedSyms* symsp, const char* prefixp, const char* suffixp) VL_MT_UNSAFE {
@@ -1987,6 +1990,7 @@ void VerilatedScope::configure(VerilatedSyms* symsp, const char* prefixp, const 
     if (*prefixp && *suffixp) strcat(namep,".");
     strcat(namep, suffixp);
     m_namep = namep;
+
     VerilatedImp::scopeInsert(this);
 }
 
