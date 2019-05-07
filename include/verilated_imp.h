@@ -284,12 +284,12 @@ private:
 
 public:  // But only for verilated*.cpp
     // METHODS - scope name
-    static void scopeInsert(const VerilatedScope* scopep) VL_MT_SAFE {
+    static void scopeInsert(VerilatedScope* scopep) VL_MT_SAFE {
 	// Slow ok - called once/scope at construction
 	VerilatedLockGuard lock(s_s.m_nameMutex);
 	   s_s.m_nameMap[scopep->name()] = scopep;
     }
-    static inline const VerilatedScope* scopeFind(const char* namep) VL_MT_SAFE {
+    static inline VerilatedScope* scopeFind(const char* namep) VL_MT_SAFE {
 	VerilatedLockGuard lock(s_s.m_nameMutex);  // If too slow, can assume this is only VL_MT_SAFE_POSINIT
 	VerilatedScopeNameMap::iterator it=s_s.m_nameMap.find(namep);
 	if (VL_LIKELY(it != s_s.m_nameMap.end())) return it->second;
