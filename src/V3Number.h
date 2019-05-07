@@ -41,7 +41,6 @@ class V3Number {
     bool	m_isString:1;	// True if string
     bool	m_fromString:1;	// True if from string literal
     bool	m_autoExtend:1;	// True if SystemVerilog extend-to-any-width
-    string	m_hierName;	// Module hierarchy for errors/warnings
     FileLine*	m_fileline;
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
@@ -53,7 +52,6 @@ class V3Number {
 public:
     void nodep(AstNode* nodep) { setNames(nodep); }
     FileLine*	fileline() const { return m_fileline; };
-    const string&	hierName() const { return m_hierName; }
     V3Number& setZero();
     V3Number& setQuad(vluint64_t value);
     V3Number& setLong(uint32_t value);
@@ -146,14 +144,12 @@ public:
     V3Number(String, AstNode* nodep, const string& value) { init(nodep, 0); setString(value); }
     V3Number(const V3Number* nump, int width = 1) {
         init(NULL, width);
-        m_hierName = nump->hierName();
         m_fileline = nump->fileline();
     }
     V3Number(const V3Number* nump, int width, uint32_t value) {
         init(NULL, width);
         m_value[0]=value;
         opCleanThis();
-        m_hierName = nump->hierName();
         m_fileline = nump->fileline();
     }
 
@@ -170,9 +166,9 @@ private:
 	for (int i=0; i<words(); i++) m_value[i]=m_valueX[i] = 0;
     }
     void setNames(AstNode* nodep);
-    string displayed(FileLine* fl, const string& hierName, const string& vformat) const;
+    string displayed(FileLine* fl, const string& vformat) const;
     string displayed(const string& vformat) const {
-        return displayed(m_fileline, m_hierName, vformat);
+        return displayed(m_fileline, vformat);
     }
     void v3errorEnd(std::ostringstream& sstr);
 public:

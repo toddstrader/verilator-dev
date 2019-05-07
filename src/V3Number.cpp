@@ -468,10 +468,10 @@ bool V3Number::displayedFmtLegal(char format) {
     }
 }
 string V3Number::displayed(AstNode* nodep, const string& vformat) const {
-    return displayed(nodep->fileline(), "", vformat);
+    return displayed(nodep->fileline(), vformat);
 }
 
-string V3Number::displayed(FileLine*fl, const string& hierName, const string& vformat) const {
+string V3Number::displayed(FileLine*fl, const string& vformat) const {
     string::const_iterator pos = vformat.begin();
     UASSERT(pos != vformat.end() && pos[0]=='%', "$display-like function with non format argument "<<*this);
     ++pos;
@@ -516,7 +516,7 @@ string V3Number::displayed(FileLine*fl, const string& hierName, const string& vf
 	return str;
     }
     case 'c': {
-	if (this->width()>8) fl->v3warn(WIDTH, hierName<<"$display-like format of %c format of > 8 bit value");
+	if (this->width()>8) fl->v3warn(WIDTH, "$display-like format of %c format of > 8 bit value");
 	unsigned int v = bitsValue(0, 8);
 	char strc[2]; strc[0] = v&0xff; strc[1] = '\0';
 	str = strc;
@@ -615,7 +615,7 @@ string V3Number::displayed(FileLine*fl, const string& hierName, const string& vf
 	return toString();
     }
     default:
-	fl->v3fatalSrc(hierName<<"Unknown $display-like format code for number: %"<<pos[0]);
+	fl->v3fatalSrc("Unknown $display-like format code for number: %"<<pos[0]);
 	return "ERR";
     }
 }
@@ -1859,6 +1859,6 @@ V3Number& V3Number::opLteN(const V3Number& lhs, const V3Number& rhs) {
 }
 void V3Number::v3errorEnd(std::ostringstream& sstr) {
     std::ostringstream nsstr;
-    nsstr<<m_hierName<<sstr.str();
+    nsstr<<sstr.str();
     m_fileline->v3errorEnd(nsstr);
 }
