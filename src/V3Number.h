@@ -174,6 +174,7 @@ private:
     string displayed(const string& vformat) const {
         return displayed(m_fileline, m_hierName, vformat);
     }
+    void v3errorEnd(std::ostringstream& sstr);
 public:
     void width(int width, bool sized=true) {
 	// Set width.  Only set m_width here, as we need to tweak vector size

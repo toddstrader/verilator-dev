@@ -32,10 +32,6 @@
 
 #define MAX_SPRINTF_DOUBLE_SIZE 100  // Maximum characters with a sprintf %e/%f/%g (probably < 30)
 
-#define V3NumberError(msg) m_fileline->v3error(m_hierName<<msg);
-#define V3NumberWarn(code,msg) m_fileline->v3warn(code, m_hierName<<msg);
-#define V3NumberFatalSrc(msg) m_fileline->v3fatalSrc(m_hierName<<msg);
-
 //######################################################################
 // Read class functions
 // CREATION
@@ -145,11 +141,11 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 		    product.opMul(*this,ten);
 		    this->opAdd(product,addend);
 		    if (product.bitsValue(width(), 4)) {  // Overflowed
-			V3NumberError("Too many digits for "<<width()<<" bit number: "<<sourcep);
+			v3error("Too many digits for "<<width()<<" bit number: "<<sourcep);
 			if (!m_sized) {
 			    static int warned = false;
 			    if (!warned++) {
-				V3NumberError("As that number was unsized ('d...) it is limited to 32 bits (IEEE 2017 5.7.1)");
+				v3error("As that number was unsized ('d...) it is limited to 32 bits (IEEE 2017 5.7.1)");
 			    }
 			}
 			while (*(cp+1)) cp++;  // Skip ahead so don't get multiple warnings
@@ -171,13 +167,13 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
             }
 	    case '_': break;
 	    default: {
-		V3NumberError("Illegal character in decimal constant: "<<*cp);
+		v3error("Illegal character in decimal constant: "<<*cp);
 		break;
 	    }
 	    }
 	}
 	obit = width();
-	if ((got_01+got_x+got_z)>1) V3NumberError("Mixing X/Z/? with digits not legal in decimal constant: "<<value_startp);
+	if ((got_01+got_x+got_z)>1) v3error("Mixing X/Z/? with digits not legal in decimal constant: "<<value_startp);
     }
     else {
 	// Convert bin/octal number to hex
@@ -185,7 +181,7 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
              cp >= value_startp;
              cp--) {
 	    if (*cp!='_' && *cp!='0' && obit>=width()) {
-		V3NumberError("Too many digits for "<<width()<<" bit number: "<<sourcep);
+		v3error("Too many digits for "<<width()<<" bit number: "<<sourcep);
 		break;
 	    }
 	    switch(tolower(base)) {
@@ -197,7 +193,7 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 		case 'x': setBit(obit++, 'x'); break;
 		case '_': break;
 		default:
-		    V3NumberError("Illegal character in binary constant: "<<*cp);
+		    v3error("Illegal character in binary constant: "<<*cp);
 		}
 	    break;
 	    }
@@ -219,7 +215,7 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 		    setBit(obit++, 'x'); setBit(obit++, 'x');  setBit(obit++, 'x');  break;
 		case '_': break;
 		default:
-		    V3NumberError("Illegal character in octal constant");
+		    v3error("Illegal character in octal constant");
 		}
 		break;
 	    }
@@ -248,12 +244,12 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 		    setBit(obit++,'x'); setBit(obit++,'x'); setBit(obit++,'x'); setBit(obit++,'x'); break;
 		case '_':  break;
 		default:
-		    V3NumberError("Illegal character in hex constant: "<<*cp);
+		    v3error("Illegal character in hex constant: "<<*cp);
 		}
 		break;
 	    }
 	    default:
-		V3NumberError("Illegal base character: "<<base);
+		v3error("Illegal base character: "<<base);
 	    }
 	}
     }
@@ -315,7 +311,7 @@ V3Number& V3Number::setLongS(vlsint32_t value) {
 }
 V3Number& V3Number::setDouble(double value) {
     if (VL_UNLIKELY(width()!=64)) {
-	V3NumberFatalSrc("Real operation on wrong sized number");
+	v3fatalSrc("Real operation on wrong sized number");
     }
     m_double = true;
     union { double d; uint32_t u[2]; } u;
@@ -689,10 +685,10 @@ uint32_t V3Number::toUInt() const {
 
 double V3Number::toDouble() const {
     if (VL_UNLIKELY(!isDouble())) {
-	V3NumberFatalSrc("Real conversion on non-real number");
+	v3fatalSrc("Real conversion on non-real number");
     }
     if (VL_UNLIKELY(width()!=64)) {
-	V3NumberFatalSrc("Real operation on wrong sized number");
+	v3fatalSrc("Real operation on wrong sized number");
     }
     union { double d; uint32_t u[2]; } u;
     u.u[0] = m_value[0]; u.u[1] = m_value[1];
@@ -1036,7 +1032,7 @@ V3Number& V3Number::opConcat(const V3Number& lhs, const V3Number& rhs) {
     setZero();
     // See also error in V3Width
     if (!lhs.sized() || !rhs.sized()) {
-	V3NumberWarn(WIDTHCONCAT,"Unsized numbers/parameters not allowed in concatenations.");
+	v3warn(WIDTHCONCAT,"Unsized numbers/parameters not allowed in concatenations.");
     }
     int obit = 0;
     for(int bit=0; bit<rhs.width(); bit++) {
@@ -1058,14 +1054,14 @@ V3Number& V3Number::opLenN(const V3Number& lhs) {
 V3Number& V3Number::opRepl(const V3Number& lhs, const V3Number& rhs) {  // rhs is # of times to replicate
     // Hopefully the using routine has a error check too.
     // See also error in V3Width
-    if (!lhs.sized()) V3NumberWarn(WIDTHCONCAT,"Unsized numbers/parameters not allowed in replications.");
+    if (!lhs.sized()) v3warn(WIDTHCONCAT,"Unsized numbers/parameters not allowed in replications.");
     return opRepl(lhs, rhs.toUInt());
 }
 
 V3Number& V3Number::opRepl(const V3Number& lhs, uint32_t rhsval) {  // rhs is # of times to replicate
     // i op repl, L(i)*value(rhs) bit return
     setZero();
-    if (rhsval>8192) V3NumberWarn(WIDTHCONCAT,"More than a 8k bit replication is probably wrong: "<<rhsval);
+    if (rhsval>8192) v3warn(WIDTHCONCAT,"More than a 8k bit replication is probably wrong: "<<rhsval);
     int obit = 0;
     for (unsigned times=0; times<rhsval; times++) {
 	for(int bit=0; bit<lhs.width(); bit++) {
@@ -1080,7 +1076,7 @@ V3Number& V3Number::opStreamL(const V3Number& lhs, const V3Number& rhs) {
     setZero();
     // See also error in V3Width
     if (!lhs.sized()) {
-	V3NumberWarn(WIDTHCONCAT,"Unsized numbers/parameters not allowed in streams.");
+	v3warn(WIDTHCONCAT,"Unsized numbers/parameters not allowed in streams.");
     }
     // Slice size should never exceed the lhs width
     int ssize = std::min(rhs.toUInt(), static_cast<unsigned>(lhs.width()));
@@ -1688,7 +1684,7 @@ void V3Number::opCleanThis(bool warnOnTruncation) {
     uint32_t newValueXMsb = m_valueX[words()-1] & hiWordMask();
     if (warnOnTruncation && (newValueMsb != m_value[words()-1] || newValueXMsb != m_valueX[words()-1])) {
 	// Displaying in decimal avoids hiWordMask truncation
-	V3NumberWarn(WIDTH,"Value too large for "<<width()<<" bit number: "<<displayed("%d"));
+	v3warn(WIDTH,"Value too large for "<<width()<<" bit number: "<<displayed("%d"));
     }
     m_value[words()-1]  = newValueMsb;
     m_valueX[words()-1] = newValueXMsb;
@@ -1771,7 +1767,7 @@ V3Number& V3Number::opRToIRoundS(const V3Number& lhs) {
 V3Number& V3Number::opRealToBits(const V3Number& lhs) {
     // Conveniently our internal format is identical so we can copy bits...
     if (lhs.width()!=64 || this->width()!=64) {
-	V3NumberFatalSrc("Real operation on wrong sized number");
+	v3fatalSrc("Real operation on wrong sized number");
     }
     opAssign(lhs);
     m_double = false;
@@ -1780,7 +1776,7 @@ V3Number& V3Number::opRealToBits(const V3Number& lhs) {
 V3Number& V3Number::opBitsToRealD(const V3Number& lhs) {
     // Conveniently our internal format is identical so we can copy bits...
     if (lhs.width()!=64 || this->width()!=64) {
-	V3NumberFatalSrc("Real operation on wrong sized number");
+	v3fatalSrc("Real operation on wrong sized number");
     }
     opAssign(lhs);
     m_double = true;
@@ -1860,4 +1856,9 @@ V3Number& V3Number::opLtN(const V3Number& lhs, const V3Number& rhs) {
 }
 V3Number& V3Number::opLteN(const V3Number& lhs, const V3Number& rhs) {
     return setSingleBits(lhs.toString() <= rhs.toString());
+}
+void V3Number::v3errorEnd(std::ostringstream& sstr) {
+    std::ostringstream nsstr;
+    nsstr<<m_hierName<<sstr.str();
+    m_fileline->v3errorEnd(nsstr);
 }
