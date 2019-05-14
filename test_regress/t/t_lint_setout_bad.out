@@ -1,2 +1,3 @@
-%Error-PORTSHORT: t/t_lint_setout_bad.v:16: (Location: t) Output port is connected to a constant pin, electrical short
+%Error-PORTSHORT: t/t_lint_setout_bad.v:16: Output port is connected to a constant pin, electrical short
+%Error-PORTSHORT:                         : In instance t
 %Error: Exiting due to

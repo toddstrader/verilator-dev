@@ -1,4 +1,5 @@
-%Error: t/t_gen_missing.v:42: (Location: t.foobar) Cannot find file containing module: foo_not_needed
+%Error: t/t_gen_missing.v:42: Cannot find file containing module: foo_not_needed
+%Error:                     : In instance t.foobar
 %Error: t/t_gen_missing.v:42: Looked in:
 %Error: t/t_gen_missing.v:42:       t/foo_not_needed
 %Error: t/t_gen_missing.v:42:       t/foo_not_needed.v
