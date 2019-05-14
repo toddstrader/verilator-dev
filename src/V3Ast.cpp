@@ -1086,6 +1086,19 @@ void AstNode::v3errorEndFatal(std::ostringstream& str) const {
 string AstNode::locationStr() const {
     const AstNode* backp = this;
     while (backp) {
+        const AstScope* scopep;
+        if ((scopep = VN_CAST_CONST(backp, Scope))) {
+            // The design is flattened and there are no useful scopes
+            // This is probably because of inilining
+            if (scopep->isTop())
+                break;
+
+            return "(Location: " + scopep->prettyName() + ") ";
+        }
+	backp = backp->backp();
+    }
+    backp = this;
+    while (backp) {
     const AstModule* modp;
 	const AstNodeVarRef* nvrp;
 	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
