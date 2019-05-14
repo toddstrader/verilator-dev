@@ -178,7 +178,7 @@ public:
     void modifyWarnOff(V3ErrorCode code, bool flag) { warnOff(code, flag); }
 
     // OPERATORS
-    void v3errorEnd(std::ostringstream& str);
+    void v3errorEnd(std::ostringstream& str, const string& locationStr = "");
     void v3errorEndFatal(std::ostringstream& str);
     /// When building an error, prefix for printing continuation lines
     string warnMore() const;
