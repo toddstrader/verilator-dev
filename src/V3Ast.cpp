@@ -1070,6 +1070,7 @@ void AstNode::dumpTreeFile(const string& filename, bool append, bool doDump) {
 void AstNode::v3errorEndFatal(std::ostringstream& str) const { v3errorEnd(str); assert(0); }
 
 string AstNode::locationStr() const {
+    string str = "In instance ";
     const AstNode* backp = this;
     while (backp) {
         const AstScope* scopep;
@@ -1079,7 +1080,8 @@ string AstNode::locationStr() const {
             if (scopep->isTop())
                 break;
 
-            return "(Location: " + scopep->prettyName() + ") ";
+            str += scopep->prettyName();
+            return str;
         }
 	backp = backp->backp();
     }
@@ -1088,32 +1090,33 @@ string AstNode::locationStr() const {
 	const AstModule* modp;
 	const AstNodeVarRef* nvrp;
 	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
-	    return "(Location: " + modp->hierName() + ") ";
+	    str += modp->hierName();
+	    return str;
 	} else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
 	    string prettyName = nvrp->prettyName();
 	    // VarRefs have not been flattened yet and do not contain location information
-	    if (prettyName != nvrp->name())
-		return "(Location: " + prettyName + ") ";
+	    if (prettyName != nvrp->name()) {
+		str += prettyName;
+		return str;
+	    }
 	}
 	backp = backp->backp();
     }
     return "";
 }
 void AstNode::v3errorEnd(std::ostringstream& str) const {
-    std::ostringstream nsstr;
-    nsstr<<locationStr();
-    nsstr<<str.str();
-
     if (!m_fileline) {
-	V3Error::v3errorEnd(nsstr);
+	V3Error::v3errorEnd(str, locationStr());
     } else {
+	std::ostringstream nsstr;
+	nsstr<<str.str();
 	if (debug()) {
 	    nsstr<<endl;
             nsstr<<"-node: ";
             const_cast<AstNode*>(this)->dump(nsstr);
             nsstr<<endl;
 	}
-	m_fileline->v3errorEnd(nsstr);
+	m_fileline->v3errorEnd(nsstr, locationStr());
     }
 }
 

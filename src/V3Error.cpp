@@ -160,7 +160,7 @@ string V3Error::warnMore() {
     return msgPrefix();
 }
 
-void V3Error::v3errorEnd(std::ostringstream& sstr) {
+void V3Error::v3errorEnd(std::ostringstream& sstr, const string& locationStr) {
 #if defined(__COVERITY__) || defined(__cppcheck__)
     if (s_errorCode==V3ErrorCode::EC_FATAL) __coverity_panic__(x);
 #endif
@@ -175,6 +175,11 @@ void V3Error::v3errorEnd(std::ostringstream& sstr) {
     s_messages.insert(msg);
     // Output
     std::cerr<<msg;
+    if (!locationStr.empty()) {
+	string locationMsg = msgPrefix()+locationStr;
+	if (locationMsg[locationMsg.length()-1] != '\n') locationMsg += '\n';
+	std::cerr<<locationMsg;
+    }
     if (!s_errorSuppressed && !(s_errorCode==V3ErrorCode::EC_INFO
 				|| s_errorCode==V3ErrorCode::USERINFO)) {
 	if (!s_describedEachWarn[s_errorCode]
