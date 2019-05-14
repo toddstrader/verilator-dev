@@ -1166,6 +1166,11 @@ inlining.  This will also turn off inlining as if all modules had a
 Overwrites the given parameter(s) of the toplevel module. See -G for a
 detailed description.
 
+=item --quiet-exit
+
+When exiting due to an error, do not display the "Command Failed"
+message.
+
 =item --relative-includes
 
 When a file references an include file, resolve the filename relative to

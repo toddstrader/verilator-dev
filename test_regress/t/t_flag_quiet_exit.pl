@@ -9,17 +9,15 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 
 scenarios(vlt => 1);
 
-top_filename("t/t_enum_overlap_bad.v");
+top_filename("t/t_file_does_not_exist.v");
 
 # Tests for the error message and then the absence of the
 # "Command Failed" line
 compile(
-    v_flags2 => ["--quiet-exit --lint-only"],
+    v_flags2 => ["--quiet-exit"],
     fails => 1,
     expect =>
-'%Error: t/t_enum_overlap_bad.v:\d+: Overlapping enumeration value: e1b
-%Error: t/t_enum_overlap_bad.v:\d+: ... Location of original declaration
-%Error: Exiting due to 1 error\(s\)
+'%Error: Exiting due to \d+ error\(s\)
 ((?!Command Failed).)*$',
     );
 
