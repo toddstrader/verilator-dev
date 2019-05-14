@@ -33,18 +33,31 @@ foreach my $file (sort keys %files) {
     }
 }
 
+my $ignore = `cd $root && git clean -ndX`;
+$ignore =~ s|Would remove ||g;
+foreach my $file (sort keys %files) {
+    foreach my $ignore (split /\s+/,$ignore) {
+        if ($file eq $ignore || ((substr $ignore, -1) eq '/' && $file =~ /^$ignore/)) {
+            $files{$file} |= 8;
+            $file_regexps{$file} = "(ignored by git)";
+        }
+    }
+}
+
 my %warns;
 foreach my $file (sort keys %files) {
     my $tar = $files{$file}&1;
     my $dir = $files{$file}&2;
     my $skip = $files{$file}&4;
+    my $ignore = $files{$file}&8;
 
     print +(($tar ? "TAR ":"    ")
             .($dir ? "DIR ":"    ")
             .($skip ? "SKIP ":"     ")
             ."  $file\n") if $Debug;
 
-    if ($dir && !$tar && !$skip) {
+    if ($dir && !$tar && !$skip && $ignore) {
+    } elsif ($dir && !$tar && !$skip) {
         $warns{$file} = "File not in manifest or MANIFEST.SKIP: $file";
     } elsif (!$dir && $tar && !$skip) {
         $warns{$file} = "File in manifest, but not directory: $file";
