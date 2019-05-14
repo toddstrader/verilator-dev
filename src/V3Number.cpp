@@ -46,10 +46,8 @@
 //======================================================================
 // Errors
 
-void V3Number::v3errorEnd(std::ostringstream& str) const {
-    std::ostringstream nsstr;
-    nsstr<<m_hierName<<str.str();
-    m_fileline->v3errorEnd(nsstr);
+void V3Number::v3errorEnd(std::ostringstream& str) {
+    m_fileline->v3errorEnd(str, m_hierName);
 }
 
 //======================================================================
