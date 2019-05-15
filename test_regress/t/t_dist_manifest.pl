@@ -33,18 +33,34 @@ foreach my $file (sort keys %files) {
     }
 }
 
+# The repo may be a Git worktree
+my $git_dir = `git rev-parse --git-common-dir`;
+chomp $git_dir;
+if (! -d $git_dir) {
+    $git_dir = $root."/.git";
+}
+# Ignore files localy excluded
+my $git_exclude = `cd $root && git ls-files --others --ignored --exclude-from $git_dir/info/exclude`;
+foreach my $exclude (split /\s+/,$git_exclude) {
+    if (exists $files{$exclude}) {
+        $files{$exclude} |= 8;
+    }
+}
+
 my %warns;
 foreach my $file (sort keys %files) {
     my $tar = $files{$file}&1;
     my $dir = $files{$file}&2;
     my $skip = $files{$file}&4;
+    my $exclude = $files{$file}&8;
 
     print +(($tar ? "TAR ":"    ")
             .($dir ? "DIR ":"    ")
             .($skip ? "SKIP ":"     ")
+            .($exclude ? "EXCLUDE":"     ")
             ."  $file\n") if $Debug;
 
-    if ($dir && !$tar && !$skip) {
+    if ($dir && !$tar && !$skip && !$exclude) {
         $warns{$file} = "File not in manifest or MANIFEST.SKIP: $file";
     } elsif (!$dir && $tar && !$skip) {
         $warns{$file} = "File in manifest, but not directory: $file";
