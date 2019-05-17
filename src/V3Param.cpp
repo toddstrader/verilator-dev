@@ -150,7 +150,10 @@ private:
     }
     string paramValueNumber(AstNode* nodep) {
 	V3Hash hash = V3Hashed::uncachedHash(nodep);
-	//hash = V3Hash(); // forces hash collisions -- for testing only
+	// force hash collisions -- for testing only
+	if (VL_UNLIKELY(v3Global.opt.debugCollision())) {
+	    hash = V3Hash();
+	}
 	int num;
 	ValueMap::iterator it = m_valueMap.find(hash);
 	if (it != m_valueMap.end() && it->second.second == nodep->name()) {
