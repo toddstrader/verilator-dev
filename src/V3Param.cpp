@@ -149,6 +149,18 @@ private:
 	return st;
     }
     string paramValueNumber(AstNode* nodep) {
+	string key = nodep->name();
+	if (AstIfaceRefDType* ifrtp = VN_CAST(nodep, IfaceRefDType)) {
+	    if (ifrtp->cellp() && ifrtp->cellp()->modp()) {
+		key = ifrtp->cellp()->modp()->name();
+            } else if (ifrtp->ifacep()) {
+		key = ifrtp->ifacep()->name();
+	    } else {
+		nodep->v3fatalSrc("Can't parameterize interface without module name");
+	    }
+	} else if (AstBasicDType* bdtp = VN_CAST(nodep, BasicDType)) {
+	    if (bdtp->isRanged()) key += "["+std::to_string(bdtp->left())+":"+std::to_string(bdtp->right())+"]";
+	}
 	V3Hash hash = V3Hashed::uncachedHash(nodep);
 	// force hash collisions -- for testing only
 	if (VL_UNLIKELY(v3Global.opt.debugCollision())) {
@@ -156,11 +168,11 @@ private:
 	}
 	int num;
 	ValueMap::iterator it = m_valueMap.find(hash);
-	if (it != m_valueMap.end() && it->second.second == nodep->name()) {
+	if (it != m_valueMap.end() && it->second.second == key) {
 	    num = it->second.first;
 	} else {
 	    num = m_nextValue++;
-	    m_valueMap.emplace(hash, make_pair(num, nodep->name()));
+	    m_valueMap.emplace(hash, make_pair(num, key));
 	}
         return string("z")+cvtToStr(num);
     }
