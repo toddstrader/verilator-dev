@@ -305,27 +305,6 @@ public:
     }
 };
 
-class VerilatedVpioModuleIter : public VerilatedVpio {
-    const VerilatedScope*   m_scopep;
-    VerilatedVarNameMap::iterator m_it;
-    bool m_started;
-public:
-    explicit VerilatedVpioModuleIter(const VerilatedScope* scopep)
-    : m_scopep(scopep), m_started(false) {  }
-    virtual ~VerilatedVpioModuleIter() {}
-    static inline VerilatedVpioModuleIter* castp(vpiHandle h) { return dynamic_cast<VerilatedVpioModuleIter*>((VerilatedVpio*)h); }
-    virtual vluint32_t type() { return vpiIterator; }
-    virtual vpiHandle dovpi_scan() {
-        if (m_started) {
-            return 0;
-        }
-        else {
-            m_started = true;
-            return (new VerilatedVpioScope(m_scopep))->castVpiHandle();
-        }
-    }
-};
-
 class VerilatedVpioMemoryWordIter : public VerilatedVpio {
     const vpiHandle             m_handle;
     const VerilatedVar*         m_varp;
@@ -1201,24 +1180,18 @@ vpiHandle vpi_iterate(PLI_INT32 type, vpiHandle object) {
 	return ((new VerilatedVpioVarIter(vop->scopep()))
 		->castVpiHandle());
     }
-    case vpiModule: {
-        if (object == NULL) {
-            // vpi_iterate with a ref of NULL returns the top level
-            // module
-            VL_DEBUG_IF_PLI(VL_PRINTF("-vltVpi:  vpi_iterate returning top level module\n"););
-            const VerilatedScope* scopep;
-            scopep = Verilated::scopeTop();
-            if (VL_UNLIKELY(!scopep)) return 0;
-            return ((new VerilatedVpioModuleIter(scopep))
-		->castVpiHandle());
-        }
-        _VL_VPI_WARNING(__FILE__, __LINE__, "%s: Unsupported type %s, nothing will be returned",
-			VL_FUNC, VerilatedVpiError::strFromVpiObjType(type));
-    }
+    case vpiScope:
     case vpiInternalScope: {
         VerilatedVpioScope* scope = VerilatedVpioScope::castp(object);
-        if (VL_UNLIKELY(!scope))
-            return 0;
+        if (VL_UNLIKELY(!scope)) {
+            VL_DEBUG_IF_PLI(VL_PRINTF("-vltVpi:  vpi_iterate returning top level module\n"););
+            const VerilatedScope* scopep;
+            scopep = Verilated::scopeFind("TOP");
+            if (VL_UNLIKELY(!scopep)) return 0;
+            return ((new VerilatedVpioScopeIter(scopep))
+               ->castVpiHandle());
+
+        }
 
         return (new VerilatedVpioScopeIter(scope->scopep()))->castVpiHandle();
     }
