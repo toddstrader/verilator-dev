@@ -188,13 +188,14 @@ void V3Error::v3errorEnd(std::ostringstream& sstr, const string& locationStr) {
     // Suppress duplicate messages
     if (s_messages.find(msg) != s_messages.end()) return;
     s_messages.insert(msg);
-    // Output
-    std::cerr<<msg;
     if (!locationStr.empty()) {
 	string locationMsg = msgPrefix()+locationStr;
 	if (locationMsg[locationMsg.length()-1] != '\n') locationMsg += '\n';
-	std::cerr<<locationMsg;
+	size_t pos = msg.find("\n");
+	msg.insert(pos + 1, locationMsg);
     }
+    // Output
+    std::cerr<<msg;
     if (!s_errorSuppressed && !(s_errorCode==V3ErrorCode::EC_INFO
                                 || s_errorCode==V3ErrorCode::USERINFO)) {
         if (!s_describedEachWarn[s_errorCode]
