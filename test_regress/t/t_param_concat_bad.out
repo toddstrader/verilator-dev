@@ -1,5 +1,8 @@
 %Warning-WIDTHCONCAT: t/t_param_concat.v:18: Unsized numbers/parameters not allowed in concatenations.
+%Warning-WIDTHCONCAT:                      : In instance t
                       ... Use "/* verilator lint_off WIDTHCONCAT */" and lint_on around source to disable this message.
 %Warning-WIDTHCONCAT: t/t_param_concat.v:18: Unsized numbers/parameters not allowed in replications.
+%Warning-WIDTHCONCAT:                      : In instance t
 %Warning-WIDTHCONCAT: t/t_param_concat.v:19: Unsized numbers/parameters not allowed in replications.
+%Warning-WIDTHCONCAT:                      : In instance t
 %Error: Exiting due to

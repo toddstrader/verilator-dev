@@ -1,3 +1,5 @@
 %Error: t/t_var_ref_bad2.v:12: Assigning to const ref variable: bad_const_set
+%Error:                      : In instance t
 %Error: t/t_var_ref_bad2.v:22: Ref argument requires matching types; port 'int_ref' requires VAR 'int_ref' but connection is VARREF 'bad_non_int'.
+%Error:                      : In instance t
 %Error: Exiting due to

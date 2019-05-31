@@ -1,3 +1,5 @@
 %Error: t/t_dpi_openreg_bad.v:13: Unsized/open arrays ('[]') are only supported in DPI imports
+%Error:                         : In instance t
 %Error: t/t_dpi_openreg_bad.v:14: Unsized/open arrays ('[]') are only supported in DPI imports
+%Error:                         : In instance t
 %Error: Exiting due to
