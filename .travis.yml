@@ -3,5 +3,4 @@ language: cpp
 compiler: gcc
 before_install: yes yes | sudo cpan -fi Unix::Processors Parallel::Forker
 before_script: nproc; autoconf
-script: ./configure && make -j 2 && make test
-after_script: cd test_regress && ./driver.pl --j 0
+script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
