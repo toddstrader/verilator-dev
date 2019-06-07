@@ -1,5 +1,5 @@
 language: cpp
 compiler: gcc
-before_script: autoconf
+before_script: nproc; autoconf
 
 # Making sure both com and org don't pick this up
