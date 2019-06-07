@@ -1,7 +1,7 @@
 # Travis-CI config
 language: cpp
 compiler: gcc
-before_install: sudo PERL_MM_USE_DEFAULT=1 cpan -fi Unix::Processors Parallel::Forker
+before_install: yes yes | sudo cpan -fi Unix::Processors Parallel::Forker
 before_script: nproc; autoconf
 script: ./configure && make -j 2 && make test
-after_script: cd test_regress && ./driver --j 0
+after_script: cd test_regress && ./driver.pl --j 0
