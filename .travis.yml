@@ -7,6 +7,14 @@ addons:
     packages:
     - gdb
 
+env:
+  - TEST=test_regress/t/t_a_first_cc.pl
+  - TEST=test_regress/t/t_a_first_sc.pl
+  - TEST=test_regress/t/t_altera_lpm_abs.pl
+  - TEST=test_regress/t/t_altera_lpm_add_sub.pl
+  - TEST=test_regress/t/t_altera_lpm_and.pl
+
 before_install: yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script: nproc; autoconf
-script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
+#script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
+script: ./configure && make -j 2 && make test && $TEST
