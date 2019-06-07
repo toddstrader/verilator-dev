@@ -1,6 +1,6 @@
 language: cpp
 compiler: gcc
-before_install: sudo cpan -i Unix::Processors Parallel::Forker
+before_install: sudo cpan -fi Unix::Processors Parallel::Forker
 before_script: nproc; autoconf
 script: ./configure && make -j `nproc` && make test
 after_script: cd test_regress && ./driver --j 0
