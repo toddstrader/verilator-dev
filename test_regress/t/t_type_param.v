@@ -32,11 +32,21 @@ module t();
    foo_inst3 (.bar_size (bar_size3));
 
    initial begin
-//       if ($bits(qux) != $bits(foo_inst.baz)) begin
-//          $display("%m: bits of qux != bits of foo_inst.baz (%0d, %0d)",
-//                   $bits(qux), $bits(foo_inst.baz));
-//          $stop();
-//       end
+       if ($bits(qux1) != foo_inst1.baz) begin
+          $display("%m: bits of qux1 != bits of foo_inst1.baz (%0d, %0d)",
+                   $bits(qux1), foo_inst1.baz);
+          $stop();
+       end
+       if ($bits(qux2) != foo_inst2.baz) begin
+          $display("%m: bits of qux2 != bits of foo_inst2.baz (%0d, %0d)",
+                   $bits(qux2), foo_inst2.baz);
+          $stop();
+       end
+       if ($bits(qux3) != foo_inst3.baz) begin
+          $display("%m: bits of qux3 != bits of foo_inst3.baz (%0d, %0d)",
+                   $bits(qux3), foo_inst3.baz);
+          $stop();
+       end
       if (bar_size1 != $bits(qux1)) begin
          $display("%m: bar_size1 != bits of qux1 (%0d, %0d)",
                  bar_size1, $bits(qux1));
@@ -57,13 +67,13 @@ module t();
    genvar m;
    generate
       for (m = 1; m <= 8; m+=1) begin : gen_m
-//            initial begin
-//                if (m != $bits(foo_inst.baz)) begin
-//                   $display("%m: m != bits of foo_inst.baz (%0d, %0d)",
-//                            m, $bits(foo_inst.baz));
-//                   $stop();
-//                end
-//            end
+            initial begin
+                if (m != foo_inst.baz) begin
+                   $display("%m: m != bits of foo_inst.baz (%0d, %0d)",
+                            m, foo_inst.baz);
+                   $stop();
+                end
+            end
 
             foo #(.bar (logic[m-1:0])) foo_inst (.bar_size ());
       end
