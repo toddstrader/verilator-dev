@@ -10,11 +10,11 @@ addons:
 
 env:
   - TEST=t_a_first_cc
-  - TEST=t_a_first_sc
   - TEST=t_flag_csplit
 
 # Perl modules needed for testing
 before_install: yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script: nproc; autoconf
 #script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
-script: ./configure && make -j 2 && make test && test_regress/t/$TEST.pl --verbose && make -C test_regress/obj_vlt/$TEST/ -f V$TEST.mk debug-make
+script: ./configure && make -j 2 && make test && test_regress/t/$TEST.pl --verbose
+after_script: make -C test_regress/obj_vlt/$TEST/ -f V$TEST.mk debug-make
