@@ -4,12 +4,20 @@
 // without warranty, 2019 by Todd Strader.
 
 module foo
-  #( parameter type bar = logic)
+  #(parameter type bar = logic)
    (output int bar_size);
 
    localparam baz = $bits(bar);
 
    assign bar_size = baz;
+endmodule
+
+module foo_wrapper
+  #(parameter bar_bits = 9)
+   (output int bar_size);
+
+   foo #(.bar (logic[bar_bits-1:0])) foo_inst (.bar_size (bar_size));
+
 endmodule
 
 module t();
@@ -31,6 +39,12 @@ module t();
    foo #(.bar (logic [ $bits(qux3) - 1 : 0]))
    foo_inst3 (.bar_size (bar_size3));
 
+   localparam bar_bits = 13;
+   int bar_size_wrapper;
+
+   foo_wrapper #(.bar_bits (bar_bits))
+   foo_wrapper_inst (.bar_size (bar_size_wrapper));
+
    initial begin
        if ($bits(qux1) != foo_inst1.baz) begin
           $display("%m: bits of qux1 != bits of foo_inst1.baz (%0d, %0d)",
@@ -47,6 +61,11 @@ module t();
                    $bits(qux3), foo_inst3.baz);
           $stop();
        end
+       if (bar_bits != foo_wrapper_inst.foo_inst.baz) begin
+          $display("%m: bar_bits != bits of foo_wrapper_inst.foo_inst.baz (%0d, %0d)",
+                   bar_bits, foo_wrapper_inst.foo_inst.baz);
+          $stop();
+       end
       if (bar_size1 != $bits(qux1)) begin
          $display("%m: bar_size1 != bits of qux1 (%0d, %0d)",
                  bar_size1, $bits(qux1));
@@ -60,6 +79,11 @@ module t();
       if (bar_size3 != $bits(qux3)) begin
          $display("%m: bar_size3 != bits of qux3 (%0d, %0d)",
                  bar_size3, $bits(qux3));
+         $stop();
+      end
+      if (bar_size_wrapper != bar_bits) begin
+         $display("%m: bar_size_wrapper != bar_bits (%0d, %0d)",
+                 bar_size_wrapper, bar_bits);
          $stop();
       end
    end
