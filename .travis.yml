@@ -10,7 +10,6 @@ addons:
     - gdb
 
 env:
-  - TEST=t_a_first_cc
   - TEST=t_flag_csplit
 
 # Perl modules needed for testing
