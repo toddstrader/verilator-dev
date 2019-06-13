@@ -19,4 +19,4 @@ before_script: nproc; autoconf
 script: ./configure && make -j 2 && make test && test_regress/t/$TEST.pl --verbose
 after_script: make -C test_regress/obj_vlt/$TEST/ -f V$TEST.mk debug-make; cd test_regress; touch obj_vlt/t_flag_csplit/*.{cpp,h}; make -n -C obj_vlt/t_flag_csplit -f Vt_flag_csplit.mk -j 4 VM_PARALLEL_BUILDS=1 VM_PREFIX=Vt_flag_csplit TEST_OBJ_DIR=obj_vlt/t_flag_csplit CPPFLAGS_DRIVER=-DT_FLAG_CSPLIT  OPT_FAST=-O2 OPT_SLOW=-O0 Vt_flag_csplit__Trace__28__Slow.o; make --version
 
-# 1
+# 2
