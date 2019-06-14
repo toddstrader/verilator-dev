@@ -14,10 +14,9 @@ env:
 
 # Perl modules needed for testing
 before_install:
-  - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-  - sudo apt-get update
-  - sudo apt-get install -y make
+  - cd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && sudo make install
   - make --version
+  - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script: nproc; autoconf
 #script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
 script: ./configure && make -j 2 && make test && test_regress/t/$TEST.pl --verbose
