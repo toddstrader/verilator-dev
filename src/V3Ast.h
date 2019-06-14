@@ -1145,6 +1145,7 @@ class AstNode {
     AstNode*    m_clonep;       // Pointer to clone of/ source of this module (for *LAST* cloneTree() ONLY)
     int         m_cloneCnt;     // Mark of when userp was set
     static int  s_cloneCntGbl;  // Count of which userp is set
+    NumberList  m_nums; // List of V3Numbers attached to this node
 
     // Attributes
     bool        m_didWidth:1;   // Did V3Width computation
@@ -1233,6 +1234,12 @@ public:
         return ((backp() && backp()->nextp()!=this) ? backp() : NULL); }
     bool brokeExists() const;
     bool brokeExistsAbove() const;
+    NumberList::iterator addNum(V3Number* num) {
+        m_nums.push_back(num);
+        auto it = m_nums.end();
+        return --it;
+    }
+    void eraseNum(NumberList::iterator it) { m_nums.erase(it); }
 
     // CONSTRUCTORS
     virtual ~AstNode() {}
