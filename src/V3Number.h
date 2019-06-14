@@ -43,6 +43,7 @@ class V3Number {
     bool        m_autoExtend:1; // True if SystemVerilog extend-to-any-width
     string	m_hierName;	// Module hierachy for errors/warnings
     FileLine*   m_fileline;
+    const AstNode* m_nodep;
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
     string              m_stringVal;  // If isString, the value of the string
@@ -51,7 +52,8 @@ class V3Number {
     V3Number& setString(const string& str) { m_isString = true; m_stringVal = str; return *this; }
     void opCleanThis(bool warnOnTruncation = false);
 public:
-    void nodep(AstNode* nodep) { setNames(nodep); }
+    void nodep(const AstNode* nodep);
+    const AstNode* nodep() const { return m_nodep; }
     const string& hierName() const { return m_hierName; }
     FileLine* fileline() const { return m_fileline; };
     V3Number& setZero();
@@ -154,21 +156,21 @@ public:
     V3Number(String, AstNode* nodep, const string& value) { init(nodep, 0); setString(value); }
     V3Number(const V3Number* nump, int width = 1) {
         init(NULL, width);
-        m_hierName = nump->hierName();
         m_fileline = nump->fileline();
+        nodep(nump->nodep());
     }
     V3Number(const V3Number* nump, int width, uint32_t value) {
         init(NULL, width);
         m_value[0] = value;
         opCleanThis();
-        m_hierName = nump->hierName();
         m_fileline = nump->fileline();
+        nodep(nump->nodep());
     }
 
 private:
     void V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl);
-    void init(AstNode* nodep, int swidth) {
-        setNames(nodep);
+    void init(AstNode* node, int swidth) {
+        nodep(node);
         m_signed = false;
         m_double = false;
         m_isString = false;
@@ -177,10 +179,8 @@ private:
         width(swidth);
         for (int i=0; i<words(); i++) m_value[i] = m_valueX[i] = 0;
     }
-    void setNames(AstNode* nodep);
-    string displayed(FileLine* fl, const string& hierName, const string& vformat) const;
     string displayed(const string& vformat) const {
-        return displayed(m_fileline, m_hierName, vformat);
+        return displayed(NULL, vformat);
     }
 public:
     void v3errorEnd(std::ostringstream& sstr) const;
