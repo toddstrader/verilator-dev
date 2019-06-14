@@ -1,5 +1,5 @@
 # Travis-CI config
-dist: trusy
+dist: trusty
 language: cpp
 compiler: gcc
 
