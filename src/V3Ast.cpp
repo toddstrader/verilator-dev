@@ -677,6 +677,9 @@ void AstNode::deleteNode() {
     this->m_nextp = reinterpret_cast<AstNode*>(0x1);
     this->m_backp = reinterpret_cast<AstNode*>(0x1);
     this->m_headtailp = reinterpret_cast<AstNode*>(0x1);
+    for (auto it = m_nums.begin(); it != m_nums.end(); it++) {
+        (*it)->nodep(NULL);
+    }
     this->m_op1p = reinterpret_cast<AstNode*>(0x1);
     this->m_op2p = reinterpret_cast<AstNode*>(0x1);
     this->m_op3p = reinterpret_cast<AstNode*>(0x1);
