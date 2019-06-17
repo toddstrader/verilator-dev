@@ -14,8 +14,7 @@ before_install:
   - if [ $TRAVIS_DIST == "trusty" ]; then pushd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && ./make --version && sudo make install && popd && export PATH=/usr/local/bin:$PATH; fi
   - which make
   - make --version
-  - make --version
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-before_script: nproc; autoconf
+before_script: autoconf
 script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
