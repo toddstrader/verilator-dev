@@ -14,7 +14,11 @@ env:
 
 # Perl modules needed for testing
 before_install:
-  - cd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && sudo make install
+  - cd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && ./make --version && sudo make install && cd -
+  - which make
+  - /usr/local/bin/make --version
+  - make --version
+  - export PATH=/usr/local/bin:$PATH
   - make --version
   - env
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
