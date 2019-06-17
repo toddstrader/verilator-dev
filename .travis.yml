@@ -9,22 +9,13 @@ addons:
     packages:
     - gdb
 
-env:
-  - TEST=t_flag_csplit
-
-# Perl modules needed for testing
 before_install:
-  - cd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && ./make --version && sudo make install && cd -
+# t_flag_csplit needs a newer version of make than 3.81
+  - if [ $TRAVIS_DIST == "trusty" ]; then pushd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && ./make --version && sudo make install && popd && export PATH=/usr/local/bin:$PATH; fi
   - which make
-  - /usr/local/bin/make --version
   - make --version
-  - export PATH=/usr/local/bin:$PATH
   - make --version
-  - env
+# Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script: nproc; autoconf
-#script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
-script: ./configure && make -j 2 && make test && test_regress/t/$TEST.pl --verbose
-after_script: make -C test_regress/obj_vlt/$TEST/ -f V$TEST.mk debug-make; cd test_regress; touch obj_vlt/t_flag_csplit/*.{cpp,h}; make -n -C obj_vlt/t_flag_csplit -f Vt_flag_csplit.mk -j 4 VM_PARALLEL_BUILDS=1 VM_PREFIX=Vt_flag_csplit TEST_OBJ_DIR=obj_vlt/t_flag_csplit CPPFLAGS_DRIVER=-DT_FLAG_CSPLIT  OPT_FAST=-O2 OPT_SLOW=-O0 Vt_flag_csplit__Trace__28__Slow.o; make --version
-
-# 3
+script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
