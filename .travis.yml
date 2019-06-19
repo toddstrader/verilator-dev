@@ -8,11 +8,18 @@ addons:
     packages:
     - gdb
 
+env:
+  - TEST=--dist
+  - TEST=--vlt
+  - TEST=--vltmt
+
 before_install:
 # Trusty has an old version of make
 # t_flag_csplit needs a newer version of make than 3.81
   - if [ $TRAVIS_DIST == "trusty" ]; then pushd /tmp && wget http://ftp.gnu.org/gnu/make/make-4.1.tar.gz && tar xvf make-4.1.tar.gz && cd make-4.1/ && ./configure && make && ./make --version && sudo make install && popd && export PATH=/usr/local/bin:$PATH; fi
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-before_script: autoconf
-script: ./configure && make -j 2 && make test && cd test_regress && ./driver.pl --j 0
+before_script:
+  - autoconf
+  - export VLT_JOBS=$((`nproc` + 1))
+script: ./configure && make -j $VLT_JOBS && make test && cd test_regress && ./driver.pl --j 0 $TEST
