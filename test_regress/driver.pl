@@ -246,11 +246,23 @@ sub parameter {
     }
 }
 
-sub calc_jobs {
+sub max_procs {
     my $ok = eval "
         use Unix::Processors;
         return Unix::Processors->new->max_online;
     ";
+    return $ok;
+}
+
+sub calc_threads {
+    my $default = shift;
+    my $ok = max_procs();
+    $ok && !$@ or return $default;
+    return ($ok < $default) ? $ok : $default;
+}
+
+sub calc_jobs {
+    my $ok = max_procs();
     $ok && !$@ or die "%Error: Can't use -j: $@\n";
     print "driver.pl: Found $ok cores, using -j ",$ok+1,"\n";
     return $ok + 1;
@@ -603,7 +615,8 @@ sub compile_vlt_flags {
     unshift @verilator_flags, "--gdbbt" if $opt_gdbbt;
     unshift @verilator_flags, "--x-assign unique";  # More likely to be buggy
     unshift @verilator_flags, "--trace" if $opt_trace;
-    unshift @verilator_flags, "--threads 3" if $param{vltmt};
+    my $threads = ::calc_threads(3);
+    unshift @verilator_flags, "--threads $threads" if $param{vltmt};
     unshift @verilator_flags, "--trace-fst-thread" if $param{vltmt} && $checkflags =~ /-trace-fst/;
     unshift @verilator_flags, "--debug-partition" if $param{vltmt};
     if (defined $opt_optimize) {
