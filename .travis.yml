@@ -34,6 +34,7 @@ before_install:
 before_script:
   - autoconf
   - export VLT_JOBS=$((`nproc` + 1))
+  - export OBJCACHE=ccache
 script:
   - >
     ./configure --enable-maintainer-mode --enable-longtests &&
