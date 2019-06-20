@@ -1,6 +1,7 @@
 # Travis-CI config
 language: cpp
 compiler: gcc
+cache: ccache
 
 # Some tests require gdb
 addons:
