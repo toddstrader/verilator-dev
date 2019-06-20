@@ -35,8 +35,11 @@ before_script:
   - autoconf
   - export VLT_JOBS=$((`nproc` + 1))
   - export OBJCACHE=ccache
+  - ccache -s
 script:
   - >
     ./configure --enable-maintainer-mode --enable-longtests &&
     make -j $VLT_JOBS &&
     make test SCENARIOS=$TEST
+after_script:
+  - ccache -s
