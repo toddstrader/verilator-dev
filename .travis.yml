@@ -44,3 +44,5 @@ script:
     make test SCENARIOS=$TEST
 after_script:
   - ccache -s
+
+# Trying ccache again
