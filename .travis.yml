@@ -9,6 +9,7 @@ addons:
     packages:
     - gdb
 
+# Run three test slices in parallel
 env:
   - TEST=--dist
   - TEST=--vlt
