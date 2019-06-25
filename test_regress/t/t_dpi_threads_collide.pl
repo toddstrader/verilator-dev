@@ -7,22 +7,24 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 # Lesser General Public License Version 3 or the Perl Artistic License
 # Version 2.0.
 
-scenarios(::no_vltmt_for_few_cores());
+if (!::too_few_cores()) {
+    scenarios(vltmt => 1);
 
-top_filename("t/t_dpi_threads.v");
+    top_filename("t/t_dpi_threads.v");
 
-compile(
-    v_flags2 => ["t/t_dpi_threads_c.cpp --threads-dpi all --no-threads-coarsen"],
-    );
+    compile(
+        v_flags2 => ["t/t_dpi_threads_c.cpp --threads-dpi all --no-threads-coarsen"],
+        );
 
 # Similar to t_dpi_threads, which confirms that Verilator can prevent a
 # race between DPI import calls, this test confirms that the race exists
 # and that the DPI C code can detect it under --threads-dpi all
 # mode.
 #
-execute(
-    fails => 1,
-    );
+    execute(
+        fails => 1,
+        );
+}
 
 ok(1);
 1;
