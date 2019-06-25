@@ -264,6 +264,7 @@ sub calc_threads {
 
 sub too_few_cores {
     my $threads = calc_threads($vltmt_threads);
+    warn "Too few cores for vltmt\n";
     return $threads < $vltmt_threads;
 }
 
