@@ -48,6 +48,7 @@ autoflush STDERR 1;
 our @Orig_ARGV = @ARGV;
 our @Orig_ARGV_Sw;  foreach (@Orig_ARGV) { push @Orig_ARGV_Sw, $_ if /^-/ && !/^-j/; }
 our $Start = time();
+our $vltmt_threads = 3;
 
 $Debug = 0;
 my $opt_benchmark;
@@ -259,6 +260,18 @@ sub calc_threads {
     my $ok = max_procs();
     $ok && !$@ or return $default;
     return ($ok < $default) ? $ok : $default;
+}
+
+sub too_few_cores {
+    my $threads = calc_threads($vltmt_threads);
+    return $threads < $vltmt_threads;
+}
+
+sub no_vltmt_for_few_cores {
+    if (too_few_cores()) {
+        return (vlt => 1);
+    }
+    return (simulator => 1);
 }
 
 sub calc_jobs {
@@ -615,7 +628,7 @@ sub compile_vlt_flags {
     unshift @verilator_flags, "--gdbbt" if $opt_gdbbt;
     unshift @verilator_flags, "--x-assign unique";  # More likely to be buggy
     unshift @verilator_flags, "--trace" if $opt_trace;
-    my $threads = ::calc_threads(3);
+    my $threads = ::calc_threads($vltmt_threads);
     unshift @verilator_flags, "--threads $threads" if $param{vltmt};
     unshift @verilator_flags, "--trace-fst-thread" if $param{vltmt} && $checkflags =~ /-trace-fst/;
     unshift @verilator_flags, "--debug-partition" if $param{vltmt};
