@@ -1243,11 +1243,11 @@ public:
     bool brokeExists() const;
     bool brokeExistsAbove() const;
     NumberList::iterator addNum(V3Number* num) {
-        m_nums.push_back(num);
-        auto it = m_nums.end();
-        return --it;
+        m_nums.push_front(num);
+        return m_nums.begin();
     }
-    void eraseNum(NumberList::iterator it) { m_nums.erase(it); }
+    // TODO -- this is slow, would be better with a stashed iterator
+    void eraseNum(V3Number* num) { m_nums.remove(num); }
 
     // CONSTRUCTORS
     virtual ~AstNode() {}
