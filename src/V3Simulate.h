@@ -221,7 +221,7 @@ private:
             //UINFO(7,"Num Reuse "<<nodep->width()<<endl);
             nump = m_numFreeps.back(); m_numFreeps.pop_back();
             nump->width(nodep->width());
-            nump->nodep(nodep);
+            nump->setNodep(nodep);
             nump->setLong(value);
         } else {
             //UINFO(7,"Num New "<<nodep->width()<<endl);

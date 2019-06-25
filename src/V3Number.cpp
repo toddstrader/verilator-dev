@@ -75,8 +75,12 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
     opCleanThis(true);
 }
 
+void V3Number::removeNum() {
+    if (m_nodep) m_nodep->eraseNum(this);
+}
+
 V3Number::~V3Number() {
-    if (m_nodep) m_nodep->eraseNum(m_numListIt);
+    removeNum();
 }
 
 void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl) {
@@ -295,10 +299,14 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
     //printf("Dump \"%s\"  CP \"%s\"  B '%c' %d W %d\n", sourcep, value_startp, base, width(), m_value[0]);
 }
 
+void V3Number::setnodepcheck(AstNode* nodep) {
+    removeNum();
+}
+
 void V3Number::nodep(AstNode* nodep) {
     if (!nodep) return;
+    nodep->addNum(this);
     m_nodep = nodep;
-    m_numListIt = nodep->addNum(this);
     m_fileline = NULL;
 }
 
