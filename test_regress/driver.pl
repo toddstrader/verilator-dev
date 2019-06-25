@@ -1073,6 +1073,13 @@ sub trace_filename {
     return "$self->{obj_dir}/simx.vcd";
 }
 
+sub wno_unopthreads_for_few_cores {
+    if (::too_few_cores()) {
+        return "-Wno-UNOPTTHREADS";
+    }
+    return "";
+}
+
 #----------------------------------------------------------------------
 
 sub run {
