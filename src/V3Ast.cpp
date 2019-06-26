@@ -620,7 +620,11 @@ void AstNode::swapWith(AstNode* bp) {
 
 AstNode* AstNode::cloneTreeIter() {
     // private: Clone single node and children
+    NumberList original_nums;
+    // The new node should not inherit V3Numbers
+    m_nums.swap(original_nums);
     AstNode* newp = this->clone();
+    m_nums.swap(original_nums);
     if (this->m_op1p) newp->op1p(this->m_op1p->cloneTreeIterList());
     if (this->m_op2p) newp->op2p(this->m_op2p->cloneTreeIterList());
     if (this->m_op3p) newp->op3p(this->m_op3p->cloneTreeIterList());
