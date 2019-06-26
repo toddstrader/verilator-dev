@@ -1199,6 +1199,7 @@ protected:
     AstNode() {init(); }
     explicit AstNode(FileLine* fileline) {init(); m_fileline = fileline; }
     virtual AstNode* clone() = 0;  // Generally, cloneTree is what you want instead
+    virtual void cloneCleanup() {} // Runs after a node is cloned
     virtual void cloneRelink() {}
     void        cloneRelinkTree();
 

@@ -31,7 +31,11 @@
 #define ASTNODE_NODE_FUNCS_NO_DTOR(name) \
     virtual void accept(AstNVisitor& v) { v.visit(this); } \
     virtual AstType type() const { return AstType::at ## name; } \
-    virtual AstNode* clone() { return new Ast ##name (*this); } \
+    virtual AstNode* clone() { \
+        AstNode* newp = new Ast ##name (*this); \
+        static_cast<Ast ##name *>(newp)->cloneCleanup(); \
+        return newp; \
+    } \
     static Ast ##name * cloneTreeNull(Ast ##name * nodep, bool cloneNextLink) { \
         return nodep ? nodep->cloneTree(cloneNextLink) : NULL; } \
     Ast ##name * cloneTree(bool cloneNext) { return static_cast<Ast ##name *>(AstNode::cloneTree(cloneNext)); } \
@@ -60,6 +64,7 @@ private:
                                : AstNumeric::UNSIGNED);
         }
     }
+    void cloneCleanup() { m_num.setNodep(this); }
 public:
     AstConst(FileLine* fl, const V3Number& num)
         : AstNodeMath(fl)
