@@ -75,6 +75,23 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
     opCleanThis(true);
 }
 
+V3Number::V3Number(const V3Number& other) {
+    m_width = other.m_width;
+    m_sized = other.m_sized;
+    m_signed = other.m_signed;
+    m_double = other.m_double;
+    m_isString = other.m_isString;
+    m_fromString = other.m_fromString;
+    m_autoExtend = other.m_autoExtend;
+    m_hierName = other.m_hierName;
+    m_fileline = other.m_fileline;
+    m_nodep = other.m_nodep;
+    m_value = other.m_value;
+    m_valueX = other.m_valueX;
+    m_stringVal = other.m_stringVal;
+    nodep(m_nodep);
+}
+
 void V3Number::removeNum() {
     if (m_nodep) m_nodep->eraseNum(this);
 }
@@ -85,7 +102,6 @@ V3Number::~V3Number() {
 
 void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl) {
     init(nodep, 0);
-    m_nodep = NULL;
     m_fileline = fl;
     const char* value_startp = sourcep;
     for (const char* cp=sourcep; *cp; cp++) {
@@ -304,9 +320,9 @@ void V3Number::setnodepcheck(AstNode* nodep) {
 }
 
 void V3Number::nodep(AstNode* nodep) {
+    m_nodep = nodep;
     if (!nodep) return;
     nodep->addNum(this);
-    m_nodep = nodep;
     m_fileline = NULL;
 }
 
