@@ -76,6 +76,7 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
 }
 
 V3Number::V3Number(const V3Number& other) {
+    // Specifically don't copy m_nodep
     m_width = other.m_width;
     m_sized = other.m_sized;
     m_signed = other.m_signed;
@@ -85,11 +86,10 @@ V3Number::V3Number(const V3Number& other) {
     m_autoExtend = other.m_autoExtend;
     m_hierName = other.m_hierName;
     m_fileline = other.m_fileline;
-    m_nodep = other.m_nodep;
+    m_nodep = NULL;
     m_value = other.m_value;
     m_valueX = other.m_valueX;
     m_stringVal = other.m_stringVal;
-    nodep(m_nodep);
 }
 
 void V3Number::removeNum() {
