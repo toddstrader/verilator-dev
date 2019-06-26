@@ -175,6 +175,7 @@ public:
         m_fileline = nump->fileline();
         nodep(nump->nodep());
     }
+    V3Number(const V3Number& other);
 
 private:
     void V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl);
