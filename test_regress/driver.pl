@@ -262,12 +262,6 @@ sub calc_threads {
     return ($ok < $default) ? $ok : $default;
 }
 
-sub too_few_cores {
-    my $threads = calc_threads($Vltmt_threads);
-    warn "Too few cores for vltmt\n";
-    return $threads < $Vltmt_threads;
-}
-
 sub calc_jobs {
     my $ok = max_procs();
     $ok && !$@ or die "%Error: Can't use -j: $@\n";
@@ -1066,8 +1060,20 @@ sub trace_filename {
     return "$self->{obj_dir}/simx.vcd";
 }
 
+sub too_few_cores {
+    my $threads = ::calc_threads($Vltmt_threads);
+    return $threads < $Vltmt_threads;
+}
+
+sub skip_if_too_few_cores {
+    my $self = (ref $_[0]? shift : $Self);
+    if (too_few_cores()) {
+        $self->skip("Skipping due to too few cores\n");
+    }
+}
+
 sub wno_unopthreads_for_few_cores {
-    if (::too_few_cores()) {
+    if (too_few_cores()) {
         warn "Too few cores, using -Wno-UNOPTTHREADS\n";
         return "-Wno-UNOPTTHREADS";
     }
