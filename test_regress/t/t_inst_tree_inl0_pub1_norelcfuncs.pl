@@ -7,12 +7,13 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 # Lesser General Public License Version 3 or the Perl Artistic License
 # Version 2.0.
 
-scenarios(::no_vltmt_for_few_cores());
+scenarios(simulator => 1);
 
 top_filename("t/t_inst_tree.v");
 
 compile(
-    verilator_flags2 => ['+define+NOUSE_INLINE', '+define+USE_PUBLIC', '--stats', '--norelative-cfuncs'],
+    verilator_flags2 => ['+define+NOUSE_INLINE', '+define+USE_PUBLIC', '--stats', '--norelative-cfuncs',
+                         $Self->wno_unopthreads_for_few_cores()]
     );
 
 if ($Self->{vlt_all}) {

@@ -268,13 +268,6 @@ sub too_few_cores {
     return $threads < $Vltmt_threads;
 }
 
-sub no_vltmt_for_few_cores {
-    if (too_few_cores()) {
-        return (vlt => 1);
-    }
-    return (simulator => 1);
-}
-
 sub calc_jobs {
     my $ok = max_procs();
     $ok && !$@ or die "%Error: Can't use -j: $@\n";
@@ -1075,6 +1068,7 @@ sub trace_filename {
 
 sub wno_unopthreads_for_few_cores {
     if (::too_few_cores()) {
+        warn "Too few cores, using -Wno-UNOPTTHREADS\n";
         return "-Wno-UNOPTTHREADS";
     }
     return "";
