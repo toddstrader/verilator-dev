@@ -1060,6 +1060,10 @@ sub trace_filename {
     return "$self->{obj_dir}/simx.vcd";
 }
 
+sub get_default_vltmt_threads {
+    return $Vltmt_threads;
+}
+
 sub too_few_cores {
     my $threads = ::calc_threads($Vltmt_threads);
     return $threads < $Vltmt_threads;
