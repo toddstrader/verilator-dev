@@ -13,7 +13,8 @@ top_filename("t/t_inst_tree.v");
 
 compile(
     verilator_flags2 => ['+define+NOUSE_INLINE', '+define+USE_PUBLIC', '--stats',
-                         $Self->wno_unopthreads_for_few_cores()]
+                         # Force 3 threads even if we only have 2
+                         '--threads 3']
     );
 
 sub checkRelativeRefs {
