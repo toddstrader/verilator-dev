@@ -22,6 +22,7 @@ before_script:
   - autoconf
   - export VLT_JOBS=$((`nproc` + 1))
   - export OBJCACHE=ccache
+  - export VERILATOR_ROOT=`pwd`
 script:
   - >
     ./configure --enable-maintainer-mode --enable-longtests &&
