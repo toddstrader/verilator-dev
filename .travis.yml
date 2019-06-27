@@ -24,10 +24,10 @@ before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
-  - autoconf
   - export VLT_JOBS=$((`nproc` + 1))
   - export OBJCACHE=ccache
   - export VERILATOR_ROOT=`pwd`
+  - autoconf
 script:
   - >
     ./configure --enable-maintainer-mode --enable-longtests &&
