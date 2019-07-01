@@ -75,7 +75,7 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
     opCleanThis(true);
 }
 
-V3Number::V3Number(const V3Number& other) {
+void V3Number::copy(const V3Number& other) {
     // Specifically don't copy m_nodep
     m_width = other.m_width;
     m_sized = other.m_sized;

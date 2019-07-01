@@ -153,8 +153,6 @@ public:
     V3Number(AstNode* nodep, int width, uint32_t value) {
         init(nodep, width); m_value[0] = value; opCleanThis();
     }
-    // DESTRUCTOR
-    ~V3Number();
     // Create from a verilog 32'hxxxx number.
     V3Number(AstNode* nodep, const char* sourcep) { V3NumberCreate(nodep, sourcep, NULL); }
     class FileLined {};  // Fileline based errors, for parsing only, otherwise pass nodep
@@ -175,9 +173,17 @@ public:
         m_fileline = nump->fileline();
         nodep(nump->nodep());
     }
-    V3Number(const V3Number& other);
+    V3Number(const V3Number& other) { copy(other); }
+    // DESTRUCTOR
+    ~V3Number();
+    // COPY
+    V3Number& operator=(const V3Number& other) {
+        copy(other);
+        return *this;
+    }
 
 private:
+    void copy(const V3Number& other);
     void V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl);
     void init(AstNode* node, int swidth) {
         nodep(node);
