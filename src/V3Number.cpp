@@ -315,10 +315,6 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
     //printf("Dump \"%s\"  CP \"%s\"  B '%c' %d W %d\n", sourcep, value_startp, base, width(), m_value[0]);
 }
 
-void V3Number::setnodepcheck(AstNode* nodep) {
-    removeNum();
-}
-
 void V3Number::nodep(AstNode* nodep) {
     m_nodep = nodep;
     if (!nodep) return;
