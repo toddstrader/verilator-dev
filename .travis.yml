@@ -10,13 +10,13 @@ matrix:
   include:
     - dist: xenial
       compiler: gcc
-    - if type = cron:
+    - if: type = cron
       dist: xenial
       compiler: clang
-    - if type = cron:
+    - if: type = cron
       os: osx
       compiler: gcc
-    - if type = cron:
+    - if: type = cron
       dist: trusty
       compiler: gcc
 
