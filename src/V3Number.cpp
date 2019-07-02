@@ -876,6 +876,11 @@ uint32_t V3Number::mostSetBitP1() const {
     }
     return 0;
 }
+
+FileLine* V3Number::fileline() const {
+    if (m_nodep) return m_nodep->fileline();
+    return m_fileline;
+}
 //======================================================================
 
 V3Number& V3Number::opBitsNonX(const V3Number& lhs) {  // 0/1->1, X/Z->0
