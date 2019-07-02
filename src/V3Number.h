@@ -62,7 +62,7 @@ public:
     void setNodep(AstNode* node) { setnodepcheck(node); nodep(node); }
     AstNode* nodep() const { return m_nodep; }
     const string& hierName() const { return m_hierName; }
-    FileLine* fileline() const { return m_fileline; };
+    FileLine* fileline() const;
     V3Number& setZero();
     V3Number& setQuad(vluint64_t value);
     V3Number& setLong(uint32_t value);
