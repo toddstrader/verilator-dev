@@ -1247,7 +1247,6 @@ public:
         m_nums.push_front(num);
         return m_nums.begin();
     }
-    // TODO -- this is slow, would be better with a stashed iterator
     void eraseNum(NumberList::iterator it) { m_nums.erase(it); }
 
     // CONSTRUCTORS
