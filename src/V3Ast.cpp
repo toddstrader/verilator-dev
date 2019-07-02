@@ -1108,7 +1108,7 @@ string AstNode::locationStr() const {
     }
     backp = this;
     while (backp) {
-    const AstModule* modp;
+        const AstModule* modp;
 	const AstNodeVarRef* nvrp;
 	if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
 	    str += modp->hierName();
@@ -1122,7 +1122,7 @@ string AstNode::locationStr() const {
 	    }
 	}
 	backp = backp->backp();
-        }
+    }
     return "";
 }
 void AstNode::v3errorEnd(std::ostringstream& str) const {
