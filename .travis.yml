@@ -5,13 +5,20 @@
 # General Public License Version 3 or the Perl Artistic License Version 2.0.
 
 language: cpp
-compiler:
-  - gcc
-  - clang
 
-os:
-  - linux
-  - osx
+matrix:
+  include:
+    - dist: xenial
+      compiler: gcc
+    - if type = cron:
+      dist: xenial
+      compiler: clang
+    - if type = cron:
+      os: osx
+      compiler: gcc
+    - if type = cron:
+      dist: trusty
+      compiler: gcc
 
 cache: ccache
 
