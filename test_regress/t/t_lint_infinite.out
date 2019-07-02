@@ -1,6 +1,6 @@
 %Warning-INFINITELOOP: t/t_lint_infinite.v:9: Infinite loop (condition always true)
-%Warning-INFINITELOOP:                      : In instance t
+                                            : In instance t
                        ... Use "/* verilator lint_off INFINITELOOP */" and lint_on around source to disable this message.
 %Warning-INFINITELOOP: t/t_lint_infinite.v:11: Infinite loop (condition always true)
-%Warning-INFINITELOOP:                       : In instance t
+                                             : In instance t
 %Error: Exiting due to

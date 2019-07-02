@@ -1,8 +1,8 @@
 %Warning-WIDTH: t/t_const_bad.v:12: Unsized constant being X/Z extended to 68 bits: ?32?bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-%Warning-WIDTH:                   : In instance t
+                                  : In instance t
                 ... Use "/* verilator lint_off WIDTH */" and lint_on around source to disable this message.
 %Warning-WIDTH: t/t_const_bad.v:13: Unsized constant being X/Z extended to 68 bits: ?32?bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
-%Warning-WIDTH:                   : In instance t
+                                  : In instance t
 %Warning-WIDTH: t/t_const_bad.v:14: Unsized constant being X/Z extended to 68 bits: ?32?bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
-%Warning-WIDTH:                   : In instance t
+                                  : In instance t
 %Error: Exiting due to
