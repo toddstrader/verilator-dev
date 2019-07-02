@@ -93,7 +93,7 @@ void V3Number::copy(const V3Number& other) {
 }
 
 void V3Number::removeNum() {
-    if (m_nodep) m_nodep->eraseNum(this);
+    if (m_nodep) m_nodep->eraseNum(m_numsIt);
 }
 
 V3Number::~V3Number() {
@@ -318,7 +318,7 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 void V3Number::nodep(AstNode* nodep) {
     m_nodep = nodep;
     if (!nodep) return;
-    nodep->addNum(this);
+    m_numsIt = nodep->addNum(this);
     m_fileline = NULL;
 }
 

@@ -48,6 +48,7 @@ class V3Number {
     string	m_hierName;	// Module hierachy for errors/warnings
     FileLine*   m_fileline;
     AstNode*    m_nodep;
+    NumberList::iterator m_numsIt;
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
     string              m_stringVal;  // If isString, the value of the string
