@@ -55,11 +55,10 @@ class V3Number {
     V3Number& setSingleBits(char value);
     V3Number& setString(const string& str) { m_isString = true; m_stringVal = str; return *this; }
     void opCleanThis(bool warnOnTruncation = false);
-    void setnodepcheck(AstNode* nodep);
     void removeNum();
 public:
     void nodep(AstNode* nodep);
-    void setNodep(AstNode* node) { setnodepcheck(node); nodep(node); }
+    void setNodep(AstNode* node) { removeNum(); nodep(node); }
     AstNode* nodep() const { return m_nodep; }
     const string& hierName() const { return m_hierName; }
     FileLine* fileline() const;
