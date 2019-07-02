@@ -9,6 +9,10 @@ compiler:
   - gcc
   - clang
 
+os:
+  - linux
+  - osx
+
 cache: ccache
 
 # Some tests require gdb
@@ -27,6 +31,7 @@ before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
+  - env
   - export VLT_JOBS=$((`nproc` + 1))
   - export OBJCACHE=ccache
   - export VERILATOR_ROOT=`pwd`
