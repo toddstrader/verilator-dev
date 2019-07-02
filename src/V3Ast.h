@@ -1240,7 +1240,7 @@ public:
         return m_nums.begin();
     }
     // TODO -- this is slow, would be better with a stashed iterator
-    void eraseNum(V3Number* num) { m_nums.remove(num); }
+    void eraseNum(NumberList::iterator it) { m_nums.erase(it); }
 
     // CONSTRUCTORS
     virtual ~AstNode() {}
