@@ -6,24 +6,23 @@
 
 language: cpp
 
+matrix:
 # Run three test slices in parallel
-env:
   - TEST=--dist
   - TEST=--vlt
   - TEST=--vltmt
-  matrix:
-    include:
-      - dist: xenial
-        compiler: gcc
-      - if: type = cron
-        dist: xenial
-        compiler: clang
-      - if: type = cron
-        os: osx
-        compiler: gcc
-      - if: type = cron
-        dist: trusty
-        compiler: gcc
+  include:
+    - dist: xenial
+      compiler: gcc
+    - if: type = cron
+      dist: xenial
+      compiler: clang
+    - if: type = cron
+      os: osx
+      compiler: gcc
+    - if: type = cron
+      dist: trusty
+      compiler: gcc
 
 cache: ccache
 
