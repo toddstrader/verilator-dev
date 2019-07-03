@@ -29,9 +29,6 @@ matrix:
       compiler: gcc
       env:
         - TEST="--dist --vlt --vltmt"
-  exclude:
-    - if: type = cron
-      os: linux
 
 cache: ccache
 
@@ -43,9 +40,10 @@ addons:
 
 # Run three test slices in parallel
 env:
-  - TEST=--dist
-  - TEST=--vlt
-  - TEST=--vltmt
+  if: type != cron
+    - TEST=--dist
+    - TEST=--vlt
+    - TEST=--vltmt
 
 before_install:
 # Perl modules needed for testing
