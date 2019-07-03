@@ -6,19 +6,24 @@
 
 language: cpp
 
-matrix:
-  include:
-    - dist: xenial
-      compiler: gcc
-    - if: type = cron
-      dist: xenial
-      compiler: clang
-    - if: type = cron
-      os: osx
-      compiler: gcc
-    - if: type = cron
-      dist: trusty
-      compiler: gcc
+# Run three test slices in parallel
+env:
+  - TEST=--dist
+  - TEST=--vlt
+  - TEST=--vltmt
+  matrix:
+    include:
+      - dist: xenial
+        compiler: gcc
+      - if: type = cron
+        dist: xenial
+        compiler: clang
+      - if: type = cron
+        os: osx
+        compiler: gcc
+      - if: type = cron
+        dist: trusty
+        compiler: gcc
 
 cache: ccache
 
@@ -28,12 +33,6 @@ addons:
     packages:
       - gdb
 
-# Run three test slices in parallel
-env:
-  global:
-    - TEST=--dist
-    - TEST=--vlt
-    - TEST=--vltmt
 
 before_install:
 # Perl modules needed for testing
