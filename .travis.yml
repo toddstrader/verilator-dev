@@ -10,31 +10,15 @@ matrix:
   include:
     - dist: xenial
       compiler: gcc
-      env:
-        - TEST=--dist
-        - TEST=--vlt
-        - TEST=--vltmt
     - if: type = cron
       dist: xenial
       compiler: clang
-      env:
-        - TEST=--dist
-        - TEST=--vlt
-        - TEST=--vltmt
     - if: type = cron
       os: osx
       compiler: gcc
-      env:
-        - TEST=--dist
-        - TEST=--vlt
-        - TEST=--vltmt
     - if: type = cron
       dist: trusty
       compiler: gcc
-      env:
-        - TEST=--dist
-        - TEST=--vlt
-        - TEST=--vltmt
 
 cache: ccache
 
@@ -42,7 +26,14 @@ cache: ccache
 addons:
   apt:
     packages:
-    - gdb
+      - gdb
+
+# Run three test slices in parallel
+env:
+  global:
+    - TEST=--dist
+    - TEST=--vlt
+    - TEST=--vltmt
 
 before_install:
 # Perl modules needed for testing
