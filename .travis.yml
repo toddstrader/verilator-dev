@@ -51,7 +51,7 @@ addons:
 
 before_install:
 # Perl modules needed for testing
-  - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
+  - yes yes | cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
   - export VLT_JOBS=$((`nproc` + 1))
   - export OBJCACHE=ccache
