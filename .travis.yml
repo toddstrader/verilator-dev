@@ -5,86 +5,29 @@
 # General Public License Version 3 or the Perl Artistic License Version 2.0.
 
 language: cpp
+os:
+  - linux
+  - osx
+dist:
+  - xenial
+  - trusty
+compiler:
+  - gcc
+  - clang
+env:
+  - SCENARIOS=--dist
+  - SCENARIOS=--vlt
+  - SCENARIOS=--vltmt
+
 
 matrix:
-  include:
-# Non-cron build will just run on whatever linux flavor we get
-    - if: type != cron
-      os: linux
-      compiler: gcc
-      env:
-        - SCENARIOS=--dist
-    - if: type != cron
-      os: linux
-      compiler: gcc
-      env:
-        - SCENARIOS=--vlt
-    - if: type != cron
-      os: linux
-      compiler: gcc
-      env:
-        - SCENARIOS=--vltmt
-# Cron builds try different OS/compiler combinations
-    - if: type = cron
-      dist: xenial
-      compiler: gcc
-      env:
-        - SCENARIOS=--dist
-    - if: type = cron
-      dist: xenial
-      compiler: gcc
-      env:
-        - SCENARIOS=--vlt
-    - if: type = cron
-      dist: xenial
-      compiler: gcc
-      env:
-        - SCENARIOS=--vltmt
-    - if: type = cron
-      dist: xenial
-      compiler: clang
-      env:
-        - SCENARIOS=--dist
-    - if: type = cron
-      dist: xenial
-      compiler: clang
-      env:
-        - SCENARIOS=--vlt
-    - if: type = cron
-      dist: xenial
-      compiler: clang
-      env:
-        - SCENARIOS=--vltmt
-#    - if: type = cron
-#      os: osx
-#      compiler: gcc
-#      env:
-#        - SCENARIOS=--dist
-#    - if: type = cron
-#      os: osx
-#      compiler: gcc
-#      env:
-#        - SCENARIOS=--vlt
-#    - if: type = cron
-#      os: osx
-#      compiler: gcc
-#      env:
-#        - SCENARIOS=--vltmt
-    - if: type = cron
+  exclude:
+    - if type != cron
+      os: osx
+    - if type != cron
       dist: trusty
-      compiler: gcc
-      env:
-        - SCENARIOS=--dist
-    - if: type = cron
-      dist: trusty
-      compiler: gcc
-      env:
-        - SCENARIOS=--vlt
-    - if: type = cron
-      dist: trusty
-      compiler: gcc
-      env:
-        - SCENARIOS=--vltmt
+    - if type != cron
+      compiler: clang
 
 cache: ccache
 
