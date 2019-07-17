@@ -15,20 +15,15 @@ if ($Self->{vltmt} && exists $ENV{TRAVIS_DIST} &&
 
 scenarios(vlt_all => 1);
 
-if ($ENV{TRAVIS} && $ENV{TRAVIS} eq 'true') {
-    skip("Fails occasionally on Travis-CI");
-} else {
-    compile(
-        make_top_shell => 0,
-        make_main => 0,
-        verilator_flags2 => ["--exe $Self->{t_dir}/$Self->{name}.cpp"],
-        );
+compile(
+    make_top_shell => 0,
+    make_main => 0,
+    verilator_flags2 => ["--exe $Self->{t_dir}/$Self->{name}.cpp"],
+    );
 
-    execute(
-        check_finished => 1,
-        );
+execute(
+    check_finished => 1,
+    );
 
-    ok(1);
-}
-
+ok(1);
 1;
