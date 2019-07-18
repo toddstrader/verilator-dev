@@ -286,13 +286,23 @@ public:
         return &fetchConst(nodep)->num();
     }
     V3Number* fetchNumberNull(AstNode* nodep) {
-        return &fetchConstNull(nodep)->num();
+        AstConst* constp = fetchConstNull(nodep);
+        if (constp) {
+            return &constp->num();
+        }
+
+        return NULL;
     }
     V3Number* fetchOutNumber(AstNode* nodep) {
         return &fetchOutConst(nodep)->num();
     }
     V3Number* fetchOutNumberNull(AstNode* nodep) {
-        return &fetchOutConstNull(nodep)->num();
+        AstConst* constp = fetchOutConstNull(nodep);
+        if (constp) {
+            return &constp->num();
+        }
+
+        return NULL;
     }
 private:
     inline void setNumber(AstNode* nodep, const AstConst* constp) {
@@ -463,7 +473,7 @@ private:
             // TODO -- putting a copy of an AstConst's own value
             // under itself in user3p seems a little silly, but if
             // we don't do this then it bleeds through in V3Unroll
-            // and we start trying to use deleted nodes . . . 
+            // and we start trying to use deleted nodes . . .
             // maybe there's a better way to do this
             newNumber(nodep, nodep->num());
         }
@@ -592,7 +602,7 @@ private:
 
     void handleAssignSel(AstNodeAssign* nodep, AstSel* selp) {
         AstVarRef* varrefp = NULL;
-        AstConst* lsb = NULL;
+        V3Number lsb(nodep);
         iterateAndNextNull(nodep->rhsp());  // Value to assign
         handleAssignSelRecurse(nodep, selp, varrefp/*ref*/, lsb/*ref*/, 0);
         if (!m_checkOnly && optimizable()) {
@@ -613,13 +623,13 @@ private:
                 }
             }
             outconst->num().opSelInto(fetchConst(nodep->rhsp())->num(),
-                                      lsb->num(),
+                                      lsb,
                                       selp->widthConst());
             assignOutNumber(nodep, vscp, outconst);
         }
     }
     void handleAssignSelRecurse(AstNodeAssign* nodep, AstSel* selp,
-                                AstVarRef*& outVarrefpRef, AstConst*& lsbRef,
+                                AstVarRef*& outVarrefpRef, V3Number& lsbRef,
                                 int depth) {
         // Recurse down to find final variable being set (outVarrefp), with
         // value to write on nodep->rhsp()
@@ -627,14 +637,14 @@ private:
         iterateAndNextNull(selp->lsbp());  // Bit index
         if (AstVarRef* varrefp = VN_CAST(selp->fromp(), VarRef)) {
             outVarrefpRef = varrefp;
-            lsbRef = fetchConst(selp->lsbp());
+            lsbRef = *fetchNumber(selp->lsbp());
             return;  // And presumably still optimizable()
         } else if (AstSel* subselp = VN_CAST(selp->lhsp(), Sel)) {
-            AstConst *sublsb;
+            V3Number sublsb(nodep);
             handleAssignSelRecurse(nodep, subselp, outVarrefpRef, sublsb/*ref*/, depth+1);
             if (optimizable()) {
                 lsbRef = sublsb;
-                lsbRef->num().opAdd(sublsb->num(), fetchConst(selp->lsbp())->num());
+                lsbRef.opAdd(sublsb, *fetchNumber(selp->lsbp()));
             }
         } else {
             clearOptimizable(nodep, "Select LHS isn't simple variable");
