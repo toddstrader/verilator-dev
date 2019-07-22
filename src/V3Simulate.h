@@ -278,8 +278,8 @@ private:
         return constp;
     }
 public:
-    void newValue(AstNode* nodep, const V3Number& numr) {
-        newValue(nodep)->num().opAssign(numr);
+    void newValue(AstNode* nodep, const AstConst* constp) {
+        newValue(nodep)->num().opAssign(constp->num());
     }
     V3Number* fetchNumber(AstNode* nodep) {
         return &fetchConst(nodep)->num();
@@ -309,7 +309,7 @@ private:
         nodep->user3p((void*)constp);
     }
     inline void setOutValue(AstNode* nodep, const AstConst* constp) {
-        UINFO(9,"     set num "<<constp->num()<<" on "<<nodep<<endl);
+        UINFO(9,"     set num "<<constp->name()<<" on "<<nodep<<endl);
         nodep->user2p((void*)constp);
     }
 
@@ -357,7 +357,7 @@ private:
             // Don't do setValue, as value isn't yet visible to following statements
             newOutValue(vscp, valuep);
         } else {
-            newValue(vscp, valuep->num());
+            newValue(vscp, valuep);
             newOutValue(vscp, valuep);
         }
     }
@@ -410,7 +410,7 @@ private:
                 AstConst* constp = isConst ? fetchConstNull(nodep->varp()->valuep()) : NULL;
                 if (isConst && constp) {  // Propagate PARAM constants for constant function analysis
                     if (!m_checkOnly && optimizable()) {
-                        newValue(vscp, constp->num());
+                        newValue(vscp, constp);
                     }
                 } else {
                     if (m_checkOnly) varRefCb(nodep);
@@ -469,7 +469,7 @@ private:
     virtual void visit(AstConst* nodep) {
         checkNodeInfo(nodep);
         if (!m_checkOnly && optimizable()) {
-            newValue(nodep, nodep->num());
+            newValue(nodep, nodep);
         }
     }
     virtual void visit(AstEnumItemRef* nodep) {
@@ -480,7 +480,7 @@ private:
             if (valuep) {
                 iterateAndNextNull(valuep);
                 if (optimizable()) {
-                    newValue(nodep, fetchConst(valuep)->num());
+                    newValue(nodep, fetchConst(valuep));
                 }
             } else {
                 clearOptimizable(nodep, "No value found for enum item");
@@ -528,9 +528,9 @@ private:
             if (optimizable()) {
                 if (fetchConst(nodep->lhsp())->num().isNeqZero()) {
                     iterate(nodep->rhsp());
-                    newValue(nodep, fetchConst(nodep->rhsp())->num());
+                    newValue(nodep, fetchConst(nodep->rhsp()));
                 } else {
-                    newValue(nodep, fetchConst(nodep->lhsp())->num());  // a zero
+                    newValue(nodep, fetchConst(nodep->lhsp()));  // a zero
                 }
             }
         }
@@ -545,10 +545,10 @@ private:
             iterate(nodep->lhsp());
             if (optimizable()) {
                 if (fetchConst(nodep->lhsp())->num().isNeqZero()) {
-                    newValue(nodep, fetchConst(nodep->lhsp())->num());  // a one
+                    newValue(nodep, fetchConst(nodep->lhsp()));  // a one
                 } else {
                     iterate(nodep->rhsp());
-                    newValue(nodep, fetchConst(nodep->rhsp())->num());
+                    newValue(nodep, fetchConst(nodep->rhsp()));
                 }
             }
         }
@@ -564,10 +564,10 @@ private:
             if (optimizable()) {
                 if (fetchConst(nodep->lhsp())->num().isEqZero()) {
                     AstConst cnst(nodep->fileline(), AstConst::WidthedValue(), 1, 1);  // a one
-                    newValue(nodep, cnst.num());  // a one
+                    newValue(nodep, &cnst);  // a one
                 } else {
                     iterate(nodep->rhsp());
-                    newValue(nodep, fetchConst(nodep->rhsp())->num());
+                    newValue(nodep, fetchConst(nodep->rhsp()));
                 }
             }
         }
@@ -585,10 +585,10 @@ private:
             if (optimizable()) {
                 if (fetchConst(nodep->condp())->num().isNeqZero()) {
                     iterate(nodep->expr1p());
-                    newValue(nodep, fetchConst(nodep->expr1p())->num());
+                    newValue(nodep, fetchConst(nodep->expr1p()));
                 } else {
                     iterate(nodep->expr2p());
-                    newValue(nodep, fetchConst(nodep->expr2p())->num());
+                    newValue(nodep, fetchConst(nodep->expr2p()));
                 }
             }
         }
@@ -848,7 +848,7 @@ private:
             if (pinp) {  // Else too few arguments in function call - ignore it
                 // Apply value to the function
                 if (!m_checkOnly && optimizable()) {
-                    newValue(portp, fetchConst(pinp)->num());
+                    newValue(portp, fetchConst(pinp));
                 }
             }
         }
@@ -860,7 +860,7 @@ private:
         if (!m_checkOnly && optimizable()) {
             // Grab return value from output variable (if it's a function)
             UASSERT_OBJ(funcp->fvarp(), nodep, "Function reference points at non-function");
-            newValue(nodep, fetchConst(funcp->fvarp())->num());
+            newValue(nodep, fetchConst(funcp->fvarp()));
         }
     }
 
@@ -938,16 +938,16 @@ private:
             switch (nodep->displayType()) {
             case AstDisplayType::DT_DISPLAY:  // FALLTHRU
             case AstDisplayType::DT_INFO:
-                v3warn(USERINFO, textp->num().toString());
+                v3warn(USERINFO, textp->name());
                 break;
             case AstDisplayType::DT_ERROR:
-                v3warn(USERERROR, textp->num().toString());
+                v3warn(USERERROR, textp->name());
                 break;
             case AstDisplayType::DT_WARNING:
-                v3warn(USERWARN, textp->num().toString());
+                v3warn(USERWARN, textp->name());
                 break;
             case AstDisplayType::DT_FATAL:
-                v3warn(USERFATAL, textp->num().toString());
+                v3warn(USERFATAL, textp->name());
                 break;
             case AstDisplayType::DT_WRITE:  // FALLTHRU
             default:
