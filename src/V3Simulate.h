@@ -229,7 +229,6 @@ private:
         } else {
             //UINFO(7,"Num New "<<nodep->width()<<endl);
             constp = new AstConst(nodep->fileline(), AstConst::WidthedValue(), nodep->width(), value);
-            // TODO -- remove?
             UASSERT_OBJ(dtypep == constp->dtypep(), nodep, "Unexpected dtype");
             m_constAllps[constp->dtypep()].push_back(constp);
         }
@@ -470,11 +469,6 @@ private:
     virtual void visit(AstConst* nodep) {
         checkNodeInfo(nodep);
         if (!m_checkOnly && optimizable()) {
-            // TODO -- putting a copy of an AstConst's own value
-            // under itself in user3p seems a little silly, but if
-            // we don't do this then it bleeds through in V3Unroll
-            // and we start trying to use deleted nodes . . .
-            // maybe there's a better way to do this
             newNumber(nodep, nodep->num());
         }
     }
