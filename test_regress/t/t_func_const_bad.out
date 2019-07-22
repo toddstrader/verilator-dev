@@ -26,10 +26,10 @@
            a = 32'h3
    localparam BSTOP = f_bad_stop(3);
                       ^~~~~~~~~~
--Info: Printing in loop:           0
--Info: Printing in loop:           1
--Info: Printing in loop:           2
-%Warning-USERFATAL: Fatal Error
+-Info: "Printing in loop:           0"
+-Info: "Printing in loop:           1"
+-Info: "Printing in loop:           2"
+%Warning-USERFATAL: "Fatal Error"
                     ... Use "/* verilator lint_off USERFATAL */" and lint_on around source to disable this message.
 %Error: t/t_func_const_bad.v:49: Expecting expression to be constant, but can't determine constant for FUNCREF 'f_bad_fatal'
         t/t_func_const_bad.v:54: ... Location of non-constant STOP: $stop executed during function constification; maybe indicates assertion firing

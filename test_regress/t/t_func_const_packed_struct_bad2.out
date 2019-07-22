@@ -1,4 +1,4 @@
-%Warning-USERFATAL: f_add = 15
+%Warning-USERFATAL: "f_add = 15"
                     ... Use "/* verilator lint_off USERFATAL */" and lint_on around source to disable this message.
 %Error: t/t_func_const_packed_struct_bad2.v:19: Expecting expression to be constant, but can't determine constant for FUNCREF 'f_add2'
         t/t_func_const_packed_struct_bad2.v:30: ... Location of non-constant STOP: $stop executed during function constification; maybe indicates assertion firing
