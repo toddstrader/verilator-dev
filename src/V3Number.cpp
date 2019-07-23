@@ -49,7 +49,11 @@
 void V3Number::v3errorEnd(std::ostringstream& str) const {
     std::ostringstream nsstr;
     nsstr<<str.str();
-    m_fileline->v3errorEnd(nsstr);
+    if (m_nodep) {
+        m_nodep->v3errorEnd(nsstr);
+    } else {
+        m_fileline->v3errorEnd(nsstr);
+    }
 }
 
 //======================================================================
@@ -290,6 +294,7 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
 
 void V3Number::setNames(AstNode* nodep) {
     if (!nodep) return;
+    m_nodep = nodep;
     m_fileline = nodep->fileline();
 }
 
