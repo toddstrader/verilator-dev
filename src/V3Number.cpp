@@ -47,11 +47,9 @@
 // Errors
 
 void V3Number::v3errorEnd(std::ostringstream& str) const {
-    if (m_nodep) {
-        m_nodep->fileline()->v3errorEnd(str, m_nodep->locationStr());
-    } else {
-        m_fileline->v3errorEnd(str);
-    }
+    std::ostringstream nsstr;
+    nsstr<<str.str();
+    m_fileline->v3errorEnd(nsstr);
 }
 
 //======================================================================
@@ -73,31 +71,6 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
         }
     }
     opCleanThis(true);
-}
-
-void V3Number::copy(const V3Number& other) {
-    // Specifically don't copy m_nodep
-    m_width = other.m_width;
-    m_sized = other.m_sized;
-    m_signed = other.m_signed;
-    m_double = other.m_double;
-    m_isString = other.m_isString;
-    m_fromString = other.m_fromString;
-    m_autoExtend = other.m_autoExtend;
-    m_hierName = other.m_hierName;
-    m_fileline = other.m_fileline;
-    m_nodep = NULL;
-    m_value = other.m_value;
-    m_valueX = other.m_valueX;
-    m_stringVal = other.m_stringVal;
-}
-
-void V3Number::removeNum() {
-    if (m_nodep) m_nodep->eraseNum(m_numsIt);
-}
-
-V3Number::~V3Number() {
-    removeNum();
 }
 
 void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl) {
@@ -315,11 +288,9 @@ void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl)
     //printf("Dump \"%s\"  CP \"%s\"  B '%c' %d W %d\n", sourcep, value_startp, base, width(), m_value[0]);
 }
 
-void V3Number::nodep(AstNode* nodep) {
-    m_nodep = nodep;
+void V3Number::setNames(AstNode* nodep) {
     if (!nodep) return;
-    m_numsIt = nodep->addNum(this);
-    m_fileline = NULL;
+    m_fileline = nodep->fileline();
 }
 
 //======================================================================
@@ -492,8 +463,11 @@ bool V3Number::displayedFmtLegal(char format) {
     default: return false;
     }
 }
-
 string V3Number::displayed(AstNode* nodep, const string& vformat) const {
+    return displayed(nodep->fileline(), vformat);
+}
+
+string V3Number::displayed(FileLine*fl, const string& vformat) const {
     string::const_iterator pos = vformat.begin();
     UASSERT(pos != vformat.end() && pos[0]=='%',
             "$display-like function with non format argument "<<*this);
@@ -539,14 +513,7 @@ string V3Number::displayed(AstNode* nodep, const string& vformat) const {
         return str;
     }
     case 'c': {
-        if (width()>8) {
-            string err = "$display-like format of %c format of > 8 bit value";
-            if (nodep) {
-                nodep->v3warn(WIDTH, err);
-            } else {
-                v3warn(WIDTH, err);
-            }
-        }
+        if (width()>8) fl->v3warn(WIDTH, "$display-like format of %c format of > 8 bit value");
         unsigned int v = bitsValue(0, 8);
         char strc[2]; strc[0] = v&0xff; strc[1] = '\0';
         str = strc;
@@ -646,13 +613,7 @@ string V3Number::displayed(AstNode* nodep, const string& vformat) const {
         return toString();
     }
     default:
-        std::ostringstream errss;
-        errss<<"Unknown $display-like format code for number: %"<<pos[0];
-        if (nodep) {
-            nodep->v3fatalSrc(errss.str());
-        } else {
-            v3fatalSrc(errss.str());
-        }
+        fl->v3fatalSrc("Unknown $display-like format code for number: %"<<pos[0]);
         return "ERR";
     }
 }
@@ -871,11 +832,6 @@ uint32_t V3Number::mostSetBitP1() const {
         if (bitIs1(bit)) return bit+1;
     }
     return 0;
-}
-
-FileLine* V3Number::fileline() const {
-    if (m_nodep) return m_nodep->fileline();
-    return m_fileline;
 }
 //======================================================================
 

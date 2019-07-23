@@ -27,14 +27,10 @@
 #include "V3Error.h"
 
 #include <vector>
-#include <list>
 
 //============================================================================
 
 class AstNode;
-class V3Number;
-
-typedef std::list<V3Number*> NumberList;
 
 class V3Number {
     // Large 4-state number handling
@@ -45,10 +41,7 @@ class V3Number {
     bool        m_isString:1;   // True if string
     bool        m_fromString:1; // True if from string literal
     bool        m_autoExtend:1; // True if SystemVerilog extend-to-any-width
-    string	m_hierName;	// Module hierachy for errors/warnings
     FileLine*   m_fileline;
-    AstNode*    m_nodep;
-    NumberList::iterator m_numsIt;
     std::vector<uint32_t> m_value;  // The Value, with bit 0 being in bit 0 of this vector (unless X/Z)
     std::vector<uint32_t> m_valueX;  // Each bit is true if it's X or Z, 10=z, 11=x
     string              m_stringVal;  // If isString, the value of the string
@@ -56,13 +49,9 @@ class V3Number {
     V3Number& setSingleBits(char value);
     V3Number& setString(const string& str) { m_isString = true; m_stringVal = str; return *this; }
     void opCleanThis(bool warnOnTruncation = false);
-    void removeNum();
 public:
-    void nodep(AstNode* nodep);
-    void setNodep(AstNode* node) { removeNum(); nodep(node); }
-    AstNode* nodep() const { return m_nodep; }
-    const string& hierName() const { return m_hierName; }
-    FileLine* fileline() const;
+    void nodep(AstNode* nodep) { setNames(nodep); }
+    FileLine* fileline() const { return m_fileline; }
     V3Number& setZero();
     V3Number& setQuad(vluint64_t value);
     V3Number& setLong(uint32_t value);
@@ -164,29 +153,18 @@ public:
     V3Number(const V3Number* nump, int width = 1) {
         init(NULL, width);
         m_fileline = nump->fileline();
-        nodep(nump->nodep());
     }
     V3Number(const V3Number* nump, int width, uint32_t value) {
         init(NULL, width);
         m_value[0] = value;
         opCleanThis();
         m_fileline = nump->fileline();
-        nodep(nump->nodep());
-    }
-    V3Number(const V3Number& other) { copy(other); }
-    // DESTRUCTOR
-    ~V3Number();
-    // COPY
-    V3Number& operator=(const V3Number& other) {
-        copy(other);
-        return *this;
     }
 
 private:
-    void copy(const V3Number& other);
     void V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl);
-    void init(AstNode* node, int swidth) {
-        nodep(node);
+    void init(AstNode* nodep, int swidth) {
+        setNames(nodep);
         m_signed = false;
         m_double = false;
         m_isString = false;
@@ -195,8 +173,10 @@ private:
         width(swidth);
         for (int i=0; i<words(); i++) m_value[i] = m_valueX[i] = 0;
     }
+    void setNames(AstNode* nodep);
+    string displayed(FileLine* fl, const string& vformat) const;
     string displayed(const string& vformat) const {
-        return displayed(NULL, vformat);
+        return displayed(m_fileline, vformat);
     }
 public:
     void v3errorEnd(std::ostringstream& sstr) const;

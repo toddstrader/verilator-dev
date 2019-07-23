@@ -1153,7 +1153,6 @@ class AstNode {
     AstNode*    m_clonep;       // Pointer to clone of/ source of this module (for *LAST* cloneTree() ONLY)
     int         m_cloneCnt;     // Mark of when userp was set
     static int  s_cloneCntGbl;  // Count of which userp is set
-    NumberList  m_nums; // List of V3Numbers attached to this node
 
     // Attributes
     bool        m_didWidth:1;   // Did V3Width computation
@@ -1199,7 +1198,6 @@ protected:
     AstNode() {init(); }
     explicit AstNode(FileLine* fileline) {init(); m_fileline = fileline; }
     virtual AstNode* clone() = 0;  // Generally, cloneTree is what you want instead
-    virtual void cloneCleanup() {} // Runs after a node is cloned
     virtual void cloneRelink() {}
     void        cloneRelinkTree();
 
@@ -1243,11 +1241,6 @@ public:
         return ((backp() && backp()->nextp()!=this) ? backp() : NULL); }
     bool brokeExists() const;
     bool brokeExistsAbove() const;
-    NumberList::iterator addNum(V3Number* num) {
-        m_nums.push_front(num);
-        return m_nums.begin();
-    }
-    void eraseNum(NumberList::iterator it) { m_nums.erase(it); }
 
     // CONSTRUCTORS
     virtual ~AstNode() {}
