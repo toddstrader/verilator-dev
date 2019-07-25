@@ -75,6 +75,7 @@ private:
     //   AstGenFor::user5()     // bool   True if processed
     //   AstVar::user5()        // bool   True if constant propagated
     //   AstVar::user4()        // int    Global parameter number (for naming new module)
+    //   AstCell::user5p()      // string* Generate portion of hierarchical name
     //                          //        (0=not processed, 1=iterated, but no number,
     //                          //         65+ parameter numbered)
     AstUser4InUse       m_inuser4;
@@ -114,6 +115,8 @@ private:
     string m_unlinkedTxt;       // Text for AstUnlinkedRef
 
     UnrollStateful m_unroller;  // Loop unroller
+
+    string m_generateHierName;  // Generate portion of hierarchical name
 
     // METHODS
     VL_DEBUG_FUNC;  // Declare debug()
@@ -242,8 +245,20 @@ private:
                         AstCell* nodep = *it;
                         if ((nonIf==0 && VN_IS(nodep->modp(), Iface))
                             || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
-			    visitCell(nodep, m_modp->hierName());
+                            string fullName (m_modp->hierName());
+                            string* genHierName = (string *) nodep->user5p();
+                            if (genHierName)
+                                fullName += *genHierName;
+			    visitCell(nodep, fullName);
                         }
+                    }
+                }
+                for (CellList::iterator it=m_cellps.begin(); it!=m_cellps.end(); ++it) {
+                    AstCell* cellp = *it;
+                    string* genHierName = (string *) cellp->user5p();
+                    if (genHierName) {
+                        delete genHierName;
+                        cellp->user5p(NULL);
                     }
                 }
                 m_cellps.clear();
@@ -267,6 +282,7 @@ private:
                    || VN_IS(nodep, Package)) {  // Likewise haven't done wrapTopPackages yet
             // Add request to END of modules left to process
             m_todoModps.insert(make_pair(nodep->level(), nodep));
+            m_generateHierName = "";
             visitModules();
         } else if (nodep->user5()) {
             UINFO(4," MOD-done   "<<nodep<<endl);  // Already did it
@@ -276,6 +292,8 @@ private:
     }
     virtual void visit(AstCell* nodep) {
         // Must do ifaces first, so push to list and do in proper order
+        string* genHierName = new string(m_generateHierName);
+        nodep->user5p(genHierName);
         m_cellps.push_back(nodep);
     }
 
@@ -479,7 +497,10 @@ private:
                 // Note this clears nodep->genforp(), so begin is no longer special
             }
         } else {
+            string rootHierName(m_generateHierName);
+            m_generateHierName += "." + nodep->prettyName();
             iterateChildren(nodep);
+            m_generateHierName = rootHierName;
         }
     }
     virtual void visit(AstGenFor* nodep) {
