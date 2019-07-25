@@ -1290,7 +1290,7 @@ public:
     bool didWidthAndSet() { if (didWidth()) return true; didWidth(true); return false; }
     void doingWidth(bool flag) { m_doingWidth = flag; }
     bool doingWidth() const { return m_doingWidth; }
-    string	locationStr() const;
+    string    locationStr() const;
 
     //TODO stomp these width functions out, and call via dtypep() instead
     int width() const;
@@ -2215,7 +2215,7 @@ public:
     // ACCESSORS
     virtual void name(const string& name) { m_name = name; }
     string origName() const { return m_origName; }
-    string hierName() const	{ return m_hierName; }
+    string hierName() const    { return m_hierName; }
     void hierName(const string& hierName) { m_hierName = hierName; }
     bool inLibrary() const { return m_inLibrary; }
     void inLibrary(bool flag) { m_inLibrary = flag; }
