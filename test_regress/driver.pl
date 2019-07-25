@@ -55,8 +55,10 @@ my $opt_benchmark;
 my @opt_tests;
 my $opt_dist;
 my $opt_gdb;
+my $opt_rr;
 my $opt_gdbbt;
 my $opt_gdbsim;
+my $opt_rrsim;
 my $opt_jobs = 1;
 my $opt_optimize;
 my $opt_quiet;
@@ -77,8 +79,10 @@ if (! GetOptions(
           "debug"       => \&debug,
           #debugi          see parameter()
           "gdb!"        => \$opt_gdb,
+          "rr!"         => \$opt_rr,
           "gdbbt!"      => \$opt_gdbbt,
           "gdbsim!"     => \$opt_gdbsim,
+          "rrsim!"      => \$opt_rrsim,
           "golden!"     => sub { $ENV{HARNESS_UPDATE_GOLDEN} = 1; },
           "help"        => \&usage,
           "j=i"         => \$opt_jobs,
@@ -726,6 +730,7 @@ sub compile_vlt_flags {
 
     my @verilator_flags = @{$param{verilator_flags}};
     unshift @verilator_flags, "--gdb" if $opt_gdb;
+    unshift @verilator_flags, "--rr" if $opt_rr;
     unshift @verilator_flags, "--gdbbt" if $opt_gdbbt;
     unshift @verilator_flags, "--x-assign unique";  # More likely to be buggy
     unshift @verilator_flags, "--trace" if $opt_trace;
@@ -1047,9 +1052,15 @@ sub execute {
         #&& (!$param{needs_v4} || -r "$ENV{VERILATOR_ROOT}/src/V3Gate.cpp")
         ) {
         $param{executable} ||= "$self->{obj_dir}/$param{VM_PREFIX}";
+        my $debugger = "";
+        if ($opt_gdbsim) {
+            $debugger = ($ENV{VERILATOR_GDB}||"gdb")." ";
+        } elsif ($opt_rrsim) {
+            $debugger = "rr record ";
+        }
         $self->_run(logfile=>"$self->{obj_dir}/vlt_sim.log",
                     cmd=>[($run_env
-                           .($opt_gdbsim ? ($ENV{VERILATOR_GDB}||"gdb")." " : "")
+                           .$debugger
                            .$param{executable}
                            .($opt_gdbsim ? " -ex 'run " : "")),
                           @{$param{all_run_flags}},
@@ -2250,6 +2261,10 @@ details on the format see the Verilator Internals manual.
 
 Same as C<verilator --gdb>: Run Verilator under the debugger.
 
+=item --rr
+
+Same as C<verilator --rr>: Run Verilator and record with rr.
+
 =item --gdbbt
 
 Same as C<verilator --gdbbt>: Run Verilator under the debugger, only to
@@ -2258,6 +2273,10 @@ print backtrace information.  Requires --debug.
 =item --gdbsim
 
 Run Verilator generated executable under the debugger.
+
+=item --rrsim
+
+Run Verilator generated executable and record with rr.
 
 =item --golden
 

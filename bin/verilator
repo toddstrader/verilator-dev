@@ -34,6 +34,7 @@ autoflush STDERR 1;
 
 $Debug = 0;
 my $opt_gdb;
+my $opt_rr;
 my $opt_gdbbt;
 my $opt_quiet_exit;
 
@@ -59,6 +60,7 @@ if (! GetOptions(
           # "version!"  => \&version,   # Also passthru'ed
           # Switches
           "gdb!"        => \$opt_gdb,
+          "rr!"         => \$opt_rr,
           "gdbbt!"      => \$opt_gdbbt,
           "quiet-exit!" => \$opt_quiet_exit,
           # Additional parameters
@@ -93,6 +95,10 @@ if ($opt_gdb) {
          ." -ex \"run ".join(' ', @quoted_sw)."\""
          ." -ex 'set width 0'"
          ." -ex 'bt'");
+} elsif ($opt_rr) {
+    # Record with rr
+    run ("rr record ".verilator_bin()
+         ." ".join(' ', @quoted_sw));
 } elsif ($opt_gdbbt && $Debug) {
     # Run under GDB to get gdbbt
     run ("gdb"
@@ -304,6 +310,7 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
      -FI <file>                 Force include of a file
      -G<name>=<value>           Overwrite toplevel parameter
     --gdb                       Run Verilator under GDB interactively
+    --rr                        Run Verilator and record with rr
     --gdbbt                     Run Verilator under GDB for backtrace
     --getenv <var>              Get environment variable with defaults
     --help                      Display this help
@@ -840,6 +847,10 @@ an equation for the gate substitution optimization to inline that equation.
 
 Run Verilator underneath an interactive GDB (or VERILATOR_GDB environment
 variable value) session.  See also --gdbbt.
+
+=item --rr
+
+Run Verilator and record with rr.  See: rr-project.org.
 
 =item --gdbbt
 
