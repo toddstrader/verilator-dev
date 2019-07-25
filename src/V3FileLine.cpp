@@ -328,7 +328,7 @@ void FileLine::v3errorEnd(std::ostringstream& str, const string& locationStr) {
     nsstr<<endl;
     std::ostringstream lstr;
     if (!locationStr.empty()) {
-    lstr<<std::setw(ascii().length())<<" "<<": "<<locationStr;
+        lstr<<std::setw(ascii().length())<<" "<<": "<<locationStr;
     }
     if (warnIsOff(V3Error::errorCode())) V3Error::suppressThisWarning();
     else if (!V3Error::errorContexted()) nsstr<<warnContextPrimary();

@@ -1097,30 +1097,30 @@ string AstNode::locationStr() const {
             str += scopep->prettyName();
             return str;
         }
-    backp = backp->backp();
+        backp = backp->backp();
     }
     backp = this;
     while (backp) {
         const AstModule* modp;
-    const AstNodeVarRef* nvrp;
-    if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
-        str += modp->hierName();
-        return str;
-    } else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
-        string prettyName = nvrp->prettyName();
-        // VarRefs have not been flattened yet and do not contain location information
-        if (prettyName != nvrp->name()) {
-        str += prettyName;
-        return str;
+        const AstNodeVarRef* nvrp;
+        if ((modp = VN_CAST_CONST(backp, Module)) && !modp->hierName().empty()) {
+            str += modp->hierName();
+            return str;
+        } else if ((nvrp = VN_CAST_CONST(backp, NodeVarRef))) {
+            string prettyName = nvrp->prettyName();
+            // VarRefs have not been flattened yet and do not contain location information
+            if (prettyName != nvrp->name()) {
+                str += prettyName;
+                return str;
+            }
         }
-    }
-    backp = backp->backp();
+        backp = backp->backp();
     }
     return "";
 }
 void AstNode::v3errorEnd(std::ostringstream& str) const {
     if (!m_fileline) {
-    V3Error::v3errorEnd(str, locationStr());
+        V3Error::v3errorEnd(str, locationStr());
     } else {
     std::ostringstream nsstr;
     nsstr<<str.str();
