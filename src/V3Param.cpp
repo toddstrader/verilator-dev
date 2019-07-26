@@ -234,8 +234,7 @@ private:
             if (!nodep->user5SetOnce()) {  // Process once; note clone() must clear so we do it again
                 m_modp = nodep;
                 UINFO(4," MOD   "<<nodep<<endl);
-                if (m_modp->hierName().empty())
-                    m_modp->hierName(m_modp->origName());
+                if (m_modp->hierName().empty()) m_modp->hierName(m_modp->origName());
                 iterateChildren(nodep);
                 // Note above iterate may add to m_todoModps
                 //
@@ -247,8 +246,7 @@ private:
                             || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
                             string fullName (m_modp->hierName());
                             string* genHierName = (string *) nodep->user5p();
-                            if (genHierName)
-                                fullName += *genHierName;
+                            if (genHierName) fullName += *genHierName;
                             visitCell(nodep, fullName);
                         }
                     }

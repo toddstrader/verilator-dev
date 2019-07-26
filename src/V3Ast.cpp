@@ -1091,8 +1091,7 @@ string AstNode::locationStr() const {
         if ((scopep = VN_CAST_CONST(backp, Scope))) {
             // The design is flattened and there are no useful scopes
             // This is probably because of inilining
-            if (scopep->isTop())
-                break;
+            if (scopep->isTop()) break;
 
             str += scopep->prettyName();
             return str;
