@@ -1084,7 +1084,7 @@ void AstNode::v3errorEndFatal(std::ostringstream& str) const {
 }
 
 string AstNode::locationStr() const {
-    string str = "In instance ";
+    string str = "... In instance ";
     const AstNode* backp = this;
     while (backp) {
         const AstScope* scopep;
