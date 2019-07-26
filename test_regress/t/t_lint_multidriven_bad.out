@@ -1,5 +1,6 @@
 %Warning-MULTIDRIVEN: t/t_lint_multidriven_bad.v:20: Signal has multiple driving blocks with different clocking: 't.mem'
                       t/t_lint_multidriven_bad.v:26: ... Location of first driving block
+                                                   : ... In instance t.mem
       mem[a0] <= d1;
       ^~~
                       t/t_lint_multidriven_bad.v:23: ... Location of other driving block

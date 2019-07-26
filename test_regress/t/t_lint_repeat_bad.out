@@ -3,4 +3,8 @@
    wire [0:0] b = a;
                 ^
                 ... Use "/* verilator lint_off WIDTH */" and lint_on around source to disable this message.
+%Warning-WIDTH: t/t_lint_repeat_bad.v:17: Operator ASSIGNW expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'a' generates 2 bits.
+                                        : ... In instance t.sub3
+   wire [0:0] b = a;
+                ^
 %Error: Exiting due to

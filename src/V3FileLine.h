@@ -235,7 +235,9 @@ public:
     string warnOther() const;
     /// When building an error, current location in include etc
     /// If not used in a given error, automatically pasted at end of error
-    string warnContextPrimary() const { return warnContext(false); }
+    string warnContextPrimary(const string& locationStr = "") const {
+        return warnContext(false, locationStr);
+    }
     /// When building an error, additional location for additional references
     /// Simplified information vs warnContextPrimary() to make dump clearer
     string warnContextSecondary() const { return warnContext(true); }
@@ -249,7 +251,7 @@ public:
     }
 private:
     void v3errorEndFatalGuts(std::ostringstream& str);
-    string warnContext(bool secondary) const;
+    string warnContext(bool secondary, const string& locationStr = "") const;
 };
 std::ostream& operator<<(std::ostream& os, FileLine* fileline);
 

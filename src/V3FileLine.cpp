@@ -326,13 +326,9 @@ void FileLine::v3errorEnd(std::ostringstream& str, const string& locationStr) {
     if (lastLineno()) nsstr<<this;
     nsstr<<str.str();
     nsstr<<endl;
-    std::ostringstream lstr;
-    if (!locationStr.empty()) {
-        lstr<<std::setw(ascii().length())<<" "<<": "<<locationStr;
-    }
     if (warnIsOff(V3Error::errorCode())) V3Error::suppressThisWarning();
-    else if (!V3Error::errorContexted()) nsstr<<warnContextPrimary();
-    V3Error::v3errorEnd(nsstr, lstr.str());
+    else if (!V3Error::errorContexted()) nsstr<<warnContextPrimary(locationStr);
+    V3Error::v3errorEnd(nsstr);
 }
 
 string FileLine::warnMore() const {
@@ -366,9 +362,14 @@ string FileLine::prettySource() const {
     return VString::spaceUnprintable(out);
 }
 
-string FileLine::warnContext(bool secondary) const {
+string FileLine::warnContext(bool secondary, const string& locationStr) const {
     V3Error::errorContexted(true);
     string out = "";
+    if (!secondary) {
+        if (!locationStr.empty()) {
+            out += warnMore()+locationStr+"\n";
+        }
+    }
     if (firstLineno()==lastLineno() && firstColumn()) {
         string sourceLine = prettySource();
         // Don't show super-long lines as can fill screen and unlikely to help user
