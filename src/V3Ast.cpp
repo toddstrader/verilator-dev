@@ -1121,15 +1121,15 @@ void AstNode::v3errorEnd(std::ostringstream& str) const {
     if (!m_fileline) {
         V3Error::v3errorEnd(str, locationStr());
     } else {
-    std::ostringstream nsstr;
-    nsstr<<str.str();
+        std::ostringstream nsstr;
+        nsstr<<str.str();
         if (debug()) {
             nsstr<<endl;
             nsstr<<"-node: ";
             const_cast<AstNode*>(this)->dump(nsstr);
             nsstr<<endl;
         }
-    m_fileline->v3errorEnd(nsstr, locationStr());
+        m_fileline->v3errorEnd(nsstr, locationStr());
     }
 }
 
