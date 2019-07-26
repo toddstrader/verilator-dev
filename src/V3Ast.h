@@ -1188,6 +1188,7 @@ private:
                              bool ignNext, bool gateOnly);
     void        deleteTreeIter();
     void        deleteNode();
+    string      locationStr() const;
 public:
     static void relinkOneLink(AstNode*& pointpr, AstNode* newp);
     // cppcheck-suppress functionConst
@@ -1290,7 +1291,6 @@ public:
     bool didWidthAndSet() { if (didWidth()) return true; didWidth(true); return false; }
     void doingWidth(bool flag) { m_doingWidth = flag; }
     bool doingWidth() const { return m_doingWidth; }
-    string locationStr() const;
 
     //TODO stomp these width functions out, and call via dtypep() instead
     int width() const;
