@@ -75,9 +75,9 @@ private:
     //   AstGenFor::user5()     // bool   True if processed
     //   AstVar::user5()        // bool   True if constant propagated
     //   AstVar::user4()        // int    Global parameter number (for naming new module)
-    //   AstCell::user5p()      // string* Generate portion of hierarchical name
     //                          //        (0=not processed, 1=iterated, but no number,
     //                          //         65+ parameter numbered)
+    //   AstCell::user5p()      // string* Generate portion of hierarchical name
     AstUser4InUse       m_inuser4;
     AstUser5InUse       m_inuser5;
     // User1/2/3 used by constant function simulations
@@ -245,18 +245,18 @@ private:
                         if ((nonIf==0 && VN_IS(nodep->modp(), Iface))
                             || (nonIf==1 && !VN_IS(nodep->modp(), Iface))) {
                             string fullName (m_modp->hierName());
-                            string* genHierName = (string *) nodep->user5p();
-                            if (genHierName) fullName += *genHierName;
+                            if (string* genHierNamep = (string *) nodep->user5p()) {
+                                fullName += *genHierNamep;
+                            }
                             visitCell(nodep, fullName);
                         }
                     }
                 }
                 for (CellList::iterator it=m_cellps.begin(); it!=m_cellps.end(); ++it) {
                     AstCell* cellp = *it;
-                    string* genHierName = (string *) cellp->user5p();
-                    if (genHierName) {
-                        delete genHierName;
+                    if (string* genHierNamep = (string *) cellp->user5p()) {
                         cellp->user5p(NULL);
+                        delete genHierNamep; VL_DANGLING(genHierNamep);
                     }
                 }
                 m_cellps.clear();
@@ -290,8 +290,8 @@ private:
     }
     virtual void visit(AstCell* nodep) {
         // Must do ifaces first, so push to list and do in proper order
-        string* genHierName = new string(m_generateHierName);
-        nodep->user5p(genHierName);
+        string* genHierNamep = new string(m_generateHierName);
+        nodep->user5p(genHierNamep);
         m_cellps.push_back(nodep);
     }
 
