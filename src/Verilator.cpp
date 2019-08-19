@@ -43,6 +43,7 @@
 #include "V3DepthBlock.h"
 #include "V3Descope.h"
 #include "V3EmitC.h"
+#include "V3EmitDpiProtect.h"
 #include "V3EmitMk.h"
 #include "V3EmitV.h"
 #include "V3EmitXml.h"
@@ -545,6 +546,11 @@ void process() {
         || (v3Global.opt.debugCheck() && !v3Global.opt.lintOnly()
             && !v3Global.opt.dpiHdrOnly())) {
         V3EmitXml::emitxml();
+    }
+
+    // Output DPI protected library files
+    if (v3Global.opt.dpiProtect()) {
+        V3EmitDpiProtect::emitv();
     }
 
     // Statistics

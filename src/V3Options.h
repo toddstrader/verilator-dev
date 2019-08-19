@@ -121,6 +121,7 @@ class V3Options {
     bool        m_debugSelfTest;  // main switch: --debug-self-test
     bool        m_decoration;   // main switch: --decoration
     bool        m_dpiHdrOnly;   // main switch: --dpi-hdr-only
+    bool        m_dpiProtect;   // main switch: --dpi-protect
     bool        m_dumpDefines;  // main switch: --dump-defines
     bool        m_exe;          // main switch: --exe
     bool        m_ignc;         // main switch: --ignc
@@ -290,6 +291,7 @@ class V3Options {
     bool debugSelfTest() const { return m_debugSelfTest; }
     bool decoration() const { return m_decoration; }
     bool dpiHdrOnly() const { return m_dpiHdrOnly; }
+    bool dpiProtect() const { return m_dpiProtect; }
     bool dumpDefines() const { return m_dumpDefines; }
     bool exe() const { return m_exe; }
     bool threadsDpiPure() const { return m_threadsDpiPure; }
