@@ -299,6 +299,7 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
     --default-language <lang>   Default language to parse
      +define+<var>=<value>      Set preprocessor define
     --dpi-hdr-only              Only produce the DPI header file
+    --dpi-protect               Create a DPI protected library
     --dump-defines              Show preprocessor defines with -E
     --dump-tree                 Enable dumping .tree files
     --dump-treei <level>        Enable dumping .tree files at a level
@@ -745,6 +746,10 @@ while -D is an alias for GCC compatibility.
 
 Only generate the DPI header file.  This option has no effect on the name
 or location of the file.
+
+=item --dpi-protect
+
+TODO -- words here
 
 =item --dump-defines
 
