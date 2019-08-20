@@ -167,6 +167,7 @@ public:
         of.puts("# User CFLAGS (from -CFLAGS on Verilator command line)\n");
         of.puts("VM_USER_CFLAGS = \\\n");
         if (v3Global.opt.dpiProtect()) {
+            // TODO -- wrap Verilator runtime in a namespace to avoid collisions
             of.puts("\t-fPIC \\\n");
         }
         const V3StringList& cFlags = v3Global.opt.cFlags();
