@@ -30,20 +30,18 @@
 //######################################################################
 // Internal EmitDpiProtect implementation
 
-class EmitVWrapper {
+class EmitWrapper {
   public:
-    EmitVWrapper(AstNodeModule* modp):
+    EmitWrapper(AstNodeModule* modp):
         m_modp(modp),
         m_modName(v3Global.opt.prefix()),
-        m_of(v3Global.opt.makeDir()+"/"+m_modName+".sv"),
         m_totalPorts(0)
     {
         UASSERT_OBJ(modp->isTop(), modp, "V3EmitDpiProtect::emitv on non-top-level module");
         discoverPorts();
-        emit();
     }
 
-  private:
+  protected:
     // TODO -- inouts?
     typedef std::list<AstVar*> VarList;
     VarList m_inputs;
@@ -51,9 +49,8 @@ class EmitVWrapper {
     int m_totalPorts;
     AstNodeModule* m_modp;
     string m_modName;
-    V3OutVFile m_of;
-    int m_currPort;
 
+  private:
     void discoverPorts() {
         AstNode* stmtp = m_modp->stmtsp();
         while(stmtp) {
@@ -73,6 +70,20 @@ class EmitVWrapper {
             stmtp = stmtp->nextp();
         }
     }
+};
+
+class EmitVWrapper: public EmitWrapper {
+  public:
+    EmitVWrapper(AstNodeModule* modp):
+        EmitWrapper(modp),
+        m_of(v3Global.opt.makeDir()+"/"+m_modName+".sv")
+    {
+        emit();
+    }
+
+  private:
+    int m_currPort;
+    V3OutVFile m_of;
 
     void emitComma() {
         if (++m_currPort != m_totalPorts) m_of.puts(",");
@@ -80,12 +91,11 @@ class EmitVWrapper {
     }
 
     void emitDpiParameters(VarList& ports) {
-            //, int a, bit clk, output int x);
         for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
             AstVar* varp = *it;
 
             if (varp->direction() == VDirection::OUTPUT) m_of.puts("output ");
-            // TODO -- consider passing 4-state through
+            // TODO -- consider passing 4-state through (as randomized values?)
             m_of.puts("bit ");
             int width;
             if ((width = varp->width()) > 1) m_of.puts("["+std::to_string(width-1)+":0] ");
@@ -93,7 +103,6 @@ class EmitVWrapper {
             m_of.puts((*it)->name());
 
             emitComma();
-            // TODO -- next
         }
     }
 
@@ -144,14 +153,130 @@ class EmitVWrapper {
                   m_modName+" (chandle handle);\n\n");
 
         m_of.puts("chandle handle;\n");
-        m_of.puts("string scope;\n");
-        m_of.puts("initial foo = create_foo($sformatf(\"%m\"));\n");
-        m_of.puts("final final_foo(foo);\n\n");
+        m_of.puts("string scope;\n\n");
+
+        m_of.puts("initial foo = create_dpi_prot_foo($sformatf(\"%m\"));\n\n");
 
         // TODO -- try to understand clocks and be smarter here
-        m_of.puts("always @(*) eval_foo(foo, a, clk, x);\n\n");
+        m_of.puts("always @(*) eval_dpi_prot_foo(foo, a, clk, x);\n\n");
+
+        m_of.puts("final final_dpi_prot_foo(foo);\n\n");
 
         m_of.puts("endmodule\n");
+    }
+};
+
+class EmitCWrapper: public EmitWrapper {
+  public:
+    EmitCWrapper(AstNodeModule* modp):
+        EmitWrapper(modp),
+        m_of(v3Global.opt.makeDir()+"/"+m_modName+".cpp")
+    {
+        emit();
+    }
+
+  private:
+    int m_currPort;
+    V3OutCFile m_of;
+
+    // TODO -- remote duplication
+    void emitComma() {
+        if (++m_currPort != m_totalPorts) m_of.puts(",");
+        m_of.puts("\n");
+    }
+
+    void emitDpiParameters(VarList& ports) {
+        for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            AstVar* varp = *it;
+
+            int width;
+            if (varp->direction() == VDirection::INPUT) {
+                if ((width = varp->width()) > 1) {
+                    m_of.puts("const svBitVecVal* ");
+                } else {
+                    m_of.puts("unsigned char ");
+                }
+            } else {
+                if ((width = varp->width()) > 1) {
+                    m_of.puts("svBitVecVal* ");
+                } else {
+                    m_of.puts("unsigned char* ");
+                }
+            }
+
+            m_of.puts((*it)->name());
+
+            emitComma();
+        }
+    }
+
+    void emitInputConnections() {
+        for (VarList::iterator it = m_inputs.begin(); it != m_inputs.end(); ++it) {
+            AstVar* varp = *it;
+
+            int width = varp->width();
+            // TODO -- cases to test all of this
+            if (width == 1) {
+                m_of.puts("handle->"+varp->name()+" = "+varp->name()+";\n");
+            } else if (width <= sizeof(uint32_t)) {
+                m_of.puts("handle->"+varp->name()+" = *"+varp->name()+";\n");
+            } else {
+                int bytes = (width + 7) / 8;
+                m_of.puts("memcpy(handle->"+varp->name()+", "+varp->name()+", "+std::to_string(bytes)+");\n");
+            }
+        }
+    }
+
+    void emitOutputConnections() {
+        for (VarList::iterator it = m_inputs.begin(); it != m_inputs.end(); ++it) {
+            AstVar* varp = *it;
+
+            int width = varp->width();
+            // TODO -- cases to test all of this
+            if (width <= sizeof(uint32_t)) {
+                m_of.puts("*"+varp->name()+" = handle->"+varp->name()+";\n");
+            } else {
+                int bytes = (width + 7) / 8;
+                m_of.puts("memcpy("+varp->name()+", handle->"+varp->name()+", "+std::to_string(bytes)+");\n");
+            }
+        }
+    }
+
+    void emit() {
+        m_of.putsHeader();
+        m_of.puts("// Wrapper class for DPI protected library\n\n");
+        m_of.puts("#include \"V"+m_modName+".h\"\n");
+        // TODO -- this externs the functions, does that matter?
+        // TODO -- how should we get this file?  should we run verilator on the
+        //         SV wrapper or just build it during this step?
+        m_of.puts("#include \"V"+m_modName+"__Dpi.h\"\n\n");
+
+        m_of.puts("void* create_dpi_prot_"+m_modName+" (const char* scope) {\n");
+        // TODO -- something more friendly here
+        m_of.puts("assert(sizeof(WData) == sizeof(svBitVecVal));\n");
+        m_of.puts("V"+m_modName+"* handle = new V"+m_modName+"(scope);\n");
+        m_of.puts("return handle;\n");
+        m_of.puts("}\n\n");
+
+        m_of.puts("void eval_dpi_prot_"+m_modName+" (\n");
+        m_of.puts("void* ptr,\n");
+        m_currPort = 0;
+        emitDpiParameters(m_inputs);
+        emitDpiParameters(m_outputs);
+        m_of.puts(")\n");
+        m_of.puts("{\n");
+        m_of.puts("V"+m_modName+"* handle = static_cast<V"+m_modName+"*>(ptr);\n");
+        emitInputConnections();
+        m_of.puts("handle->eval();\n");
+        emitOutputConnections();
+        m_of.puts("}\n\n");
+
+        m_of.puts("void final_dpi_prot_"+m_modName+" (void* ptr) {\n");
+        m_of.puts("V"+m_modName+"* handle = static_cast<V"+m_modName+"*>(ptr);\n");
+        m_of.puts("handle->final();\n");
+        m_of.puts("delete handle;\n");
+        m_of.puts("}\n\n");
+
     }
 };
 
@@ -164,6 +289,7 @@ void V3EmitDpiProtect::emitv() {
     // TODO -- does this even work for multiple top-levels?
     for (AstNodeModule* nodep = v3Global.rootp()->modulesp();
          nodep; nodep = VN_CAST(nodep->nextp(), NodeModule)) {
-        EmitVWrapper wrapper(nodep);
+        EmitVWrapper vWrapper(nodep);
+        EmitCWrapper cWrapper(nodep);
     }
 }
