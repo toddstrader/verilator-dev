@@ -90,7 +90,7 @@ class EmitVWrapper: public EmitWrapper {
         m_of.puts("\n");
     }
 
-    void emitDpiParameters(VarList& ports) {
+    void emitDpiParameterDecls(VarList& ports) {
         for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
             AstVar* varp = *it;
 
@@ -99,6 +99,16 @@ class EmitVWrapper: public EmitWrapper {
             m_of.puts("bit ");
             int width;
             if ((width = varp->width()) > 1) m_of.puts("["+std::to_string(width-1)+":0] ");
+
+            m_of.puts((*it)->name());
+
+            emitComma();
+        }
+    }
+
+    void emitDpiParameters(VarList& ports) {
+        for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            AstVar* varp = *it;
 
             m_of.puts((*it)->name());
 
@@ -144,23 +154,28 @@ class EmitVWrapper: public EmitWrapper {
                   m_modName+" (string scope);\n");
         // TODO -- break up setters, eval and maybe getters
         m_of.puts("import \"DPI-C\" function void eval_dpi_prot_"+m_modName+" (\n");
-        m_of.puts("chandle handle\n");
+        m_of.puts("chandle handle,\n");
         m_currPort = 0;
-        emitDpiParameters(m_inputs);
-        emitDpiParameters(m_outputs);
-        m_of.puts(")\n");
+        emitDpiParameterDecls(m_inputs);
+        emitDpiParameterDecls(m_outputs);
+        m_of.puts(");\n");
         m_of.puts("import \"DPI-C\" function void final_dpi_prot_"+
                   m_modName+" (chandle handle);\n\n");
 
         m_of.puts("chandle handle;\n");
         m_of.puts("string scope;\n\n");
 
-        m_of.puts("initial foo = create_dpi_prot_foo($sformatf(\"%m\"));\n\n");
+        m_of.puts("initial handle = create_dpi_prot_"+m_modName+"($sformatf(\"%m\"));\n\n");
 
         // TODO -- try to understand clocks and be smarter here
-        m_of.puts("always @(*) eval_dpi_prot_foo(foo, a, clk, x);\n\n");
+        m_of.puts("always @(*) eval_dpi_prot_"+m_modName+"(\n");
+        m_of.puts("handle,\n");
+        m_currPort = 0;
+        emitDpiParameters(m_inputs);
+        emitDpiParameters(m_outputs);
+        m_of.puts(");\n\n");
 
-        m_of.puts("final final_dpi_prot_foo(foo);\n\n");
+        m_of.puts("final final_dpi_prot_"+m_modName+"(handle);\n\n");
 
         m_of.puts("endmodule\n");
     }
