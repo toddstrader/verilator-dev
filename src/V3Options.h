@@ -121,7 +121,6 @@ class V3Options {
     bool        m_debugSelfTest;  // main switch: --debug-self-test
     bool        m_decoration;   // main switch: --decoration
     bool        m_dpiHdrOnly;   // main switch: --dpi-hdr-only
-    bool        m_dpiProtect;   // main switch: --dpi-protect
     bool        m_dumpDefines;  // main switch: --dump-defines
     bool        m_exe;          // main switch: --exe
     bool        m_ignc;         // main switch: --ignc
@@ -181,6 +180,7 @@ class V3Options {
     int         m_compLimitParens;  // compiler selection; number of nested parens
 
     string      m_bin;          // main switch: --bin {binary}
+    string      m_dpiProtect;   // main switch: --dpi-protect {lib_name}
     string      m_exeName;      // main switch: -o {name}
     string      m_flags;        // main switch: -f {name}
     string      m_l2Name;       // main switch: --l2name; "" for top-module's name
@@ -290,7 +290,6 @@ class V3Options {
     bool debugSelfTest() const { return m_debugSelfTest; }
     bool decoration() const { return m_decoration; }
     bool dpiHdrOnly() const { return m_dpiHdrOnly; }
-    bool dpiProtect() const { return m_dpiProtect; }
     bool dumpDefines() const { return m_dumpDefines; }
     bool exe() const { return m_exe; }
     bool threadsDpiPure() const { return m_threadsDpiPure; }
@@ -344,6 +343,7 @@ class V3Options {
     int compLimitMembers() const { return m_compLimitMembers; }
     int compLimitParens() const { return m_compLimitParens; }
 
+    string dpiProtect() const { return m_dpiProtect; }
     string exeName() const { return m_exeName!="" ? m_exeName : prefix(); }
     string l2Name() const { return m_l2Name; }
     string makeDir() const { return m_makeDir; }

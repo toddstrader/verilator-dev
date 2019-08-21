@@ -34,7 +34,7 @@ class EmitWrapper {
   public:
     EmitWrapper(AstNodeModule* modp):
         m_modp(modp),
-        m_modName(v3Global.opt.prefix()),
+        m_libName(v3Global.opt.dpiProtect()),
         m_totalPorts(0)
     {
         UASSERT_OBJ(modp->isTop(), modp, "V3EmitDpiProtect::emitv on non-top-level module");
@@ -48,7 +48,7 @@ class EmitWrapper {
     VarList m_outputs;
     int m_totalPorts;
     AstNodeModule* m_modp;
-    string m_modName;
+    string m_libName;
 
   private:
     void discoverPorts() {
@@ -76,7 +76,7 @@ class EmitVWrapper: public EmitWrapper {
   public:
     EmitVWrapper(AstNodeModule* modp):
         EmitWrapper(modp),
-        m_of(v3Global.opt.makeDir()+"/"+m_modName+".sv")
+        m_of(v3Global.opt.makeDir()+"/"+m_libName+".sv")
     {
         emit();
     }
@@ -140,42 +140,42 @@ class EmitVWrapper: public EmitWrapper {
     void emit() {
         m_of.putsHeader();
         m_of.puts("// Wrapper module for DPI protected library\n");
-        m_of.puts("// This file requires lib"+m_modName+".so to operate\n");
+        m_of.puts("// This file requires lib"+m_libName+".so to operate\n");
         m_of.puts("// See instructions in your simulator for how to load DPI libraries\n");
 
         // TODO -- figure out how the formatters work
-        m_of.puts("module "+m_modName+"(\n");
+        m_of.puts("module "+m_libName+"(\n");
         m_currPort = 0;
         emitPorts(m_inputs);
         emitPorts(m_outputs);
         m_of.puts(");\n\n");
 
         m_of.puts("import \"DPI-C\" function chandle create_dpi_prot_"+
-                  m_modName+" (string scope);\n");
+                  m_libName+" (string scope);\n");
         // TODO -- break up setters, eval and maybe getters
-        m_of.puts("import \"DPI-C\" function void eval_dpi_prot_"+m_modName+" (\n");
+        m_of.puts("import \"DPI-C\" function void eval_dpi_prot_"+m_libName+" (\n");
         m_of.puts("chandle handle,\n");
         m_currPort = 0;
         emitDpiParameterDecls(m_inputs);
         emitDpiParameterDecls(m_outputs);
         m_of.puts(");\n");
         m_of.puts("import \"DPI-C\" function void final_dpi_prot_"+
-                  m_modName+" (chandle handle);\n\n");
+                  m_libName+" (chandle handle);\n\n");
 
         m_of.puts("chandle handle;\n");
         m_of.puts("string scope;\n\n");
 
-        m_of.puts("initial handle = create_dpi_prot_"+m_modName+"($sformatf(\"%m\"));\n\n");
+        m_of.puts("initial handle = create_dpi_prot_"+m_libName+"($sformatf(\"%m\"));\n\n");
 
         // TODO -- try to understand clocks and be smarter here
-        m_of.puts("always @(*) eval_dpi_prot_"+m_modName+"(\n");
+        m_of.puts("always @(*) eval_dpi_prot_"+m_libName+"(\n");
         m_of.puts("handle,\n");
         m_currPort = 0;
         emitDpiParameters(m_inputs);
         emitDpiParameters(m_outputs);
         m_of.puts(");\n\n");
 
-        m_of.puts("final final_dpi_prot_"+m_modName+"(handle);\n\n");
+        m_of.puts("final final_dpi_prot_"+m_libName+"(handle);\n\n");
 
         m_of.puts("endmodule\n");
     }
@@ -185,7 +185,7 @@ class EmitCWrapper: public EmitWrapper {
   public:
     EmitCWrapper(AstNodeModule* modp):
         EmitWrapper(modp),
-        m_of(v3Global.opt.makeDir()+"/"+m_modName+".cpp")
+        m_of(v3Global.opt.makeDir()+"/"+m_libName+".cpp")
     {
         emit();
     }
@@ -260,34 +260,34 @@ class EmitCWrapper: public EmitWrapper {
     void emit() {
         m_of.putsHeader();
         m_of.puts("// Wrapper class for DPI protected library\n\n");
-        m_of.puts("#include \"V"+m_modName+".h\"\n");
+        m_of.puts("#include \"V"+m_libName+".h\"\n");
         // TODO -- this externs the functions, does that matter?
         // TODO -- how should we get this file?  should we run verilator on the
         //         SV wrapper or just build it during this step?
-        m_of.puts("#include \"V"+m_modName+"__Dpi.h\"\n\n");
+        m_of.puts("#include \"V"+m_libName+"__Dpi.h\"\n\n");
 
-        m_of.puts("void* create_dpi_prot_"+m_modName+" (const char* scope) {\n");
+        m_of.puts("void* create_dpi_prot_"+m_libName+" (const char* scope) {\n");
         // TODO -- something more friendly here
         m_of.puts("assert(sizeof(WData) == sizeof(svBitVecVal));\n");
-        m_of.puts("V"+m_modName+"* handle = new V"+m_modName+"(scope);\n");
+        m_of.puts("V"+m_libName+"* handle = new V"+m_libName+"(scope);\n");
         m_of.puts("return handle;\n");
         m_of.puts("}\n\n");
 
-        m_of.puts("void eval_dpi_prot_"+m_modName+" (\n");
+        m_of.puts("void eval_dpi_prot_"+m_libName+" (\n");
         m_of.puts("void* ptr,\n");
         m_currPort = 0;
         emitDpiParameters(m_inputs);
         emitDpiParameters(m_outputs);
         m_of.puts(")\n");
         m_of.puts("{\n");
-        m_of.puts("V"+m_modName+"* handle = static_cast<V"+m_modName+"*>(ptr);\n");
+        m_of.puts("V"+m_libName+"* handle = static_cast<V"+m_libName+"*>(ptr);\n");
         emitInputConnections();
         m_of.puts("handle->eval();\n");
         emitOutputConnections();
         m_of.puts("}\n\n");
 
-        m_of.puts("void final_dpi_prot_"+m_modName+" (void* ptr) {\n");
-        m_of.puts("V"+m_modName+"* handle = static_cast<V"+m_modName+"*>(ptr);\n");
+        m_of.puts("void final_dpi_prot_"+m_libName+" (void* ptr) {\n");
+        m_of.puts("V"+m_libName+"* handle = static_cast<V"+m_libName+"*>(ptr);\n");
         m_of.puts("handle->final();\n");
         m_of.puts("delete handle;\n");
         m_of.puts("}\n\n");
