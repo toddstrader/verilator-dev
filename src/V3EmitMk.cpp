@@ -133,8 +133,12 @@ public:
         of.puts("#    make -f "+v3Global.opt.prefix()+".mk"+"\n");
         of.puts("\n");
 
+        // TODO -- make --exe and --dpi-protect mutually exclusive
         if (v3Global.opt.exe()) {
             of.puts("default: "+v3Global.opt.exeName()+"\n");
+        } else if (!v3Global.opt.dpiProtect().empty()) {
+            // TODO -- handle different C++ ABIs?
+            of.puts("default: lib"+v3Global.opt.dpiProtect()+".so\n");
         } else {
             of.puts("default: "+v3Global.opt.prefix()+"__ALL.a\n");
         }
@@ -224,6 +228,13 @@ public:
             of.puts("\n### Link rules... (from --exe)\n");
             of.puts(v3Global.opt.exeName()+": $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a\n");
             of.puts("\t$(LINK) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@ $(LIBS) $(SC_LIBS)\n");
+            of.puts("\n");
+        }
+
+        if (!v3Global.opt.dpiProtect().empty()) {
+            of.puts("\n### Library rules... (from --dpi-protect)\n");
+            of.puts("lib"+v3Global.opt.dpiProtect()+".so: "+v3Global.opt.prefix()+"__ALL.a\n");
+            of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -shared -o $@ $< "+v3Global.opt.dpiProtect()+".cpp\n");
             of.puts("\n");
         }
 
