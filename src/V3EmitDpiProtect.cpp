@@ -185,12 +185,14 @@ class EmitCWrapper: public EmitWrapper {
   public:
     EmitCWrapper(AstNodeModule* modp):
         EmitWrapper(modp),
-        m_of(v3Global.opt.makeDir()+"/"+m_libName+".cpp")
+        m_of(v3Global.opt.makeDir()+"/"+m_libName+".cpp"),
+        m_topName(v3Global.opt.prefix())
     {
         emit();
     }
 
   private:
+    string m_topName;
     int m_currPort;
     V3OutCFile m_of;
 
@@ -230,28 +232,31 @@ class EmitCWrapper: public EmitWrapper {
             AstVar* varp = *it;
 
             int width = varp->width();
+            int bytes = (width + 7) / 8;
             // TODO -- cases to test all of this
             if (width == 1) {
                 m_of.puts("handle->"+varp->name()+" = "+varp->name()+";\n");
-            } else if (width <= sizeof(uint32_t)) {
+            } else if (bytes <= sizeof(uint32_t)) {
                 m_of.puts("handle->"+varp->name()+" = *"+varp->name()+";\n");
+            } else if (bytes <= sizeof(uint64_t)) {
+                m_of.puts("memcpy(&(handle->"+varp->name()+"), "+varp->name()+", "+std::to_string(bytes)+");\n");
             } else {
-                int bytes = (width + 7) / 8;
                 m_of.puts("memcpy(handle->"+varp->name()+", "+varp->name()+", "+std::to_string(bytes)+");\n");
             }
         }
     }
 
     void emitOutputConnections() {
-        for (VarList::iterator it = m_inputs.begin(); it != m_inputs.end(); ++it) {
+        for (VarList::iterator it = m_outputs.begin(); it != m_outputs.end(); ++it) {
             AstVar* varp = *it;
 
-            int width = varp->width();
+            int bytes = (varp->width() + 7) / 8;
             // TODO -- cases to test all of this
-            if (width <= sizeof(uint32_t)) {
+            if (bytes <= sizeof(uint32_t)) {
                 m_of.puts("*"+varp->name()+" = handle->"+varp->name()+";\n");
+            } else if (bytes <= sizeof(uint64_t)) {
+                m_of.puts("memcpy("+varp->name()+", &(handle->"+varp->name()+"), "+std::to_string(bytes)+");\n");
             } else {
-                int bytes = (width + 7) / 8;
                 m_of.puts("memcpy("+varp->name()+", handle->"+varp->name()+", "+std::to_string(bytes)+");\n");
             }
         }
@@ -260,7 +265,7 @@ class EmitCWrapper: public EmitWrapper {
     void emit() {
         m_of.putsHeader();
         m_of.puts("// Wrapper class for DPI protected library\n\n");
-        m_of.puts("#include \"V"+m_libName+".h\"\n");
+        m_of.puts("#include \""+m_topName+".h\"\n");
         // TODO -- this externs the functions, does that matter?
         // TODO -- how should we get this file?  should we run verilator on the
         //         SV wrapper or just build it during this step?
@@ -269,7 +274,7 @@ class EmitCWrapper: public EmitWrapper {
         m_of.puts("void* create_dpi_prot_"+m_libName+" (const char* scope) {\n");
         // TODO -- something more friendly here
         m_of.puts("assert(sizeof(WData) == sizeof(svBitVecVal));\n");
-        m_of.puts("V"+m_libName+"* handle = new V"+m_libName+"(scope);\n");
+        m_of.puts(m_topName+"* handle = new "+m_topName+"(scope);\n");
         m_of.puts("return handle;\n");
         m_of.puts("}\n\n");
 
@@ -280,14 +285,14 @@ class EmitCWrapper: public EmitWrapper {
         emitDpiParameters(m_outputs);
         m_of.puts(")\n");
         m_of.puts("{\n");
-        m_of.puts("V"+m_libName+"* handle = static_cast<V"+m_libName+"*>(ptr);\n");
+        m_of.puts(m_topName+"* handle = static_cast<"+m_topName+"*>(ptr);\n");
         emitInputConnections();
         m_of.puts("handle->eval();\n");
         emitOutputConnections();
         m_of.puts("}\n\n");
 
         m_of.puts("void final_dpi_prot_"+m_libName+" (void* ptr) {\n");
-        m_of.puts("V"+m_libName+"* handle = static_cast<V"+m_libName+"*>(ptr);\n");
+        m_of.puts(m_topName+"* handle = static_cast<"+m_topName+"*>(ptr);\n");
         m_of.puts("handle->final();\n");
         m_of.puts("delete handle;\n");
         m_of.puts("}\n\n");
