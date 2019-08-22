@@ -234,7 +234,7 @@ public:
         if (!v3Global.opt.dpiProtect().empty()) {
             of.puts("\n### Library rules... (from --dpi-protect)\n");
             of.puts("lib"+v3Global.opt.dpiProtect()+".so: "+v3Global.opt.prefix()+"__ALL.a\n");
-            of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -shared -o $@ $< "+v3Global.opt.dpiProtect()+".cpp\n");
+            of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -shared -o $@ "+v3Global.opt.dpiProtect()+".cpp $<\n");
             of.puts("\n");
         }
 
