@@ -519,11 +519,14 @@ void process() {
 
     // Output the text
     if (!v3Global.opt.lintOnly()
-        && !v3Global.opt.xmlOnly()) {
+        && !v3Global.opt.xmlOnly()
+        && !v3Global.opt.dpiHdrOnly()) {
         // emitcInlines is first, as it may set needHInlines which other emitters read
         V3EmitC::emitcInlines();
         V3EmitC::emitcSyms();
         V3EmitC::emitcTrace();
+    } else if (v3Global.opt.dpiHdrOnly()) {
+        V3EmitC::emitcSyms(true);
     }
     if (!v3Global.opt.xmlOnly()
         && v3Global.opt.mtasks()) {
@@ -533,7 +536,8 @@ void process() {
         // costs of mtasks.
         V3Partition::finalize();
     }
-    if (!v3Global.opt.xmlOnly()) {  // Unfortunately we have some lint checks in emitc.
+    if (!v3Global.opt.xmlOnly()
+        && !v3Global.opt.dpiHdrOnly()) {  // Unfortunately we have some lint checks in emitc.
         V3EmitC::emitc();
     }
     if (v3Global.opt.xmlOnly()
@@ -549,7 +553,8 @@ void process() {
     }
 
     if (!v3Global.opt.lintOnly()
-        && !v3Global.opt.xmlOnly()) {
+        && !v3Global.opt.xmlOnly()
+        && !v3Global.opt.dpiHdrOnly()) {
         // Makefile must be after all other emitters
         V3EmitMk::emitmk(v3Global.rootp());
     }
@@ -633,10 +638,11 @@ int main(int argc, char** argv, char** env) {
     V3Error::abortIfWarnings();
 
     if (!v3Global.opt.lintOnly() && !v3Global.opt.cdc()
-        && v3Global.opt.makeDepend()) {
+        && !v3Global.opt.dpiHdrOnly() && v3Global.opt.makeDepend()) {
         V3File::writeDepend(v3Global.opt.makeDir()+"/"+v3Global.opt.prefix()+"__ver.d");
     }
     if (!v3Global.opt.lintOnly() && !v3Global.opt.cdc()
+        && !v3Global.opt.dpiHdrOnly()
         && (v3Global.opt.skipIdentical() || v3Global.opt.makeDepend())) {
         V3File::writeTimes(v3Global.opt.makeDir()+"/"+v3Global.opt.prefix()
                            +"__verFiles.dat", argString);
