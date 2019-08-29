@@ -2220,6 +2220,15 @@ The equivalent of C<v_flags> and C<v_flags2>, but only for use with
 Verilator.  If a flag is a standard flag (+incdir for example) v_flags2
 should be used instead.
 
+=item xsim_flags
+
+=item xsim_flags2
+
+=item xsim_run_flags
+
+The equivalent of C<v_flags>, C<v_flags2> and C<all_run_flags>, but only
+for use with the Xilinx XSim simulator.
+
 =back
 
 =head2 HINTS ON WRITING TESTS
@@ -2428,6 +2437,10 @@ Run Verilator tests in single-threaded mode.  Default unless another scenario fl
 
 Run Verilator tests in multithreaded mode.
 
+=item --xsim
+
+Run Xilinx XSim simulator tests.
+
 =back
 
 =head1 ENVIRONMENT
@@ -2469,6 +2482,14 @@ Used with --site, a colon-separated list of directories with tests to be added t
 =item VERILATOR_VCS
 
 Command to use to invoke VCS.
+
+=item VERILATOR_XELAB
+
+Command to use to invoke XSim xelab
+
+=item VERILATOR_XVLOG
+
+Command to use to invoke XSim xvlog
 
 =back
 
