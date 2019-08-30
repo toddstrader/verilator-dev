@@ -266,11 +266,9 @@ class EmitCWrapper: public EmitWrapper {
         m_of.putsHeader();
         m_of.puts("// Wrapper class for DPI protected library\n\n");
         m_of.puts("#include \""+m_topName+".h\"\n");
-        // TODO -- this externs the functions, does that matter?
-        // TODO -- how should we get this file?  should we run verilator on the
-        //         SV wrapper or just build it during this step?
-        m_of.puts("#include \"V"+m_libName+"__Dpi.h\"\n\n");
+        m_of.puts("#include \"svdpi.h\"\n\n");
 
+        m_of.puts("extern \"C\" {\n\n");
         m_of.puts("void* create_dpi_prot_"+m_libName+" (const char* scope) {\n");
         // TODO -- something more friendly here
         m_of.puts("assert(sizeof(WData) == sizeof(svBitVecVal));\n");
@@ -296,7 +294,7 @@ class EmitCWrapper: public EmitWrapper {
         m_of.puts("handle->final();\n");
         m_of.puts("delete handle;\n");
         m_of.puts("}\n\n");
-
+        m_of.puts("}\n;");
     }
 };
 
