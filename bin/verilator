@@ -749,8 +749,12 @@ or location of the file.
 
 =item --dpi-protect I<name>
 
-TODO -- words here
-TODO -- is passing the library name in the best strategy?
+Produces C++, Verilog wrappers and a Makefile which can in turn produce a
+DPI library which can be used by Verilator or other simulators along with
+the corresponding Verilog wrapper.
+
+This allows for the secure delivery of sensitive IP without the need for
+encrypted RTL (i.e. IEEE 1735).
 
 =item --dump-defines
 
