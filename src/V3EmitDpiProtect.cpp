@@ -143,7 +143,6 @@ class EmitVWrapper: public EmitWrapper {
         m_of.puts("// This file requires lib"+m_libName+".so to operate\n");
         m_of.puts("// See instructions in your simulator for how to load DPI libraries\n");
 
-        // TODO -- figure out how the formatters work
         m_of.puts("module "+m_libName+"(\n");
         m_currPort = 0;
         emitPorts(m_inputs);
@@ -196,7 +195,7 @@ class EmitCWrapper: public EmitWrapper {
     int m_currPort;
     V3OutCFile m_of;
 
-    // TODO -- remote duplication
+    // TODO -- remove duplication
     void emitComma() {
         if (++m_currPort != m_totalPorts) m_of.puts(",");
         m_of.puts("\n");
