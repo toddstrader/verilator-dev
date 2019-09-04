@@ -756,6 +756,10 @@ the corresponding Verilog wrapper.
 This allows for the secure delivery of sensitive IP without the need for
 encrypted RTL (i.e. IEEE 1735).
 
+=item --dpi-protect-shared
+
+TODO -- words
+
 =item --dump-defines
 
 With -E, suppress normal output, and instead print a list of all defines
