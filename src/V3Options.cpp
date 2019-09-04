@@ -678,6 +678,7 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
             else if (!strcmp(sw, "-debug-fatalsrc"))            { v3fatalSrc("--debug-fatal-src"); }  // Undocumented, see also --debug-abort
             else if ( onoff (sw, "-decoration", flag/*ref*/))   { m_decoration = flag; }
             else if ( onoff (sw, "-dpi-hdr-only", flag/*ref*/)) { m_dpiHdrOnly = flag; }
+            else if ( onoff (sw, "-dpi-protect-shared", flag/*ref*/)) { m_dpiProtectShared = flag; }
             else if ( onoff (sw, "-dump-defines", flag/*ref*/)) { m_dumpDefines = flag; }
             else if ( onoff (sw, "-dump-tree", flag/*ref*/))    { m_dumpTree = flag ? 3 : 0; }  // Also see --dump-treei
             else if ( onoff (sw, "-exe", flag/*ref*/))          { m_exe = flag; }
@@ -1282,6 +1283,7 @@ V3Options::V3Options() {
     m_debugSelfTest = false;
     m_decoration = true;
     m_dpiHdrOnly = false;
+    m_dpiProtectShared = false;
     m_dumpDefines = false;
     m_exe = false;
     m_ignc = false;
