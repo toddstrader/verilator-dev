@@ -50,20 +50,20 @@ jobs:
       stage: test
       os: linux
       compiler: gcc
-      env:
-        - SCENARIOS=--dist
+      script:
+        - SCENARIOS=--dist && make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
     - if: type != cron
       stage: test
       os: linux
       compiler: gcc
-      env:
-        - SCENARIOS=--vlt
+      script:
+        - SCENARIOS=--vlt && make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
     - if: type != cron
       stage: test
       os: linux
       compiler: gcc
-      env:
-        - SCENARIOS=--vltmt
+      script:
+        - SCENARIOS=--vltmt && make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
 # Cron builds try different OS/compiler combinations
     - if: type = cron
       stage: test
