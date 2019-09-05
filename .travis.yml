@@ -47,77 +47,92 @@ jobs:
       script: echo "Done building Verilator"
 # Non-cron build will just run on whatever linux flavor we get
     - if: type != cron
+      stage: test
       os: linux
       compiler: gcc
       env:
         - SCENARIOS=--dist
     - if: type != cron
+      stage: test
       os: linux
       compiler: gcc
       env:
         - SCENARIOS=--vlt
     - if: type != cron
+      stage: test
       os: linux
       compiler: gcc
       env:
         - SCENARIOS=--vltmt
 # Cron builds try different OS/compiler combinations
     - if: type = cron
+      stage: test
       dist: xenial
       compiler: gcc
       env:
         - SCENARIOS=--dist
     - if: type = cron
+      stage: test
       dist: xenial
       compiler: gcc
       env:
         - SCENARIOS=--vlt
     - if: type = cron
+      stage: test
       dist: xenial
       compiler: gcc
       env:
         - SCENARIOS=--vltmt
     - if: type = cron
+      stage: test
       dist: xenial
       compiler: clang
       env:
         - SCENARIOS=--dist
     - if: type = cron
+      stage: test
       dist: xenial
       compiler: clang
       env:
         - SCENARIOS=--vlt
     - if: type = cron
+      stage: test
       dist: xenial
       compiler: clang
       env:
         - SCENARIOS=--vltmt
 #    - if: type = cron
+#      stage: test
 #      os: osx
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--dist
 #    - if: type = cron
+#      stage: test
 #      os: osx
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--vlt
 #    - if: type = cron
+#      stage: test
 #      os: osx
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--vltmt
     - if: type = cron
+      stage: test
       dist: trusty
       compiler: gcc
       env:
         - SCENARIOS=--dist
     - if: type = cron
+      stage: test
       dist: trusty
       compiler: gcc
       env:
         - SCENARIOS=--vlt
     - if: type = cron
+      stage: test
       dist: trusty
       compiler: gcc
       env:

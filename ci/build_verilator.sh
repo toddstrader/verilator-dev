@@ -26,10 +26,10 @@ if [[ ! -f ${CACHED_REV_FILE} || \
       $(< ${CACHED_REV_FILE}) != ${VERILATOR_REV} ]]; then
     echo "Building Verilator"
 
-# Unsure why Travis capitalizes the build stge name, but it does
+# Unsure why Travis monkies with the capitalization of the stage name, but it does
     if [[ -n ${TRAVIS_BUILD_STAGE_NAME} && \
-         ${TRAVIS_BUILD_STAGE_NAME} != "Build Verilator" ]]; then
-      echo "Building Verilator in Travis build stage other than \"Build\": ${TRAVIS_BUILD_STAGE_NAME}"
+         ${TRAVIS_BUILD_STAGE_NAME} != "Build verilator" ]]; then
+      echo "Building Verilator in Travis build stage other than \"Build verilator\": ${TRAVIS_BUILD_STAGE_NAME}"
       exit -1
     fi
 
