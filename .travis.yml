@@ -31,6 +31,7 @@ before_install:
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
   - ci/build_verilator.sh
+# TODO -- go back to this for the test stage?
 script:
   - make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
 after_script:
@@ -53,19 +54,19 @@ jobs:
       os: linux
       compiler: gcc
       script:
-        - SCENARIOS=--dist && make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
+        - cd test_regress && ./driver.pl -j 0 --quiet --rerun --dist
     - if: type != cron
       stage: test
       os: linux
       compiler: gcc
       script:
-        - SCENARIOS=--vlt && make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
+        - cd test_regress && ./driver.pl -j 0 --quiet --rerun --vlt
     - if: type != cron
       stage: test
       os: linux
       compiler: gcc
       script:
-        - SCENARIOS=--vltmt && make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
+        - cd test_regress && ./driver.pl -j 0 --quiet --rerun --vltmt
 # Cron builds try different OS/compiler combinations
     - if: type = cron
       stage: test
