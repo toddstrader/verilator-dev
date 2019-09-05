@@ -98,14 +98,22 @@ before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
-  - export VLT_JOBS=$((`nproc` + 1))
+  - export VERILATOR_NUM_JOBS=$((`nproc` + 1))
+  - export VERILATOR_CONFIG_FLAGS="--enable-maintainer-mode --enable-longtests"
   - export OBJCACHE=ccache
   - export VERILATOR_ROOT=`pwd`
-  - autoconf
+  - ci/build_verilator.sh
 script:
-  - >
-    ./configure --enable-maintainer-mode --enable-longtests &&
-    make -j $VLT_JOBS &&
-    make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
+  - make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
 after_script:
   - ccache -s
+
+stages:
+  - "Build Verilator"
+  - test
+
+jobs:
+  include:
+    - stage: "Build Verilator"
+      name: Build Verilator
+      script: echo "Done building Verilator"
