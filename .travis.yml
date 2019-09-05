@@ -44,6 +44,8 @@ jobs:
   include:
     - stage: "Build Verilator"
       name: Build Verilator
+      os: linux
+      compiler: gcc
       script: echo "Done building Verilator"
 # Non-cron build will just run on whatever linux flavor we get
     - if: type != cron
