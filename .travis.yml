@@ -6,8 +6,45 @@
 
 language: cpp
 
-matrix:
+cache: ccache
+
+# Some tests require gdb
+addons:
+  apt:
+    packages:
+      - gdb
+
+env:
+  global:
+    - VERILATOR_CACHE=$HOME/verilator_cache
+    - VERILATOR_ROOT=$PWD
+    - VERILATOR_NUM_JOBS=$((`nproc` + 1))
+    - VERILATOR_CONFIG_FLAGS="--enable-maintainer-mode --enable-longtests"
+    - OBJCACHE=ccache
+
+cache:
+  directories:
+    - $VERILATOR_CACHE
+
+before_install:
+# Perl modules needed for testing
+  - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
+before_script:
+  - ci/build_verilator.sh
+script:
+  - make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
+after_script:
+  - ccache -s
+
+stages:
+  - "Build Verilator"
+  - test
+
+jobs:
   include:
+    - stage: "Build Verilator"
+      name: Build Verilator
+      script: echo "Done building Verilator"
 # Non-cron build will just run on whatever linux flavor we get
     - if: type != cron
       os: linux
@@ -85,35 +122,3 @@ matrix:
       compiler: gcc
       env:
         - SCENARIOS=--vltmt
-
-cache: ccache
-
-# Some tests require gdb
-addons:
-  apt:
-    packages:
-      - gdb
-
-before_install:
-# Perl modules needed for testing
-  - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-before_script:
-  - export VERILATOR_NUM_JOBS=$((`nproc` + 1))
-  - export VERILATOR_CONFIG_FLAGS="--enable-maintainer-mode --enable-longtests"
-  - export OBJCACHE=ccache
-  - export VERILATOR_ROOT=`pwd`
-  - ci/build_verilator.sh
-script:
-  - make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
-after_script:
-  - ccache -s
-
-stages:
-  - "Build Verilator"
-  - test
-
-jobs:
-  include:
-    - stage: "Build Verilator"
-      name: Build Verilator
-      script: echo "Done building Verilator"
