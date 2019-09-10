@@ -21,7 +21,10 @@ module t (/*AUTOARG*/
             integer cyc = 0;
             logic [31:0] accum_in;
             logic [31:0] accum_out;
+            logic accum_bypass;
+            logic [31:0] accum_bypass_out;
             logic [31:0] accum_out_expect;
+            logic [31:0] accum_bypass_out_expect;
             logic s1_in;
             logic s1_out;
             logic [1:0] s2_in;
@@ -41,6 +44,8 @@ module t (/*AUTOARG*/
             secret (
                 .accum_in,
                 .accum_out,
+                .accum_bypass,
+                .accum_bypass_out,
                 .s1_in,
                 .s1_out,
                 .s2_in,
@@ -59,18 +64,24 @@ module t (/*AUTOARG*/
 
             always @(posedge clk) begin
 `ifdef TEST_VERBOSE
-                $display("[%0t] x=%0d, cyc=%0d accum_in=%0d accum_out=%0d",
-                         $time, x, cyc, accum_in, accum_out);
+                $display("[%0t] x=%0d, cyc=%0d accum_in=%0d accum_out=%0d accum_bypass_out=%0d",
+                         $time, x, cyc, accum_in, accum_out, accum_bypass_out);
 `endif
                 cyc <= cyc + 1;
                 accum_in <= accum_in + 5;
                 accum_out_expect <= accum_in + accum_out_expect;
                 if (cyc == 0) begin
                     accum_in <= x*100;
+                    accum_bypass <= '0;
                 end else if (cyc > 0) begin
                     if (accum_out_expect != accum_out) begin
                         $display("%%Error: (%m) accum_out expected %0d got %0d",
                                  accum_out_expect, accum_out);
+                        $stop;
+                    end
+                    if (accum_bypass_out_expect != accum_bypass_out) begin
+                        $display("%%Error: (%m) accum_bypass_out expected %0d got %0d",
+                                 accum_bypass_out_expect, accum_bypass_out);
                         $stop;
                     end
                     `CHECK(s1)
@@ -82,11 +93,16 @@ module t (/*AUTOARG*/
                     `CHECK(s129)
                 end
 
+                if (cyc == 5) accum_bypass <= '1;
+
                 if (cyc == 10) begin
                     $write("*-* All Finished *-*\n");
                     $finish;
                 end
             end
+
+            assign accum_bypass_out_expect = accum_bypass ? accum_in :
+                                                accum_out_expect;
         end
     endgenerate
 
