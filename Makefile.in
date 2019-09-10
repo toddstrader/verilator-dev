@@ -107,6 +107,9 @@ SUBDIRS = src test_regress \
 	examples/hello_world_c  examples/hello_world_sc \
 	examples/tracing_c  examples/tracing_sc \
 
+# See uninstall also - don't put wildcards in this variable, it might uninstall other stuff
+VL_INST_MAN_FILES = verilator.1 verilator_coverage.1 verilator_gantt.1 verilator_profcfunc.1
+
 INFOS = README README.html README.pdf internals.txt internals.html \
         internals.pdf verilator.txt verilator.html verilator.pdf \
 	$(VL_INST_MAN_FILES)
@@ -296,9 +299,6 @@ VL_INST_BIN_FILES = verilator verilator_bin verilator_bin_dbg verilator_coverage
 	verilator_coverage verilator_gantt verilator_includer verilator_profcfunc
 # Some scripts go into both the search path and pkgdatadir,
 # so they can be found by the user, and under $VERILATOR_ROOT.
-
-# See uninstall also - don't put wildcards in this variable, it might uninstall other stuff
-VL_INST_MAN_FILES = verilator.1 verilator_coverage.1 verilator_gantt.1 verilator_profcfunc.1
 
 VL_INST_INC_BLDDIR_FILES = \
 	include/verilated_config.h \
