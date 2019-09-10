@@ -24,19 +24,18 @@ module secret_impl (
 
     logic [31:0] accum_q = '0;
 
-    always @(accum_in) $write("%m accum_in=%0d\n", accum_in);
-    always @(clk) $write("%m clk=%0d\n", clk);
     always @(posedge clk) begin
-        $write("[%0t] (%m) accum_in=%0d accum_out=%0d\n",
-               $time, accum_in, accum_out);
         accum_q <= accum_q + accum_in;
-        s1_out <= s1_in;
-        s2_out <= s2_in;
-        s8_out <= s8_in;
-        s33_out <= s33_in;
-        s64_out <= s64_in;
-        s65_out <= s65_in;
-        s129_out <= s129_in;
+    end
+
+    always @(*) begin
+        s1_out = s1_in;
+        s2_out = s2_in;
+        s8_out = s8_in;
+        s33_out = s33_in;
+        s64_out = s64_in;
+        s65_out = s65_in;
+        s129_out = s129_in;
     end
 
     assign accum_out = accum_q;

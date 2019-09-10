@@ -2,6 +2,13 @@
 // This file ONLY is placed into the Public Domain, for any use,
 // without warranty, 2019 by Todd Strader.
 
+`define CHECK(sig) \
+        if (sig``_in != sig``_out) begin \
+            $display(`"%%Error (%m) sig``_in (0x%0x) != sig``_out (0x%0x)`", \
+                     sig``_in, sig``_out); \
+            $stop; \
+        end
+
 module t (/*AUTOARG*/
    // Inputs
    clk
@@ -14,6 +21,7 @@ module t (/*AUTOARG*/
             integer cyc = 0;
             logic [31:0] accum_in;
             logic [31:0] accum_out;
+            logic [31:0] accum_out_expect;
             logic s1_in;
             logic s1_out;
             logic [1:0] s2_in;
@@ -51,14 +59,30 @@ module t (/*AUTOARG*/
 
             always @(posedge clk) begin
 `ifdef TEST_VERBOSE
-                $write("[%0t] x=%0d, cyc=%0d accum_in=%0d accum_out=%0d\n",
-                       $time, x, cyc, accum_in, accum_out);
+                $display("[%0t] x=%0d, cyc=%0d accum_in=%0d accum_out=%0d",
+                         $time, x, cyc, accum_in, accum_out);
 `endif
                 cyc <= cyc + 1;
                 accum_in <= accum_in + 5;
+                accum_out_expect <= accum_in + accum_out_expect;
                 if (cyc == 0) begin
                     accum_in <= x*100;
-                end else if (cyc == 10) begin
+                end else if (cyc > 0) begin
+                    if (accum_out_expect != accum_out) begin
+                        $display("%%Error: (%m) accum_out expected %0d got %0d",
+                                 accum_out_expect, accum_out);
+                        $stop;
+                    end
+                    `CHECK(s1)
+                    `CHECK(s2)
+                    `CHECK(s8)
+                    `CHECK(s33)
+                    `CHECK(s64)
+                    `CHECK(s65)
+                    `CHECK(s129)
+                end
+
+                if (cyc == 10) begin
                     $write("*-* All Finished *-*\n");
                     $finish;
                 end
