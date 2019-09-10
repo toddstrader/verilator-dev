@@ -17,6 +17,9 @@ if [ -z ${VERILATOR_CACHE} ]; then
     exit -1
 fi
 
+# TODO -- remove
+ls ${VERILATOR_CACHE}
+
 VERILATOR_REV=$(cd ${VERILATOR_ROOT} && git rev-parse HEAD)
 echo "Found Verilator rev ${VERILATOR_REV}"
 
@@ -48,3 +51,6 @@ else
     autoconf && ./configure ${VERILATOR_CONFIG_FLAGS}
     cp ${VERILATOR_CACHE}/* bin
 fi
+
+# TODO -- remove
+ls ${VERILATOR_CACHE}

@@ -30,7 +30,7 @@ before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
-  - ci/build_verilator.sh
+  - bash -x ci/build_verilator.sh
 script:
   - make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
 after_script:
