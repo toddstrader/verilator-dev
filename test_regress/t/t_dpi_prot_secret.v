@@ -5,6 +5,8 @@
 module secret_impl (
     input [31:0] accum_in,
     output [31:0] accum_out,
+    input accum_bypass,
+    output [31:0] accum_bypass_out,
     input s1_in,
     output logic s1_out,
     input [1:0] s2_in,
@@ -28,6 +30,7 @@ module secret_impl (
         accum_q <= accum_q + accum_in;
     end
 
+    // Test combinatorial paths of different sizes
     always @(*) begin
         s1_out = s1_in;
         s2_out = s2_in;
@@ -38,6 +41,10 @@ module secret_impl (
         s129_out = s129_in;
     end
 
+    // Test sequential path
     assign accum_out = accum_q;
+
+    // Test mixed combinatorial/sequential path
+    assign accum_bypass_out = accum_bypass ? accum_in : accum_q;
 
 endmodule
