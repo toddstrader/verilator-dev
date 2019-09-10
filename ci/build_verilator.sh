@@ -17,13 +17,10 @@ if [ -z ${VERILATOR_CACHE} ]; then
     exit -1
 fi
 
-# TODO -- remove
-ls ${VERILATOR_CACHE}
-
 VERILATOR_REV=$(cd ${VERILATOR_ROOT} && git rev-parse HEAD)
 echo "Found Verilator rev ${VERILATOR_REV}"
 
-CACHED_REV_FILE=${VERILATOR_CACHE}/rev.txt
+CACHED_REV_FILE=${VERILATOR_CACHE}/.rev.txt
 
 if [[ ! -f ${CACHED_REV_FILE} || \
       $(< ${CACHED_REV_FILE}) != ${VERILATOR_REV} ]]; then
@@ -50,6 +47,3 @@ else
     autoconf && ./configure ${VERILATOR_CONFIG_FLAGS}
     cp ${VERILATOR_CACHE}/* bin
 fi
-
-# TODO -- remove
-ls ${VERILATOR_CACHE}
