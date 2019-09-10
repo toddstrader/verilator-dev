@@ -18,7 +18,7 @@ if [ -z ${VERILATOR_CACHE} ]; then
 fi
 
 # TODO -- remove
-ls ${VERILATOR_CACHE}
+ls -a ${VERILATOR_CACHE}
 
 VERILATOR_REV=$(cd ${VERILATOR_ROOT} && git rev-parse HEAD)
 echo "Found Verilator rev ${VERILATOR_REV}"
@@ -53,4 +53,4 @@ else
 fi
 
 # TODO -- remove
-ls ${VERILATOR_CACHE}
+ls -a ${VERILATOR_CACHE}
