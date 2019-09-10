@@ -36,8 +36,8 @@ if [[ ! -f ${CACHED_REV_FILE} || \
     cd ${VERILATOR_ROOT}
     autoconf && ./configure ${VERILATOR_CONFIG_FLAGS} && make -j ${VERILATOR_NUM_JOBS}
 # Copy the Verilator build artifacts
-    rm -rf ${VERILATOR_CACHE}
     mkdir -p ${VERILATOR_CACHE}
+    rm -rf ${VERILATOR_CACHE}/*
     cp bin/*bin* ${VERILATOR_CACHE}
 # Remember the Git revision
     echo ${VERILATOR_REV} > ${CACHED_REV_FILE}
