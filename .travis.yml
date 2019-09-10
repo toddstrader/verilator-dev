@@ -31,7 +31,6 @@ before_install:
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
 before_script:
   - ci/build_verilator.sh
-# TODO -- go back to this for the test stage?
 script:
   - make test_regress DRIVER_FLAGS="-j 0 --quiet --rerun"
 after_script:
@@ -51,85 +50,101 @@ jobs:
 # Non-cron build will just run on whatever linux flavor we get
     - if: type != cron
       stage: test
+      name: Dist test
       os: linux
       compiler: gcc
-      script:
-        - cd test_regress && ./driver.pl -j 0 --quiet --rerun --dist
+      env:
+        - SCENARIOS=--dist
     - if: type != cron
       stage: test
+      name: Vlt test
       os: linux
       compiler: gcc
-      script:
-        - cd test_regress && ./driver.pl -j 0 --quiet --rerun --vlt
+      env:
+        - SCENARIOS=--vlt
     - if: type != cron
       stage: test
+      name: Vltmt test
       os: linux
       compiler: gcc
-      script:
-        - cd test_regress && ./driver.pl -j 0 --quiet --rerun --vltmt
+      env:
+        - SCENARIOS=--vltmt
 # Cron builds try different OS/compiler combinations
     - if: type = cron
       stage: test
+      name: Xenail gcc dist test
       dist: xenial
       compiler: gcc
       env:
         - SCENARIOS=--dist
     - if: type = cron
       stage: test
+      name: Xenail gcc vlt test
       dist: xenial
       compiler: gcc
       env:
         - SCENARIOS=--vlt
     - if: type = cron
       stage: test
+      name: Xenail gcc vltmt test
       dist: xenial
       compiler: gcc
       env:
         - SCENARIOS=--vltmt
     - if: type = cron
       stage: test
+      name: Xenail clang dist test
       dist: xenial
       compiler: clang
       env:
         - SCENARIOS=--dist
     - if: type = cron
       stage: test
+      name: Xenail clang vlt test
       dist: xenial
       compiler: clang
       env:
         - SCENARIOS=--vlt
     - if: type = cron
       stage: test
+      name: Xenail clang vltmt test
       dist: xenial
       compiler: clang
       env:
         - SCENARIOS=--vltmt
 #    - if: type = cron
 #      stage: test
+#      name: OSX gcc dist test
 #      os: osx
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--dist
 #    - if: type = cron
 #      stage: test
+#      name: OSX gcc vlt test
+#      os: osx
 #      os: osx
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--vlt
 #    - if: type = cron
 #      stage: test
+#      name: OSX gcc vltmt test
+#      os: osx
 #      os: osx
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--vltmt
     - if: type = cron
       stage: test
+      name: Trusty gcc dist test
       dist: trusty
       compiler: gcc
       env:
         - SCENARIOS=--dist
     - if: type = cron
       stage: test
+      name: Trusty gcc vlt test
       dist: trusty
       compiler: gcc
       env:
@@ -137,6 +152,7 @@ jobs:
     - if: type = cron
       stage: test
       dist: trusty
+      name: Trusty gcc vltmt test
       compiler: gcc
       env:
         - SCENARIOS=--vltmt
