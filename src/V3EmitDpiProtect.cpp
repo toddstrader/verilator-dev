@@ -46,6 +46,7 @@ class EmitWrapper {
     typedef std::list<AstVar*> VarList;
     VarList m_inputs;
     VarList m_outputs;
+    VarList m_clocks;
     int m_totalPorts;
     AstNodeModule* m_modp;
     string m_libName;
@@ -57,7 +58,15 @@ class EmitWrapper {
             AstVar* varp;
             if ((varp = VN_CAST(stmtp, Var)) && varp->isIO()) {
                 if (varp->direction() == VDirection::INPUT) {
-                    m_inputs.push_back(varp);
+                    // TODO -- What is the differnce between isUsedClock()
+                    //           and attrClocker()?  The latter shows up
+                    //           when --clk is specified, but the former
+                    //           is there regardless.
+                    if (varp->isUsedClock()) {
+                        m_clocks.push_back(varp);
+                    } else {
+                        m_inputs.push_back(varp);
+                    }
                     ++m_totalPorts;
                 } else if (varp->direction() == VDirection::OUTPUT) {
                     m_outputs.push_back(varp);
@@ -92,6 +101,8 @@ class EmitVWrapper: public EmitWrapper {
 
     void emitDpiParameterDecls(VarList& ports) {
         for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            m_of.puts(",\n");
+
             AstVar* varp = *it;
 
             if (varp->direction() == VDirection::OUTPUT) m_of.puts("output ");
@@ -101,18 +112,17 @@ class EmitVWrapper: public EmitWrapper {
             if ((width = varp->width()) > 1) m_of.puts("["+std::to_string(width-1)+":0] ");
 
             m_of.puts((*it)->name());
-
-            emitComma();
         }
     }
 
-    void emitDpiParameters(VarList& ports) {
+    void emitDpiParameters(VarList& ports, string suffix = "") {
         for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            m_of.puts(",\n");
+
             AstVar* varp = *it;
 
             m_of.puts((*it)->name());
-
-            emitComma();
+            if (!suffix.empty()) m_of.puts("_"+suffix);
         }
     }
 
@@ -120,10 +130,10 @@ class EmitVWrapper: public EmitWrapper {
         for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
             AstVar* varp = *it;
 
-            if (varp->direction() == VDirection::INPUT) {
-                m_of.puts("input ");
-            } else {
+            if (varp->direction() == VDirection::OUTPUT) {
                 m_of.puts("output logic ");
+            } else {
+                m_of.puts("input ");
             }
 
             if (varp->isSigned()) m_of.puts("signed ");
@@ -137,6 +147,40 @@ class EmitVWrapper: public EmitWrapper {
         }
     }
 
+    void emitVars(VarList& ports, string suffix) {
+        for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            AstVar* varp = *it;
+            m_of.puts("logic ");
+            int width;
+            if ((width = varp->width()) > 1) m_of.puts("["+std::to_string(width-1)+":0] ");
+            m_of.puts((*it)->name()+"_"+suffix+";\n");
+        }
+    }
+
+    void emitClockSensitivity(VarList& ports) {
+        bool first = true;
+        for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            if (!first) m_of.puts(",\n");
+            first = false;
+            AstVar* varp = *it;
+            m_of.puts("edge(");
+            m_of.puts((*it)->name());
+            m_of.puts(")");
+        }
+    }
+
+    void emitAssignments(VarList& ports, string rhs_suffix = "",
+                         string lhs_suffix = "", string oper = "=") {
+        for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            AstVar* varp = *it;
+            m_of.puts((*it)->name());
+            if (!lhs_suffix.empty()) m_of.puts("_"+lhs_suffix);
+            m_of.puts(" "+oper+" "+(*it)->name());
+            if (!rhs_suffix.empty()) m_of.puts("_"+rhs_suffix);
+            m_of.puts(";\n");
+        }
+    }
+
     void emit() {
         m_of.putsHeader();
         m_of.puts("// Wrapper module for DPI protected library\n");
@@ -145,19 +189,32 @@ class EmitVWrapper: public EmitWrapper {
 
         m_of.puts("module "+m_libName+"(\n");
         m_currPort = 0;
+        emitPorts(m_clocks);
         emitPorts(m_inputs);
         emitPorts(m_outputs);
         m_of.puts(");\n\n");
 
         m_of.puts("import \"DPI-C\" function chandle create_dpi_prot_"+
                   m_libName+" (string scope);\n");
+
         // TODO -- break up setters, eval and maybe getters
-        m_of.puts("import \"DPI-C\" function void eval_dpi_prot_"+m_libName+" (\n");
-        m_of.puts("chandle handle,\n");
-        m_currPort = 0;
+        m_of.puts("import \"DPI-C\" function void combo_update_dpi_prot_"+m_libName+" (\n");
+        m_of.puts("chandle handle");
         emitDpiParameterDecls(m_inputs);
         emitDpiParameterDecls(m_outputs);
         m_of.puts(");\n");
+
+        m_of.puts("import \"DPI-C\" function void seq_update_dpi_prot_"+m_libName+" (\n");
+        m_of.puts("chandle handle");
+        emitDpiParameterDecls(m_clocks);
+        emitDpiParameterDecls(m_outputs);
+        m_of.puts(");\n");
+
+        m_of.puts("import \"DPI-C\" function void combo_ignore_dpi_prot_"+m_libName+" (\n");
+        m_of.puts("chandle handle");
+        emitDpiParameterDecls(m_inputs);
+        m_of.puts(");\n");
+
         m_of.puts("import \"DPI-C\" function void final_dpi_prot_"+
                   m_libName+" (chandle handle);\n\n");
 
@@ -166,13 +223,47 @@ class EmitVWrapper: public EmitWrapper {
 
         m_of.puts("initial handle = create_dpi_prot_"+m_libName+"($sformatf(\"%m\"));\n\n");
 
+        emitVars(m_outputs, "combo");
+        emitVars(m_outputs, "seq");
+        emitVars(m_outputs, "tmp");
+        m_of.puts("time last_combo_time;\n");
+        m_of.puts("time last_seq_time;\n\n");
+
         // TODO -- try to understand clocks and be smarter here
-        m_of.puts("always @(*) eval_dpi_prot_"+m_libName+"(\n");
-        m_of.puts("handle,\n");
-        m_currPort = 0;
+        m_of.puts("always @(*) begin\n");
+        m_of.puts("combo_update_dpi_prot_"+m_libName+"(\n");
+        m_of.puts("handle");
         emitDpiParameters(m_inputs);
-        emitDpiParameters(m_outputs);
-        m_of.puts(");\n\n");
+        emitDpiParameters(m_outputs, "combo");
+        // TODO -- maybe get a time or seq num from the secret eval instead of $time
+        m_of.puts(");\n");
+        m_of.puts("last_combo_time = $time;\n");
+        m_of.puts("end\n\n");
+
+        m_of.puts("always @(\n");
+        emitClockSensitivity(m_clocks);
+        m_of.puts(") begin\n");
+        m_of.puts("combo_ignore_dpi_prot_"+m_libName+"(\n");
+        m_of.puts("handle");
+        emitDpiParameters(m_inputs, "");
+        m_of.puts(");\n");
+        m_of.puts("seq_update_dpi_prot_"+m_libName+"(\n");
+        m_of.puts("handle");
+        emitDpiParameters(m_clocks);
+        emitDpiParameters(m_outputs, "tmp");
+        // TODO -- maybe get a time or seq num from the secret eval instead of $time
+        m_of.puts(");\n");
+        emitAssignments(m_outputs, "tmp", "seq", "<=");
+        m_of.puts("last_seq_time <= $time;\n");
+        m_of.puts("end\n\n");
+
+        m_of.puts("always @(*) begin\n");
+        m_of.puts("if (last_seq_time > last_combo_time) begin\n");
+        emitAssignments(m_outputs, "seq");
+        m_of.puts("end else begin\n");
+        emitAssignments(m_outputs, "combo");
+        m_of.puts("end\n");
+        m_of.puts("end\n\n");
 
         m_of.puts("final final_dpi_prot_"+m_libName+"(handle);\n\n");
 
@@ -195,14 +286,10 @@ class EmitCWrapper: public EmitWrapper {
     int m_currPort;
     V3OutCFile m_of;
 
-    // TODO -- remove duplication
-    void emitComma() {
-        if (++m_currPort != m_totalPorts) m_of.puts(",");
-        m_of.puts("\n");
-    }
-
     void emitDpiParameters(VarList& ports) {
         for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
+            m_of.puts(",\n");
+
             AstVar* varp = *it;
 
             int width;
@@ -221,13 +308,11 @@ class EmitCWrapper: public EmitWrapper {
             }
 
             m_of.puts((*it)->name());
-
-            emitComma();
         }
     }
 
-    void emitInputConnections() {
-        for (VarList::iterator it = m_inputs.begin(); it != m_inputs.end(); ++it) {
+    void emitInputConnections(VarList& ports) {
+        for (VarList::iterator it = ports.begin(); it != ports.end(); ++it) {
             AstVar* varp = *it;
 
             int width = varp->width();
@@ -275,18 +360,35 @@ class EmitCWrapper: public EmitWrapper {
         m_of.puts("return handle;\n");
         m_of.puts("}\n\n");
 
-        m_of.puts("void eval_dpi_prot_"+m_libName+" (\n");
-        m_of.puts("void* ptr,\n");
-        m_currPort = 0;
+        m_of.puts("void combo_update_dpi_prot_"+m_libName+" (\n");
+        m_of.puts("void* ptr");
         emitDpiParameters(m_inputs);
         emitDpiParameters(m_outputs);
         m_of.puts(")\n");
         m_of.puts("{\n");
         m_of.puts(m_topName+"* handle = static_cast<"+m_topName+"*>(ptr);\n");
-        emitInputConnections();
+        emitInputConnections(m_inputs);
         m_of.puts("handle->eval();\n");
         emitOutputConnections();
         m_of.puts("}\n\n");
+
+        m_of.puts("void seq_update_dpi_prot_"+m_libName+" (\n");
+        m_of.puts("void* ptr");
+        emitDpiParameters(m_clocks);
+        emitDpiParameters(m_outputs);
+        m_of.puts(")\n");
+        m_of.puts("{\n");
+        m_of.puts(m_topName+"* handle = static_cast<"+m_topName+"*>(ptr);\n");
+        emitInputConnections(m_clocks);
+        m_of.puts("handle->eval();\n");
+        emitOutputConnections();
+        m_of.puts("}\n\n");
+
+        m_of.puts("void combo_ignore_dpi_prot_"+m_libName+" (\n");
+        m_of.puts("void* ptr");
+        emitDpiParameters(m_inputs);
+        m_of.puts(")\n");
+        m_of.puts("{ }\n\n");
 
         m_of.puts("void final_dpi_prot_"+m_libName+" (void* ptr) {\n");
         m_of.puts(m_topName+"* handle = static_cast<"+m_topName+"*>(ptr);\n");
