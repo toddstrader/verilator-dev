@@ -42,7 +42,8 @@ stages:
 
 jobs:
   include:
-    - stage: "Build Verilator"
+    - if: type != cron
+      stage: "Build Verilator"
       name: Build Verilator
       os: linux
       compiler: gcc
@@ -71,6 +72,12 @@ jobs:
         - SCENARIOS=--vltmt
 # Cron builds try different OS/compiler combinations
     - if: type = cron
+      stage: "Build Verilator"
+      name: Build xenial gcc Verilator
+      os: xenial
+      compiler: gcc
+      script: echo "Done building Verilator"
+    - if: type = cron
       stage: test
       name: Xenail gcc dist test
       dist: xenial
@@ -92,6 +99,12 @@ jobs:
       env:
         - SCENARIOS=--vltmt
     - if: type = cron
+      stage: "Build Verilator"
+      name: Build xenial clang Verilator
+      os: xenial
+      compiler: clang
+      script: echo "Done building Verilator"
+    - if: type = cron
       stage: test
       name: Xenail clang dist test
       dist: xenial
@@ -112,6 +125,12 @@ jobs:
       compiler: clang
       env:
         - SCENARIOS=--vltmt
+#    - if: type = cron
+#      stage: "Build Verilator"
+#      name: Build OSX gcc Verilator
+#      os: osx
+#      compiler: gcc
+#      script: echo "Done building Verilator"
 #    - if: type = cron
 #      stage: test
 #      name: OSX gcc dist test
@@ -135,6 +154,12 @@ jobs:
 #      compiler: gcc
 #      env:
 #        - SCENARIOS=--vltmt
+    - if: type = cron
+      stage: "Build Verilator"
+      name: Build trusty gcc Verilator
+      os: trusty
+      compiler: gcc
+      script: echo "Done building Verilator"
     - if: type = cron
       stage: test
       name: Trusty gcc dist test
