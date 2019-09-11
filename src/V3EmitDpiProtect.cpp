@@ -218,8 +218,7 @@ class EmitVWrapper: public EmitWrapper {
         m_of.puts("import \"DPI-C\" function void final_dpi_prot_"+
                   m_libName+" (chandle handle);\n\n");
 
-        m_of.puts("chandle handle;\n");
-        m_of.puts("string scope;\n\n");
+        m_of.puts("chandle handle;\n\n");
 
         m_of.puts("initial handle = create_dpi_prot_"+m_libName+"($sformatf(\"%m\"));\n\n");
 
