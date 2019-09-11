@@ -300,6 +300,7 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
      +define+<var>=<value>      Set preprocessor define
     --dpi-hdr-only              Only produce the DPI header file
     --dpi-protect <name>        Create a DPI protected library
+    --dpi-protect-shared        Create a shared library for --dpi-protect
     --dump-defines              Show preprocessor defines with -E
     --dump-tree                 Enable dumping .tree files
     --dump-treei <level>        Enable dumping .tree files at a level
