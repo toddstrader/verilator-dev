@@ -256,6 +256,7 @@ The directories in the package directory are as follows:
     examples/hello_world_sc     => Example simple Verilog->SystemC conversion
     examples/tracing_c          => Example Verilog->C++ with tracing
     examples/tracing_sc         => Example Verilog->SystemC with tracing
+    examples/dpi_protect        => Example using --dpi-protect
     include/                    => Files that should be in your -I compiler path
     include/verilated*.cpp      => Global routines to link into your simulator
     include/verilated*.h        => Global headers

@@ -751,15 +751,19 @@ or location of the file.
 =item --dpi-protect I<name>
 
 Produces C++, Verilog wrappers and a Makefile which can in turn produce a
-DPI library which can be used by Verilator or other simulators along with
-the corresponding Verilog wrapper.
+DPI library, named libI<name>.a, which can be used by Verilator or other
+simulators along with the corresponding Verilog wrapper.
 
 This allows for the secure delivery of sensitive IP without the need for
 encrypted RTL (i.e. IEEE 1735).
 
+See examples/dpi_protect in the distribution for a demonstration of how
+to build and use the DPI library.
+
 =item --dpi-protect-shared
 
-TODO -- words
+When used with --dpi-protect proeduces a shared library instead of the
+default static library.  The library will be named libI<name>.so.
 
 =item --dump-defines
 
