@@ -40,7 +40,7 @@ module t (/*AUTOARG*/
             logic [128:0] s129_in;
             logic [128:0] s129_out;
 
-            dpi_prot_secret
+            secret
             secret (
                 .accum_in,
                 .accum_out,
