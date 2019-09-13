@@ -452,6 +452,7 @@ analyzer-src:
 	-rm -rf src/obj_dbg
 	scan-build $(MAKE) -k verilator_coverage_bin_dbg verilator_bin_dbg
 
+# TODO -- can we rm examples/*/*obj_dir ?
 analyzer-include:
 	-rm -rf examples/*/obj*
 	scan-build $(MAKE) -k examples
