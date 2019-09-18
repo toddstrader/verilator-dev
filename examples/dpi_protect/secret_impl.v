@@ -15,7 +15,6 @@ module secret_impl(
 
     initial $display("%m: initialized");
 
-    // TODO -- something with more interesting state
     always @(posedge clk) begin
         accum_q <= accum_q + a;
         if (accum_q > 10)
