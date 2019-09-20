@@ -31,7 +31,9 @@
 
 class V3EmitDpiProtect {
 public:
+    static void protect();
     static void emitv();
+    static void emit();
 };
 
 #endif  // Guard

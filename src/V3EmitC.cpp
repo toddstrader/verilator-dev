@@ -1262,7 +1262,9 @@ public:
     }
     virtual ~EmitCImp() {}
     void main(AstNodeModule* modp, bool slow, bool fast);
+    void cfuncs(AstCFunc* cfuncp);
     void mainDoFunc(AstCFunc* nodep) {
+        m_fast = true;
         iterate(nodep);
     }
 };
@@ -2803,6 +2805,12 @@ void EmitCImp::main(AstNodeModule* modp, bool slow, bool fast) {
     delete m_ofp; m_ofp = NULL;
 }
 
+void EmitCImp::cfuncs(AstCFunc* cfuncp) {
+    m_ofp = new V3OutCFile("foo.cpp");
+    m_ofp->putsHeader();
+    mainDoFunc(cfuncp);
+}
+
 //######################################################################
 // Tracing routines
 
@@ -3226,4 +3234,11 @@ void V3EmitC::emitcTrace() {
         { EmitCTrace slow(true);  slow.main(); }
         { EmitCTrace fast(false); fast.main(); }
     }
+}
+
+// TODO -- would need an AST node to hold multiple AstCFuncs
+//          maybe under an AstCFile?
+void V3EmitC::emitcFuncs(AstCFunc* cfuncp) {
+    EmitCImp cimp;
+    cimp.cfuncs(cfuncp);
 }

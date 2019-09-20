@@ -26,6 +26,8 @@
 #include "V3EmitDpiProtect.h"
 #include "V3File.h"
 #include <list>
+// TODO -- remove
+#include "V3EmitC.h"
 
 //######################################################################
 // Internal EmitDpiProtect implementation
@@ -410,4 +412,19 @@ void V3EmitDpiProtect::emitv() {
         EmitVWrapper vWrapper(nodep);
         EmitCWrapper cWrapper(nodep);
     }
+}
+
+void V3EmitDpiProtect::protect() {
+    AstNetlist* netp = v3Global.rootp();
+    AstModule* cppModp = new AstModule(netp->fileline(), "fake");
+    AstScope* scopep = new AstScope(netp->fileline(), cppModp, "bogus",
+                            NULL, NULL);
+    AstCFunc* cfuncp = new AstCFunc(netp->fileline(), "bar", scopep,
+                            "void");
+    cfuncp->dumpTree();
+    V3EmitC::emitcFuncs(cfuncp);
+    V3Global::dumpCheckGlobalTree("dpiprotect", 0, v3Global.opt.dumpTreeLevel(__FILE__) >= 3);
+}
+
+void V3EmitDpiProtect::emit() {
 }
