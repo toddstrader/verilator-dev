@@ -401,7 +401,7 @@ class EmitCWrapper: public EmitWrapper {
 //######################################################################
 // EmitDpiProtect class functions
 
-void V3EmitDpiProtect::emitv() {
+void V3EmitDpiProtect::emit() {
     UINFO(2,__FUNCTION__<<": "<<endl);
     // Process each module in turn
     // TODO -- does this even work for multiple top-levels?

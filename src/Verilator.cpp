@@ -550,7 +550,7 @@ void process() {
 
     // Output DPI protected library files
     if (!v3Global.opt.dpiProtect().empty()) {
-        V3EmitDpiProtect::emitv();
+        V3EmitDpiProtect::emit();
     }
 
     // Statistics
