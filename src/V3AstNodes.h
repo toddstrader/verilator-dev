@@ -5773,6 +5773,23 @@ public:
     bool tracking() const { return m_tracking; }
 };
 
+class AstTextBlock : public AstText {
+private:
+    bool m_commas;  // Comma separate emitted children
+public:
+    AstTextBlock(FileLine* fl, const string& textp, bool tracking=false,
+                 bool commas=false)
+        : AstText(fl, textp, tracking), m_commas(commas) {}
+    ASTNODE_NODE_FUNCS(TextBlock)
+    void commas(bool flag) { m_commas = flag; }
+    bool commas() const { return m_commas; }
+    AstText* textsp() const { return VN_CAST(op1p(), Text); }
+    void addTextp(AstText* nodep) { addOp1p(nodep); }
+    void addText(FileLine* fl, const string& textp) {
+        addTextp(new AstText(fl, textp));
+    }
+};
+
 class AstScCtor : public AstNodeText {
 public:
     AstScCtor(FileLine* fl, const string& textp)
@@ -5850,6 +5867,7 @@ public:
 class AstFile : public AstNode {
     // Emitted Otput file
     // Parents:  NETLIST
+    // Children: AstTextBlock
 private:
     string      m_name;         ///< Filename
 public:
@@ -5861,6 +5879,8 @@ public:
     virtual string name() const { return m_name; }
     virtual V3Hash sameHash() const { return V3Hash(); }
     virtual bool same(const AstNode* samep) const { return true; }
+    void tblockp(AstTextBlock* tblockp) { setOp1p(tblockp); }
+    AstTextBlock* tblockp() { return VN_CAST(op1p(), TextBlock); }
 };
 
 //======================================================================
@@ -5869,14 +5889,11 @@ public:
 class AstVFile : public AstFile {
     // Verilog output file
     // Parents:  NETLIST
-    // Children: AstNodeModule
 public:
     AstVFile(FileLine* fl, const string& name)
         : AstFile(fl, name) { }
     ASTNODE_NODE_FUNCS(VFile)
     virtual void dump(std::ostream& str=std::cout);
-    void modp(AstNodeModule* nodeModp) { setOp1p(nodeModp); }
-    AstNodeModule* modp() { return VN_CAST(op1p(), NodeModule); }
 };
 
 //======================================================================
@@ -5885,7 +5902,6 @@ public:
 class AstCFile : public AstFile {
     // C++ output file
     // Parents:  NETLIST
-    // Children: nothing yet
 private:
     bool        m_slow:1;       ///< Compile w/o optimization
     bool        m_source:1;     ///< Source file (vs header file)

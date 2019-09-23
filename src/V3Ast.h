@@ -2197,7 +2197,6 @@ private:
     bool        m_internal:1;   // Internally created
     bool        m_recursive:1;  // Recursive module
     bool        m_recursiveClone:1;  // If recursive, what module it clones, otherwise NULL
-    bool        m_noPrefix:1;   // Don't use prefix when nanming
     int         m_level;        // 1=top module, 2=cell off top module, ...
     int         m_varNum;       // Incrementing variable number
     int         m_typeNum;      // Incrementing implicit type number
@@ -2207,7 +2206,7 @@ public:
         , m_name(name), m_origName(name)
         , m_modPublic(false), m_modTrace(false), m_inLibrary(false), m_dead(false)
         , m_internal(false), m_recursive(false), m_recursiveClone(false)
-        , m_noPrefix(false), m_level(0), m_varNum(0), m_typeNum(0) { }
+        , m_level(0), m_varNum(0), m_typeNum(0) { }
     ASTNODE_BASE_FUNCS(NodeModule)
     virtual void dump(std::ostream& str);
     virtual bool maybePointedTo() const { return true; }
@@ -2242,8 +2241,6 @@ public:
     bool recursive() const { return m_recursive; }
     void recursiveClone(bool flag) { m_recursiveClone = flag; }
     bool recursiveClone() const { return m_recursiveClone; }
-    void noPrefix(bool flag) { m_noPrefix = flag; }
-    bool noPrefix() const { return m_noPrefix; }
 };
 
 class AstNodeRange : public AstNode {

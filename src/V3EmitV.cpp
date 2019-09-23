@@ -358,6 +358,14 @@ class EmitVBaseVisitor : public EmitCBaseVisitor {
     virtual void visit(AstText* nodep) {
         putsNoTracking(nodep->text());
     }
+    virtual void visit(AstTextBlock* nodep) {
+        putsNoTracking(nodep->text());
+        for (AstText* textp = nodep->textsp(); textp;
+             textp = VN_CAST(textp->nextp(), Text)) {
+            iterate(textp);
+            if (nodep->commas() && textp->nextp()) puts(", ");
+        }
+    }
     virtual void visit(AstScopeName* nodep) {
     }
     virtual void visit(AstCStmt* nodep) {
@@ -766,8 +774,9 @@ void V3EmitV::emitvFiles() {
         if (AstVFile* vfilep = VN_CAST(filep, VFile)) {
             V3OutVFile of(vfilep->name());
             of.putsHeader();
-            of.puts("# DESCR" "IPTION: Verilator generated Verilog\n");
-            EmitVFileVisitor visitor (vfilep->modp(), &of);
+            of.puts("// DESCR" "IPTION: Verilator generated Verilog\n");
+            if (vfilep->tblockp())
+                EmitVFileVisitor visitor (vfilep->tblockp(), &of);
         }
     }
 }
