@@ -41,7 +41,14 @@ class ProtectVisitor : public AstNVisitor {
     AstTextBlock* m_comboIgnorePortsp;
     AstTextBlock* m_comboDeclsp;
     AstTextBlock* m_seqDeclsp;
+    AstTextBlock* m_tmpDeclsp;
     AstTextBlock* m_comboParamsp;
+    AstTextBlock* m_clkSensp;
+    AstTextBlock* m_comboIgnoreParamsp;
+    AstTextBlock* m_seqParamsp;
+    AstTextBlock* m_nbAssignsp;
+    AstTextBlock* m_seqAssignsp;
+    AstTextBlock* m_comboAssignsp;
     string m_libName;
 
     // VISITORS
@@ -112,6 +119,8 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addTextp(m_comboDeclsp);
         m_seqDeclsp = new AstTextBlock(fl, "");
         txtp->addTextp(m_seqDeclsp);
+        m_tmpDeclsp = new AstTextBlock(fl, "");
+        txtp->addTextp(m_tmpDeclsp);
         txtp->addText(fl, "\ntime last_combo_time\n");
         txtp->addText(fl, "time last_seq_time\n\n");
 
@@ -128,9 +137,35 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, ");\nlast_combo_time = $time;\nend\n\n");
 
         // Sequential process
-//        m_clkSensp = new AstTextBlock(fl, "always @(", false, true);
-//        txtp->addTextp(m_clkSensp);
-        // TODO ...
+        m_clkSensp = new AstTextBlock(fl, "always @(", false, true);
+        txtp->addTextp(m_clkSensp);
+        txtp->addText(fl, ") begin\n");
+        m_comboIgnoreParamsp = new AstTextBlock(fl, "combo_ignore_dpi_prot_"+
+                                                m_libName+"(\n", false, true);
+        m_comboIgnoreParamsp->addText(fl, "handle\n");
+        txtp->addTextp(m_comboIgnoreParamsp);
+        txtp->addText(fl, ");\n");
+        m_seqParamsp = new AstTextBlock(fl, "seq_update_dpi_prot_"+m_libName+
+                                        "(\n", false, true);
+        m_seqParamsp->addText(fl, "handle\n");
+        txtp->addTextp(m_seqParamsp);
+        txtp->addText(fl, ");\n");
+        m_nbAssignsp = new AstTextBlock(fl, "");
+        m_nbAssignsp->addText(fl, "last_seq_time <= $time;\n");
+        txtp->addTextp(m_nbAssignsp);
+        txtp->addText(fl, "end\n\n");
+
+        // Select between combinatorial and sequential results
+        txtp->addText(fl, "always @(*) begin\n");
+        m_seqAssignsp = new AstTextBlock(fl, "if (last_seq_time > "
+                                         "last_combo_time) begin\n");
+        txtp->addTextp(m_seqAssignsp);
+        m_comboAssignsp = new AstTextBlock(fl, "end else begin\n");
+        txtp->addTextp(m_comboAssignsp);
+        txtp->addText(fl, "end\nend\n\n");
+
+        // Final
+        txtp->addText(fl, "final final_dpi_prot_"+m_libName+"(handle);\n\n");
 
         txtp->addText(fl, "endmodule\n");
         m_vfilep->tblockp(txtp);
@@ -171,6 +206,8 @@ class ProtectVisitor : public AstNVisitor {
         FileLine* fl = varp->fileline();
         handleInput(varp);
         m_seqPortsp->addText(fl, "bit "+sizedSvName(varp)+"\n");
+        m_seqParamsp->addText(fl, varp->name()+"\n");
+        m_clkSensp->addText(fl, "edge("+varp->name()+")");
     }
 
     void handleDataInput(AstVar* varp) {
@@ -179,6 +216,7 @@ class ProtectVisitor : public AstNVisitor {
         m_comboPortsp->addText(fl, "bit "+sizedSvName(varp)+"\n");
         m_comboParamsp->addText(fl, varp->name()+"\n");
         m_comboIgnorePortsp->addText(fl, "bit "+sizedSvName(varp)+"\n");
+        m_comboIgnoreParamsp->addText(fl, varp->name()+"\n");
     }
 
     void handleInput(AstVar* varp) {
@@ -190,10 +228,15 @@ class ProtectVisitor : public AstNVisitor {
         FileLine* fl = varp->fileline();
         m_modPortsp->addText(fl, "output logic "+sizedSvName(varp)+"\n");
         m_comboPortsp->addText(fl, "output bit "+sizedSvName(varp)+"\n");
-        m_comboParamsp->addText(fl, varp->name()+"\n");
+        m_comboParamsp->addText(fl, varp->name()+"_combo\n");
         m_seqPortsp->addText(fl, "output bit "+sizedSvName(varp)+"\n");
+        m_seqParamsp->addText(fl, varp->name()+"_tmp\n");
         m_comboDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_combo;\n");
         m_seqDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_seq;\n");
+        m_tmpDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_tmp;\n");
+        m_nbAssignsp->addText(fl, varp->name()+"_seq <= "+varp->name()+"_tmp;\n");
+        m_seqAssignsp->addText(fl, varp->name()+"_out = "+varp->name()+"_seq;\n");
+        m_comboAssignsp->addText(fl, varp->name()+"_out = "+varp->name()+"_combo;\n");
     }
 
   public:
@@ -206,6 +249,13 @@ class ProtectVisitor : public AstNVisitor {
         m_comboIgnorePortsp = NULL;
         m_comboDeclsp = NULL;
         m_seqDeclsp = NULL;
+        m_tmpDeclsp = NULL;
+        m_clkSensp = NULL;
+        m_comboIgnoreParamsp = NULL;
+        m_seqParamsp = NULL;
+        m_nbAssignsp = NULL;
+        m_seqAssignsp = NULL;
+        m_comboAssignsp = NULL;
         m_libName = v3Global.opt.dpiProtect();
         iterate(nodep);
     }
