@@ -39,6 +39,8 @@ class ProtectVisitor : public AstNVisitor {
     VarList m_outputs;
     bool m_modProtected;
     AstVFile* m_vfilep;
+    AstNodeModule* m_modp;
+    int m_pinnum;
 
     // VISITORS
     virtual void visit(AstNetlist* nodep) {
@@ -54,32 +56,68 @@ class ProtectVisitor : public AstNVisitor {
                                       " top-level modules");
         m_modProtected = true;
         FileLine* fl = nodep->fileline();
-        AstModule* modp = new AstModule(fl, v3Global.opt.dpiProtect());
-        modp->noPrefix(true);
-        modp->addStmtp(new AstComment(fl,
+        m_modp = new AstModule(fl, v3Global.opt.dpiProtect());
+        m_modp->noPrefix(true);
+        m_modp->addStmtp(new AstComment(fl,
                     "Wrapper module for DPI protected library"));
-        modp->addStmtp(new AstComment(fl,
+        m_modp->addStmtp(new AstComment(fl,
                     "This module requires lib"+v3Global.opt.dpiProtect()+
                     ".a or lib"+v3Global.opt.dpiProtect()+".so to "
                     "work"));
-        modp->addStmtp(new AstComment(fl,
+        m_modp->addStmtp(new AstComment(fl,
                     "See instructions in your simulator for how to use "
                     "DPI libraries"));
-        m_vfilep->modp(modp);
+        m_vfilep->modp(m_modp);
 
         iterateChildren(nodep);
     }
 
     virtual void visit(AstVar* nodep) {
         if (!nodep->isIO()) return;
+        if (nodep->direction() == VDirection::INPUT) {
+            // TODO -- What is the differnce between isUsedClock()
+            //           and attrClocker()?  The latter shows up
+            //           when --clk is specified, but the former
+            //           is there regardless.
+            if (nodep->isUsedClock()) {
+                handleClock(nodep);
+            } else {
+                handleDataInput(nodep);
+            }
+        } else if (nodep->direction() == VDirection::OUTPUT) {
+            handleOutput(nodep);
+        } else {
+            nodep->v3fatalSrc("Unsupported port direction for --dpi-protect: "<<
+                              nodep->direction().ascii());
+        }
     }
 
     virtual void visit(AstNode* nodep) { }
+
+    void handleClock(AstVar* varp) {
+        handleInput(varp);
+    }
+
+    void handleDataInput(AstVar* varp) {
+        handleInput(varp);
+    }
+
+    void handleInput(AstVar* varp) {
+        AstPort* portp = new AstPort(varp->fileline(), m_pinnum++, varp->name());
+        AstVar* cloneVarp = varp->cloneTree(false);
+        portp->exprp(cloneVarp);
+        m_modp->addStmtp(portp);
+    }
+
+    void handleOutput(AstVar* varp) {
+    }
 
   public:
     explicit ProtectVisitor(AstNode* nodep) {
         m_modProtected = false;
         m_vfilep = NULL;
+        m_modp = NULL;
+        m_pinnum = 0;
         iterate(nodep);
     }
 };
