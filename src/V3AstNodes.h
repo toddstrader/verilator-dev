@@ -5844,29 +5844,59 @@ public:
 };
 
 //======================================================================
+// Emitted file nodes
+
+class AstFile : public AstNode {
+    // Emitted Otput file
+    // Parents:  NETLIST
+private:
+    string      m_name;         ///< Filename
+public:
+    AstFile(FileLine* fl, const string& name)
+        : AstNode(fl) {
+        m_name = name;
+    }
+    ASTNODE_BASE_FUNCS(File)
+    virtual string name() const { return m_name; }
+    virtual V3Hash sameHash() const { return V3Hash(); }
+    virtual bool same(const AstNode* samep) const { return true; }
+};
+
+//======================================================================
+// Emit V nodes
+
+class AstVFile : public AstFile {
+    // Verilog output file
+    // Parents:  NETLIST
+    // Children: AstNodeModule
+public:
+    AstVFile(FileLine* fl, const string& name)
+        : AstFile(fl, name) { }
+    ASTNODE_NODE_FUNCS(VFile)
+    virtual void dump(std::ostream& str=std::cout);
+    void modp(AstNodeModule* nodeModp) { setOp1p(nodeModp); }
+    AstNodeModule* modp() { return VN_CAST(op1p(), NodeModule); }
+};
+
+//======================================================================
 // Emit C nodes
 
-class AstCFile : public AstNode {
+class AstCFile : public AstFile {
     // C++ output file
     // Parents:  NETLIST
     // Children: nothing yet
 private:
-    string      m_name;         ///< Filename
     bool        m_slow:1;       ///< Compile w/o optimization
     bool        m_source:1;     ///< Source file (vs header file)
     bool        m_support:1;    ///< Support file (non systemc)
 public:
     AstCFile(FileLine* fl, const string& name)
-        : AstNode(fl) {
-        m_name = name;
+        : AstFile(fl, name) {
         m_slow = false;
         m_source = false;
         m_support = false;
     }
     ASTNODE_NODE_FUNCS(CFile)
-    virtual string name() const { return m_name; }
-    virtual V3Hash sameHash() const { return V3Hash(); }
-    virtual bool same(const AstNode* samep) const { return true; }
     virtual void dump(std::ostream& str=std::cout);
     bool slow() const { return m_slow; }
     void slow(bool flag) { m_slow = flag; }
@@ -6232,8 +6262,8 @@ public:
     AstNodeModule* topModulep() const {  // * = Top module in hierarchy (first one added, for now)
         return VN_CAST(op1p(), NodeModule); }
     void addModulep(AstNodeModule* modulep) { addOp1p(modulep); }
-    AstCFile* filesp() const { return VN_CAST(op2p(), CFile);}  // op2 = List of files
-    void addFilesp(AstCFile* filep) { addOp2p(filep); }
+    AstFile* filesp() const { return VN_CAST(op2p(), File);}  // op2 = List of files
+    void addFilesp(AstFile* filep) { addOp2p(filep); }
     AstNode* miscsp() const { return op3p(); }  // op3 = List of dtypes etc
     void addMiscsp(AstNode* nodep) { addOp3p(nodep); }
     AstTypeTable* typeTablep() { return m_typeTablep; }

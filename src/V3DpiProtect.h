@@ -1,12 +1,12 @@
 // -*- mode: C++; c-file-style: "cc-mode" -*-
 //*************************************************************************
-// DESCRIPTION: Verilator: Emit Verilog code for module tree
+// DESCRIPTION: Verilator: Buitd DPI protected C++ and SV
 //
 // Code available from: http://www.veripool.org/verilator
 //
 //*************************************************************************
 //
-// Copyright 2003-2019 by Wilson Snyder.  This program is free software; you can
+// Copyright 2003-2019 by Todd Strader.  This program is free software; you can
 // redistribute it and/or modify it under the terms of either the GNU
 // Lesser General Public License Version 3 or the Perl Artistic License
 // Version 2.0.
@@ -17,9 +17,9 @@
 // GNU General Public License for more details.
 //
 //*************************************************************************
-
-#ifndef _V3EMITV_H_
-#define _V3EMITV_H_ 1
+
+#ifndef _V3DPIPROTECT_H_
+#define _V3DPIPROTECT_H_ 1
 
 #include "config_build.h"
 #include "verilatedos.h"
@@ -29,14 +29,9 @@
 
 //============================================================================
 
-class V3EmitV {
+class V3DpiProtect {
 public:
-    static void emitv();
-    static void verilogForTree(AstNode* nodep, std::ostream& os=std::cout);
-    static void verilogPrefixedTree(AstNode* nodep, std::ostream& os,
-                                    const string& prefix, int flWidth,
-                                    AstSenTree* domainp, bool user3mark);
-    static void emitvFiles();
+    static void protect();
 };
 
 #endif  // Guard

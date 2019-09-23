@@ -407,7 +407,7 @@ void V3EmitDpiProtect::emit() {
     // TODO -- does this even work for multiple top-levels?
     for (AstNodeModule* nodep = v3Global.rootp()->modulesp();
          nodep; nodep = VN_CAST(nodep->nextp(), NodeModule)) {
-        EmitVWrapper vWrapper(nodep);
+        //EmitVWrapper vWrapper(nodep);
         EmitCWrapper cWrapper(nodep);
     }
 }

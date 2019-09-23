@@ -758,3 +758,16 @@ void V3EmitV::verilogPrefixedTree(AstNode* nodep, std::ostream& os,
                                   AstSenTree* domainp, bool user3mark) {
     EmitVPrefixedVisitor(nodep, os, prefix, flWidth, domainp, user3mark);
 }
+
+void V3EmitV::emitvFiles() {
+    UINFO(2,__FUNCTION__<<": "<<endl);
+    for (AstFile* filep = v3Global.rootp()->filesp(); filep;
+         filep = VN_CAST(filep->nextp(), File)) {
+        if (AstVFile* vfilep = VN_CAST(filep, VFile)) {
+            V3OutVFile of(vfilep->name());
+            of.putsHeader();
+            of.puts("# DESCR" "IPTION: Verilator generated Verilog\n");
+            EmitVFileVisitor visitor (vfilep->modp(), &of);
+        }
+    }
+}
