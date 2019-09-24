@@ -1978,7 +1978,6 @@ public:
     virtual string name() const { return m_name; }  // * = Port name
     int pinNum() const { return m_pinNum; }  // * = Pin number, for order based instantiation
     AstNode* exprp() const { return op1p(); }  // op1 = Expression connected to port
-    void exprp(AstNode* nodep) { setOp1p(nodep); }
 };
 
 //######################################################################
