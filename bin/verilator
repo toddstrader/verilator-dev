@@ -3210,6 +3210,12 @@ Verilator does not support SEREs yet.  All assertion and coverage
 statements must be simple expressions that complete in one cycle.
 (Arguably SEREs are much of the point, but one must start somewhere.)
 
+=head2 Encrypted Verilog
+
+Open source simulators like Verilator are unable to use encrypted RTL
+(i.e. IEEE P1735).  Talk to your IP vendor about delivering IP blocks
+via Verilator's --dpi-protect feature instead.
+
 =head2 Language Keyword Limitations
 
 This section describes specific limitations for each language keyword.
