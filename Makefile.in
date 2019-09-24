@@ -452,7 +452,6 @@ analyzer-src:
 	-rm -rf src/obj_dbg
 	scan-build $(MAKE) -k verilator_coverage_bin_dbg verilator_bin_dbg
 
-# TODO -- can we rm examples/*/*obj_dir ?
 analyzer-include:
 	-rm -rf examples/*/obj*
 	scan-build $(MAKE) -k examples
@@ -505,7 +504,7 @@ clean mostlyclean distclean maintainer-clean::
 	rm -f *.pg *.pgs *.toc *.tp *.tps *.vr *.vrs *.idx
 	rm -f *.ev *.evs *.ov *.ovs *.cv *.cvs *.ma *.mas
 	rm -f *.tex
-	rm -rf examples/*/*obj_dir examples/*/logs
+	rm -rf examples/*/obj_dir* examples/*/logs
 	rm -rf test_*/obj_dir
 	rm -rf nodist/obj_dir
 

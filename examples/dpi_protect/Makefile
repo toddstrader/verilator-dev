@@ -52,19 +52,19 @@ run:
 # the shared library.
 	@echo
 	@echo "-- VERILATE secret module ----------------"
-	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect secret -Mdir secret_obj_dir/ secret_impl.v
+	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect secret -Mdir obj_dir_secret/ secret_impl.v
 
 # This builds secret.sv and libsecret.a which can be distributed
 # apart from the source
 	@echo
 	@echo "-- COMPILE protected library -------------"
-	$(MAKE) -j 4 -C secret_obj_dir -f Vsecret_impl.mk
+	$(MAKE) -j 4 -C obj_dir_secret -f Vsecret_impl.mk
 
 # Use the SystemVerilog wrapper (secret.sv) and the library
 # (libsecret.a) generated from the previous step
 	@echo
 	@echo "-- VERILATE top module -------------------"
-	$(VERILATOR) $(VERILATOR_FLAGS) --exe -LDFLAGS '-L../secret_obj_dir -lsecret' top.v secret_obj_dir/secret.sv sim_main.cpp
+	$(VERILATOR) $(VERILATOR_FLAGS) --exe -LDFLAGS '-L../obj_dir_secret -lsecret' top.v obj_dir_secret/secret.sv sim_main.cpp
 
 	@echo
 	@echo "-- COMPILE entire design -----------------"
@@ -89,4 +89,4 @@ show-config:
 
 maintainer-copy::
 clean mostlyclean distclean maintainer-clean::
-	-rm -rf *obj_dir logs *.log core
+	-rm -rf obj_dir* logs *.log core
