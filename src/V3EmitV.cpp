@@ -360,10 +360,9 @@ class EmitVBaseVisitor : public EmitCBaseVisitor {
     }
     virtual void visit(AstTextBlock* nodep) {
         visit(VN_CAST(nodep, Text));
-        for (AstText* textp = nodep->textsp(); textp;
-             textp = VN_CAST(textp->nextp(), Text)) {
-            iterate(textp);
-            if (nodep->commas() && textp->nextp()) puts(", ");
+        for (AstNode* childp = nodep->nodesp(); childp; childp = childp->nextp()) {
+            iterate(childp);
+            if (nodep->commas() && childp->nextp()) puts(", ");
         }
     }
     virtual void visit(AstScopeName* nodep) {

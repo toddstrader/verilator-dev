@@ -5782,10 +5782,10 @@ public:
     ASTNODE_NODE_FUNCS(TextBlock)
     void commas(bool flag) { m_commas = flag; }
     bool commas() const { return m_commas; }
-    AstText* textsp() const { return VN_CAST(op1p(), Text); }
-    void addTextp(AstText* nodep) { addOp1p(nodep); }
+    AstNode* nodesp() const { return op1p(); }
+    void addNodep(AstNode* nodep) { addOp1p(nodep); }
     void addText(FileLine* fl, const string& textp) {
-        addTextp(new AstText(fl, textp));
+        addNodep(new AstText(fl, textp));
     }
 };
 

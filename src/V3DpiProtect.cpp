@@ -86,10 +86,10 @@ class ProtectVisitor : public AstNVisitor {
         // Comments
         AstTextBlock* txtp = new AstTextBlock(fl,
                 "// Wrapper module for DPI protected library\n");
-        txtp->addText(fl,
-                       "// This module requires lib"+m_libName+
+        txtp->addNodep(new AstComment(fl,
+                       "This module requires lib"+m_libName+
                        ".a or lib"+m_libName+".so to "
-                       "work\n");
+                       "work"));
         txtp->addText(fl,
                        "// See instructions in your simulator for how to use "
                        "DPI libraries\n");
@@ -98,7 +98,7 @@ class ProtectVisitor : public AstNVisitor {
         m_modPortsp = new AstTextBlock(fl,
                        "module "+m_libName+" (\n",
                        false, true);
-        txtp->addTextp(m_modPortsp);
+        txtp->addNodep(m_modPortsp);
         txtp->addText(fl, ");\n\n");
 
         // DPI declarations
@@ -108,19 +108,19 @@ class ProtectVisitor : public AstNVisitor {
                        "import \"DPI-C\" function void combo_update_dpi_prot_"+
                        m_libName+" (\n", false, true);
         m_comboPortsp->addText(fl, "chandle handle\n");
-        txtp->addTextp(m_comboPortsp);
+        txtp->addNodep(m_comboPortsp);
         txtp->addText(fl, ");\n");
         m_seqPortsp = new AstTextBlock(fl,
                        "import \"DPI-C\" function void seq_update_dpi_prot_"+
                        m_libName+" (\n", false, true);
         m_seqPortsp->addText(fl, "chandle handle\n");
-        txtp->addTextp(m_seqPortsp);
+        txtp->addNodep(m_seqPortsp);
         txtp->addText(fl, ");\n");
         m_comboIgnorePortsp = new AstTextBlock(fl,
                        "import \"DPI-C\" function void combo_ignore_dpi_prot_"+
                        m_libName+" (\n", false, true);
         m_comboIgnorePortsp->addText(fl, "chandle handle\n");
-        txtp->addTextp(m_comboIgnorePortsp);
+        txtp->addNodep(m_comboIgnorePortsp);
         txtp->addText(fl, ");\n");
         txtp->addText(fl, "import \"DPI-C\" function void "
                        "final_dpi_prot_"+m_libName+" (chandle handle);\n\n");
@@ -128,11 +128,11 @@ class ProtectVisitor : public AstNVisitor {
         // Local variables
         txtp->addText(fl, "chandle handle;\n\n");
         m_comboDeclsp = new AstTextBlock(fl, "");
-        txtp->addTextp(m_comboDeclsp);
+        txtp->addNodep(m_comboDeclsp);
         m_seqDeclsp = new AstTextBlock(fl, "");
-        txtp->addTextp(m_seqDeclsp);
+        txtp->addNodep(m_seqDeclsp);
         m_tmpDeclsp = new AstTextBlock(fl, "");
-        txtp->addTextp(m_tmpDeclsp);
+        txtp->addNodep(m_tmpDeclsp);
         txtp->addText(fl, "\ntime last_combo_time;\n");
         txtp->addText(fl, "time last_seq_time;\n\n");
 
@@ -145,35 +145,35 @@ class ProtectVisitor : public AstNVisitor {
                        "combo_update_dpi_prot_"+m_libName+"(\n",
                        false, true);
         m_comboParamsp->addText(fl, "handle\n");
-        txtp->addTextp(m_comboParamsp);
+        txtp->addNodep(m_comboParamsp);
         txtp->addText(fl, ");\nlast_combo_time = $time;\nend\n\n");
 
         // Sequential process
         m_clkSensp = new AstTextBlock(fl, "always @(", false, true);
-        txtp->addTextp(m_clkSensp);
+        txtp->addNodep(m_clkSensp);
         txtp->addText(fl, ") begin\n");
         m_comboIgnoreParamsp = new AstTextBlock(fl, "combo_ignore_dpi_prot_"+
                                                 m_libName+"(\n", false, true);
         m_comboIgnoreParamsp->addText(fl, "handle\n");
-        txtp->addTextp(m_comboIgnoreParamsp);
+        txtp->addNodep(m_comboIgnoreParamsp);
         txtp->addText(fl, ");\n");
         m_seqParamsp = new AstTextBlock(fl, "seq_update_dpi_prot_"+m_libName+
                                         "(\n", false, true);
         m_seqParamsp->addText(fl, "handle\n");
-        txtp->addTextp(m_seqParamsp);
+        txtp->addNodep(m_seqParamsp);
         txtp->addText(fl, ");\n");
         m_nbAssignsp = new AstTextBlock(fl, "");
         m_nbAssignsp->addText(fl, "last_seq_time <= $time;\n");
-        txtp->addTextp(m_nbAssignsp);
+        txtp->addNodep(m_nbAssignsp);
         txtp->addText(fl, "end\n\n");
 
         // Select between combinatorial and sequential results
         txtp->addText(fl, "always @(*) begin\n");
         m_seqAssignsp = new AstTextBlock(fl, "if (last_seq_time > "
                                          "last_combo_time) begin\n");
-        txtp->addTextp(m_seqAssignsp);
+        txtp->addNodep(m_seqAssignsp);
         m_comboAssignsp = new AstTextBlock(fl, "end else begin\n");
-        txtp->addTextp(m_comboAssignsp);
+        txtp->addNodep(m_comboAssignsp);
         txtp->addText(fl, "end\nend\n\n");
 
         // Final
@@ -211,31 +211,31 @@ class ProtectVisitor : public AstNVisitor {
         m_cppComboParamsp = new AstTextBlock(fl, "void combo_update_dpi_prot_"+
                       m_libName+" (\n", false, true);
         m_cppComboParamsp->addText(fl, "void* ptr\n");
-        txtp->addTextp(m_cppComboParamsp);
+        txtp->addNodep(m_cppComboParamsp);
         txtp->addText(fl, ")\n");
         m_cppComboInsp = new AstTextBlock(fl, "{\n");
         castPtr(fl, m_cppComboInsp);
-        txtp->addTextp(m_cppComboInsp);
+        txtp->addNodep(m_cppComboInsp);
         m_cppComboOutsp = new AstTextBlock(fl, "handle->eval();\n");
-        txtp->addTextp(m_cppComboOutsp);
+        txtp->addNodep(m_cppComboOutsp);
         txtp->addText(fl, "}\n\n");
 
         m_cppSeqParamsp = new AstTextBlock(fl, "void seq_update_dpi_prot_"+
                                            m_libName+" (\n", false, true);
         m_cppSeqParamsp->addText(fl, "void* ptr\n");
-        txtp->addTextp(m_cppSeqParamsp);
+        txtp->addNodep(m_cppSeqParamsp);
         txtp->addText(fl, ")\n");
         m_cppSeqClksp = new AstTextBlock(fl, "{\n");
         castPtr(fl, m_cppSeqClksp);
-        txtp->addTextp(m_cppSeqClksp);
+        txtp->addNodep(m_cppSeqClksp);
         m_cppSeqOutsp = new AstTextBlock(fl, "handle->eval();\n");
-        txtp->addTextp(m_cppSeqOutsp);
+        txtp->addNodep(m_cppSeqOutsp);
         txtp->addText(fl, "}\n\n");
 
         m_cppIgnoreParamsp = new AstTextBlock(fl, "void combo_ignore_dpi_prot_"+
                                               m_libName+"(\n", false, true);
         m_cppIgnoreParamsp->addText(fl, "void* ptr\n");
-        txtp->addTextp(m_cppIgnoreParamsp);
+        txtp->addNodep(m_cppIgnoreParamsp);
         txtp->addText(fl, ")\n");
         txtp->addText(fl, "{ }\n\n");
         // Final
