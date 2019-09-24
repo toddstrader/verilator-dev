@@ -5776,7 +5776,7 @@ class AstTextBlock : public AstText {
 private:
     bool m_commas;  // Comma separate emitted children
 public:
-    AstTextBlock(FileLine* fl, const string& textp, bool tracking=false,
+    AstTextBlock(FileLine* fl, const string& textp="", bool tracking=false,
                  bool commas=false)
         : AstText(fl, textp, tracking), m_commas(commas) {}
     ASTNODE_NODE_FUNCS(TextBlock)

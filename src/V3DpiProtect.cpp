@@ -82,14 +82,16 @@ class ProtectVisitor : public AstNVisitor {
         iterateChildren(nodep);
     }
 
+    void addComment(AstTextBlock* txtp, FileLine* fl, const string& comment) {
+        txtp->addNodep(new AstComment(fl, comment));
+    }
+
     void createSvFile(FileLine* fl) {
         // Comments
         AstTextBlock* txtp = new AstTextBlock(fl,
                 "// Wrapper module for DPI protected library\n");
-        txtp->addNodep(new AstComment(fl,
-                       "This module requires lib"+m_libName+
-                       ".a or lib"+m_libName+".so to "
-                       "work"));
+        addComment(txtp, fl, "This module requires lib"+m_libName+
+                   ".a or lib"+m_libName+".so to work");
         txtp->addText(fl,
                        "// See instructions in your simulator for how to use "
                        "DPI libraries\n");
@@ -127,11 +129,11 @@ class ProtectVisitor : public AstNVisitor {
 
         // Local variables
         txtp->addText(fl, "chandle handle;\n\n");
-        m_comboDeclsp = new AstTextBlock(fl, "");
+        m_comboDeclsp = new AstTextBlock(fl);
         txtp->addNodep(m_comboDeclsp);
-        m_seqDeclsp = new AstTextBlock(fl, "");
+        m_seqDeclsp = new AstTextBlock(fl);
         txtp->addNodep(m_seqDeclsp);
-        m_tmpDeclsp = new AstTextBlock(fl, "");
+        m_tmpDeclsp = new AstTextBlock(fl);
         txtp->addNodep(m_tmpDeclsp);
         txtp->addText(fl, "\ntime last_combo_time;\n");
         txtp->addText(fl, "time last_seq_time;\n\n");
@@ -162,7 +164,7 @@ class ProtectVisitor : public AstNVisitor {
         m_seqParamsp->addText(fl, "handle\n");
         txtp->addNodep(m_seqParamsp);
         txtp->addText(fl, ");\n");
-        m_nbAssignsp = new AstTextBlock(fl, "");
+        m_nbAssignsp = new AstTextBlock(fl);
         m_nbAssignsp->addText(fl, "last_seq_time <= $time;\n");
         txtp->addNodep(m_nbAssignsp);
         txtp->addText(fl, "end\n\n");
