@@ -334,7 +334,7 @@ public:
 };
 
 class AstPackArrayDType : public AstNodeArrayDType {
-    // Array data type, ie "some_dtype var_name [2:0]"
+    // Packed array data type, ie "some_dtype [2:0] var_name"
     // Children: DTYPE (moved to refDTypep() in V3Width)
     // Children: RANGE (array bounds)
 public:

@@ -254,6 +254,8 @@ class ProtectVisitor : public AstNVisitor {
 
     virtual void visit(AstVar* nodep) {
         if (!nodep->isIO()) return;
+        if (VN_IS(nodep->dtypep(), UnpackArrayDType))
+            nodep->v3fatalSrc("Unsupported: unpacked arrays with --dpi-protect");
         if (nodep->direction() == VDirection::INPUT) {
             // TODO -- What is the differnce between isUsedClock()
             //           and attrClocker()?  The latter shows up

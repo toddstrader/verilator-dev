@@ -23,7 +23,6 @@ module secret_impl (
     output logic [128:0] s129_out,
     input [3:0] [31:0] s4x32_in,
     output logic [3:0] [31:0] s4x32_out,
-    // TODO -- structs, packed, unpacked arrays
     input clk);
 
     logic [31:0] accum_q = '0;
