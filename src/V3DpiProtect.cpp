@@ -58,6 +58,7 @@ class ProtectVisitor : public AstNVisitor {
     AstTextBlock* m_cppSeqOutsp;
     AstTextBlock* m_cppIgnoreParamsp;
     string m_libName;
+    string m_topName;
 
     // VISITORS
     virtual void visit(AstNetlist* nodep) {
@@ -183,8 +184,7 @@ class ProtectVisitor : public AstNVisitor {
     }
 
     void castPtr(FileLine* fl, AstTextBlock* txtp) {
-        txtp->addText(fl, "Vt_dpi_prot_"+m_libName+"* handle = "
-                      "static_cast<Vt_dpi_prot_"+m_libName+"*>(ptr);\n");
+        txtp->addText(fl, m_topName+"* handle = static_cast<"+m_topName+"*>(ptr);\n");
     }
 
     void createCppFile(FileLine* fl) {
@@ -193,7 +193,7 @@ class ProtectVisitor : public AstNVisitor {
                 "// Wrapper functions for DPI protected library\n\n");
 
         // Includes
-        txtp->addText(fl, "#include \"Vt_dpi_prot_"+m_libName+".h\"\n");
+        txtp->addText(fl, "#include \""+m_topName+".h\"\n");
         txtp->addText(fl, "#include \"svdpi.h\"\n\n");
 
         // Extern C
@@ -203,8 +203,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "void* create_dpi_prot_"+m_libName+
                       " (const char* scope) {\n");
         txtp->addText(fl, "assert(sizeof(WData) == sizeof(svBitVecVal));\n");
-        txtp->addText(fl, "Vt_dpi_prot_"+m_libName+"* handle = "
-                      "new Vt_dpi_prot_"+m_libName+"(scope);\n");
+        txtp->addText(fl, m_topName+"* handle = new "+m_topName+"(scope);\n");
         txtp->addText(fl, "return handle;\n");
         txtp->addText(fl, "}\n\n");
 
@@ -376,31 +375,15 @@ class ProtectVisitor : public AstNVisitor {
     }
 
   public:
-    explicit ProtectVisitor(AstNode* nodep) {
-        m_modProtected = false;
-        m_vfilep = NULL;
-        m_cfilep = NULL;
-        m_modPortsp = NULL;
-        m_comboPortsp = NULL;
-        m_seqPortsp = NULL;
-        m_comboIgnorePortsp = NULL;
-        m_comboDeclsp = NULL;
-        m_seqDeclsp = NULL;
-        m_tmpDeclsp = NULL;
-        m_clkSensp = NULL;
-        m_comboIgnoreParamsp = NULL;
-        m_seqParamsp = NULL;
-        m_nbAssignsp = NULL;
-        m_seqAssignsp = NULL;
-        m_comboAssignsp = NULL;
-        m_cppComboParamsp = NULL;
-        m_cppComboInsp = NULL;
-        m_cppComboOutsp = NULL;
-        m_cppSeqParamsp = NULL;
-        m_cppSeqClksp = NULL;
-        m_cppSeqOutsp = NULL;
-        m_cppIgnoreParamsp = NULL;
-        m_libName = v3Global.opt.dpiProtect();
+    explicit ProtectVisitor(AstNode* nodep):
+        m_modProtected(false), m_vfilep(NULL), m_cfilep(NULL), m_modPortsp(NULL),
+        m_comboPortsp(NULL), m_seqPortsp(NULL), m_comboIgnorePortsp(NULL), m_comboDeclsp(NULL),
+        m_seqDeclsp(NULL), m_tmpDeclsp(NULL), m_clkSensp(NULL), m_comboIgnoreParamsp(NULL),
+        m_seqParamsp(NULL), m_nbAssignsp(NULL), m_seqAssignsp(NULL), m_comboAssignsp(NULL),
+        m_cppComboParamsp(NULL), m_cppComboInsp(NULL), m_cppComboOutsp(NULL), m_cppSeqParamsp(NULL),
+        m_cppSeqClksp(NULL), m_cppSeqOutsp(NULL), m_cppIgnoreParamsp(NULL),
+        m_libName(v3Global.opt.dpiProtect()), m_topName(v3Global.opt.prefix())
+    {
         iterate(nodep);
     }
 };
