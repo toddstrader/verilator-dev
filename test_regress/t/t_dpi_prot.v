@@ -3,6 +3,10 @@
 // without warranty, 2019 by Todd Strader.
 
 `define CHECK(sig) \
+        /* Just throw a bunch of bits at the input */ \
+        /* verilator lint_off WIDTH */ \
+        sig``_in <= {8{$random}}; \
+        /* verilator lint_on WIDTH */ \
         if (sig``_in != sig``_out) begin \
             $display(`"%%Error (%m) sig``_in (0x%0x) != sig``_out (0x%0x)`", \
                      sig``_in, sig``_out); \
@@ -39,6 +43,8 @@ module t (/*AUTOARG*/
             logic [64:0] s65_out;
             logic [128:0] s129_in;
             logic [128:0] s129_out;
+            logic [3:0] [31:0] s4x32_in;
+            logic [3:0] [31:0] s4x32_out;
 
             secret
             secret (
@@ -60,6 +66,8 @@ module t (/*AUTOARG*/
                 .s65_out,
                 .s129_in,
                 .s129_out,
+                .s4x32_in,
+                .s4x32_out,
                 .clk);
 
             always @(posedge clk) begin
@@ -91,6 +99,7 @@ module t (/*AUTOARG*/
                     `CHECK(s64)
                     `CHECK(s65)
                     `CHECK(s129)
+                    `CHECK(s4x32)
                 end
 
                 if (cyc == 5) accum_bypass <= '1;

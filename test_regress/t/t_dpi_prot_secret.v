@@ -21,6 +21,8 @@ module secret_impl (
     output logic [64:0] s65_out,
     input [128:0] s129_in,
     output logic [128:0] s129_out,
+    input [3:0] [31:0] s4x32_in,
+    output logic [3:0] [31:0] s4x32_out,
     // TODO -- structs, packed, unpacked arrays
     input clk);
 
@@ -39,6 +41,7 @@ module secret_impl (
         s64_out = s64_in;
         s65_out = s65_in;
         s129_out = s129_in;
+        s4x32_out = s4x32_in;
     end
 
     // Test sequential path
