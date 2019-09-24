@@ -88,13 +88,13 @@ class ProtectVisitor : public AstNVisitor {
 
     void createSvFile(FileLine* fl) {
         // Comments
-        AstTextBlock* txtp = new AstTextBlock(fl,
-                "// Wrapper module for DPI protected library\n");
+        AstTextBlock* txtp = new AstTextBlock(fl);
+        // TODO -- why do emitted comments keep indenting?
+        addComment(txtp, fl, "Wrapper module for DPI protected library");
         addComment(txtp, fl, "This module requires lib"+m_libName+
                    ".a or lib"+m_libName+".so to work");
-        txtp->addText(fl,
-                       "// See instructions in your simulator for how to use "
-                       "DPI libraries\n");
+        addComment(txtp, fl, "See instructions in your simulator for how"
+                   " to use DPI libraries\n");
 
         // Module declaration
         m_modPortsp = new AstTextBlock(fl,
@@ -191,8 +191,8 @@ class ProtectVisitor : public AstNVisitor {
 
     void createCppFile(FileLine* fl) {
         // Comments
-        AstTextBlock* txtp = new AstTextBlock(fl,
-                "// Wrapper functions for DPI protected library\n\n");
+        AstTextBlock* txtp = new AstTextBlock(fl);
+        addComment(txtp, fl, "Wrapper functions for DPI protected library\n");
 
         // Includes
         txtp->addText(fl, "#include \""+m_topName+".h\"\n");
