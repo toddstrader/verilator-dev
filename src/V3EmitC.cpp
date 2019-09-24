@@ -539,6 +539,14 @@ public:
             ofp()->putsNoTracking(nodep->text());
         }
     }
+    virtual void visit(AstTextBlock* nodep) {
+        visit(VN_CAST(nodep, Text));
+        for (AstText* textp = nodep->textsp(); textp;
+             textp = VN_CAST(textp->nextp(), Text)) {
+            iterate(textp);
+            if (nodep->commas() && textp->nextp()) puts(", ");
+        }
+    }
     virtual void visit(AstCStmt* nodep) {
         putbs("");
         iterateAndNextNull(nodep->bodysp());
@@ -853,12 +861,21 @@ public:
         nodep->v3fatalSrc("Unknown node type reached emitter: "<<nodep->prettyTypeName());
     }
 
-public:
-    EmitCStmts() {
+    void init() {
         m_suppressSemi = false;
         m_wideTempRefp = NULL;
         m_splitSize = 0;
         m_splitFilenum = 0;
+    }
+
+public:
+    EmitCStmts() {
+        init();
+    }
+    EmitCStmts(AstNode* nodep, V3OutCFile* ofp) {
+        init();
+        m_ofp = ofp;
+        iterate(nodep);
     }
     virtual ~EmitCStmts() {}
 };
@@ -3227,5 +3244,18 @@ void V3EmitC::emitcTrace() {
     if (v3Global.opt.trace()) {
         { EmitCTrace slow(true);  slow.main(); }
         { EmitCTrace fast(false); fast.main(); }
+    }
+}
+
+void V3EmitC::emitcFiles() {
+    UINFO(2,__FUNCTION__<<": "<<endl);
+    for (AstFile* filep = v3Global.rootp()->filesp(); filep;
+         filep = VN_CAST(filep->nextp(), File)) {
+        AstCFile* cfilep = VN_CAST(filep, CFile);
+        if (cfilep && cfilep->tblockp()) {
+            V3OutCFile of(cfilep->name());
+            of.puts("// DESCR" "IPTION: Verilator generated C++\n");
+            EmitCStmts visitor(cfilep->tblockp(), &of);
+        }
     }
 }

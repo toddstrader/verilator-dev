@@ -35,6 +35,7 @@ class ProtectVisitor : public AstNVisitor {
   private:
     bool m_modProtected;
     AstVFile* m_vfilep;
+    AstCFile* m_cfilep;
     AstTextBlock* m_modPortsp;
     AstTextBlock* m_comboPortsp;
     AstTextBlock* m_seqPortsp;
@@ -49,6 +50,13 @@ class ProtectVisitor : public AstNVisitor {
     AstTextBlock* m_nbAssignsp;
     AstTextBlock* m_seqAssignsp;
     AstTextBlock* m_comboAssignsp;
+    AstTextBlock* m_cppComboParamsp;
+    AstTextBlock* m_cppComboInsp;
+    AstTextBlock* m_cppComboOutsp;
+    AstTextBlock* m_cppSeqParamsp;
+    AstTextBlock* m_cppSeqClksp;
+    AstTextBlock* m_cppSeqOutsp;
+    AstTextBlock* m_cppIgnoreParamsp;
     string m_libName;
 
     // VISITORS
@@ -56,6 +64,9 @@ class ProtectVisitor : public AstNVisitor {
         m_vfilep = new AstVFile(nodep->fileline(),
                 v3Global.opt.makeDir()+"/"+m_libName+".sv");
         nodep->addFilesp(m_vfilep);
+        m_cfilep = new AstCFile(nodep->fileline(),
+                v3Global.opt.makeDir()+"/"+m_libName+".cpp");
+        nodep->addFilesp(m_cfilep);
         iterateChildren(nodep);
     }
 
@@ -64,13 +75,13 @@ class ProtectVisitor : public AstNVisitor {
             v3Global.rootp()->v3error("Unsupported: --dpi-protect with multiple"
                                       " top-level modules");
         m_modProtected = true;
-        createSvModule(nodep);
+        createSvFile(nodep->fileline());
+        createCppFile(nodep->fileline());
 
         iterateChildren(nodep);
     }
 
-    void createSvModule(AstNodeModule* modp) {
-        FileLine* fl = modp->fileline();
+    void createSvFile(FileLine* fl) {
         // Comments
         AstTextBlock* txtp = new AstTextBlock(fl,
                 "// Wrapper module for DPI protected library\n");
@@ -121,8 +132,8 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addTextp(m_seqDeclsp);
         m_tmpDeclsp = new AstTextBlock(fl, "");
         txtp->addTextp(m_tmpDeclsp);
-        txtp->addText(fl, "\ntime last_combo_time\n");
-        txtp->addText(fl, "time last_seq_time\n\n");
+        txtp->addText(fl, "\ntime last_combo_time;\n");
+        txtp->addText(fl, "time last_seq_time;\n\n");
 
         // Initial
         txtp->addText(fl, "initial handle = create_dpi_prot_"+
@@ -171,6 +182,75 @@ class ProtectVisitor : public AstNVisitor {
         m_vfilep->tblockp(txtp);
     }
 
+    void castPtr(FileLine* fl, AstTextBlock* txtp) {
+        txtp->addText(fl, "Vt_dpi_prot_"+m_libName+"* handle = "
+                      "static_cast<Vt_dpi_prot_"+m_libName+"*>(ptr);\n");
+    }
+
+    void createCppFile(FileLine* fl) {
+        // Comments
+        AstTextBlock* txtp = new AstTextBlock(fl,
+                "// Wrapper functions for DPI protected library\n\n");
+
+        // Includes
+        txtp->addText(fl, "#include \"Vt_dpi_prot_"+m_libName+".h\"\n");
+        txtp->addText(fl, "#include \"svdpi.h\"\n\n");
+
+        // Extern C
+        txtp->addText(fl, "extern \"C\" {\n\n");
+
+        // Initial
+        txtp->addText(fl, "void* create_dpi_prot_"+m_libName+
+                      " (const char* scope) {\n");
+        txtp->addText(fl, "assert(sizeof(WData) == sizeof(svBitVecVal));\n");
+        txtp->addText(fl, "Vt_dpi_prot_"+m_libName+"* handle = "
+                      "new Vt_dpi_prot_"+m_libName+"(scope);\n");
+        txtp->addText(fl, "return handle;\n");
+        txtp->addText(fl, "}\n\n");
+
+        // Updates
+        m_cppComboParamsp = new AstTextBlock(fl, "void combo_update_dpi_prot_"+
+                      m_libName+" (\n", false, true);
+        m_cppComboParamsp->addText(fl, "void* ptr\n");
+        txtp->addTextp(m_cppComboParamsp);
+        txtp->addText(fl, ")\n");
+        m_cppComboInsp = new AstTextBlock(fl, "{\n");
+        castPtr(fl, m_cppComboInsp);
+        txtp->addTextp(m_cppComboInsp);
+        m_cppComboOutsp = new AstTextBlock(fl, "handle->eval();\n");
+        txtp->addTextp(m_cppComboOutsp);
+        txtp->addText(fl, "}\n\n");
+
+        m_cppSeqParamsp = new AstTextBlock(fl, "void seq_update_dpi_prot_"+
+                                           m_libName+" (\n", false, true);
+        m_cppSeqParamsp->addText(fl, "void* ptr\n");
+        txtp->addTextp(m_cppSeqParamsp);
+        txtp->addText(fl, ")\n");
+        m_cppSeqClksp = new AstTextBlock(fl, "{\n");
+        castPtr(fl, m_cppSeqClksp);
+        txtp->addTextp(m_cppSeqClksp);
+        m_cppSeqOutsp = new AstTextBlock(fl, "handle->eval();\n");
+        txtp->addTextp(m_cppSeqOutsp);
+        txtp->addText(fl, "}\n\n");
+
+        m_cppIgnoreParamsp = new AstTextBlock(fl, "void combo_ignore_dpi_prot_"+
+                                              m_libName+"(\n", false, true);
+        m_cppIgnoreParamsp->addText(fl, "void* ptr\n");
+        txtp->addTextp(m_cppIgnoreParamsp);
+        txtp->addText(fl, ")\n");
+        txtp->addText(fl, "{ }\n\n");
+        // Final
+        txtp->addText(fl, "void* final_dpi_prot_"+m_libName+
+                      " (void* ptr) {\n");
+        castPtr(fl, txtp);
+        txtp->addText(fl, "handle->final();\n");
+        txtp->addText(fl, "delete handle;\n");
+        txtp->addText(fl, "}\n\n");
+
+        txtp->addText(fl, "}\n");
+        m_cfilep->tblockp(txtp);
+    }
+
     virtual void visit(AstVar* nodep) {
         if (!nodep->isIO()) return;
         if (nodep->direction() == VDirection::INPUT) {
@@ -195,28 +275,80 @@ class ProtectVisitor : public AstNVisitor {
 
     string sizedSvName(AstVar* varp) {
         string result;
-        int width;
-        if ((width = varp->width()) > 1)
+        int width = varp->width();
+        if (width > 1)
             result += "["+std::to_string(width-1)+":0] ";
         result += varp->name();
         return result;
     }
 
+    string typedCppInName(AstVar* varp) {
+        string result;
+        int width = varp->width();
+        if (width > 1)
+            result += "const svBitVecVal* ";
+        else
+            result += "unsigned char ";
+        result += varp->name();
+        return result;
+    }
+
+    string typedCppOutName(AstVar* varp) {
+        string result;
+        int width = varp->width();
+        if (width > 1)
+            result += "svBitVecVal* ";
+        else
+            result += "unsigned char* ";
+        result += varp->name();
+        return result;
+    }
+
+    string cppInputConnection(AstVar* varp) {
+        int width = varp->width();
+        int bytes = (width + 7) / 8;
+        if (width == 1) {
+            return "handle->"+varp->name()+" = "+varp->name()+";\n";
+        } else if (bytes <= sizeof(uint32_t)) {
+            return "handle->"+varp->name()+" = *"+varp->name()+";\n";
+        } else if (bytes <= sizeof(uint64_t)) {
+            return "memcpy(&(handle->"+varp->name()+"), "+varp->name()+", "+std::to_string(bytes)+");\n";
+        } else {
+            return "memcpy(handle->"+varp->name()+", "+varp->name()+", "+std::to_string(bytes)+");\n";
+        }
+    }
+
+    string cppOutputConnection(AstVar* varp) {
+        int bytes = (varp->width() + 7) / 8;
+        if (bytes <= sizeof(uint32_t)) {
+            return "*"+varp->name()+" = handle->"+varp->name()+";\n";
+        } else if (bytes <= sizeof(uint64_t)) {
+            return "memcpy("+varp->name()+", &(handle->"+varp->name()+"), "+std::to_string(bytes)+");\n";
+        } else {
+            return "memcpy("+varp->name()+", handle->"+varp->name()+", "+std::to_string(bytes)+");\n";
+        }
+    }
+
     void handleClock(AstVar* varp) {
         FileLine* fl = varp->fileline();
         handleInput(varp);
-        m_seqPortsp->addText(fl, "bit "+sizedSvName(varp)+"\n");
+        m_seqPortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
         m_seqParamsp->addText(fl, varp->name()+"\n");
         m_clkSensp->addText(fl, "edge("+varp->name()+")");
+        m_cppSeqParamsp->addText(fl, typedCppInName(varp)+"\n");
+        m_cppSeqClksp->addText(fl, cppInputConnection(varp));
     }
 
     void handleDataInput(AstVar* varp) {
         FileLine* fl = varp->fileline();
         handleInput(varp);
-        m_comboPortsp->addText(fl, "bit "+sizedSvName(varp)+"\n");
+        m_comboPortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
         m_comboParamsp->addText(fl, varp->name()+"\n");
-        m_comboIgnorePortsp->addText(fl, "bit "+sizedSvName(varp)+"\n");
+        m_comboIgnorePortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
         m_comboIgnoreParamsp->addText(fl, varp->name()+"\n");
+        m_cppComboParamsp->addText(fl, typedCppInName(varp)+"\n");
+        m_cppComboInsp->addText(fl, cppInputConnection(varp));
+        m_cppIgnoreParamsp->addText(fl, typedCppInName(varp)+"\n");
     }
 
     void handleInput(AstVar* varp) {
@@ -235,14 +367,19 @@ class ProtectVisitor : public AstNVisitor {
         m_seqDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_seq;\n");
         m_tmpDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_tmp;\n");
         m_nbAssignsp->addText(fl, varp->name()+"_seq <= "+varp->name()+"_tmp;\n");
-        m_seqAssignsp->addText(fl, varp->name()+"_out = "+varp->name()+"_seq;\n");
-        m_comboAssignsp->addText(fl, varp->name()+"_out = "+varp->name()+"_combo;\n");
+        m_seqAssignsp->addText(fl, varp->name()+" = "+varp->name()+"_seq;\n");
+        m_comboAssignsp->addText(fl, varp->name()+" = "+varp->name()+"_combo;\n");
+        m_cppComboParamsp->addText(fl, typedCppOutName(varp)+"\n");
+        m_cppComboOutsp->addText(fl, cppOutputConnection(varp));
+        m_cppSeqParamsp->addText(fl, typedCppOutName(varp)+"\n");
+        m_cppSeqOutsp->addText(fl, cppOutputConnection(varp));
     }
 
   public:
     explicit ProtectVisitor(AstNode* nodep) {
         m_modProtected = false;
         m_vfilep = NULL;
+        m_cfilep = NULL;
         m_modPortsp = NULL;
         m_comboPortsp = NULL;
         m_seqPortsp = NULL;
@@ -256,6 +393,13 @@ class ProtectVisitor : public AstNVisitor {
         m_nbAssignsp = NULL;
         m_seqAssignsp = NULL;
         m_comboAssignsp = NULL;
+        m_cppComboParamsp = NULL;
+        m_cppComboInsp = NULL;
+        m_cppComboOutsp = NULL;
+        m_cppSeqParamsp = NULL;
+        m_cppSeqClksp = NULL;
+        m_cppSeqOutsp = NULL;
+        m_cppIgnoreParamsp = NULL;
         m_libName = v3Global.opt.dpiProtect();
         iterate(nodep);
     }
