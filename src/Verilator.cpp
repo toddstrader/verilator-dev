@@ -44,7 +44,6 @@
 #include "V3Descope.h"
 #include "V3DpiProtect.h"
 #include "V3EmitC.h"
-#include "V3EmitDpiProtect.h"
 #include "V3EmitMk.h"
 #include "V3EmitV.h"
 #include "V3EmitXml.h"
@@ -551,8 +550,6 @@ void process() {
 
     // Output DPI protected library files
     if (!v3Global.opt.dpiProtect().empty()) {
-        // TODO -- remove this class
-        //V3EmitDpiProtect::emit();
         V3DpiProtect::protect();
         V3EmitV::emitvFiles();
         V3EmitC::emitcFiles();
