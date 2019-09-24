@@ -756,7 +756,7 @@ DPI library, named libI<name>.a, which can be used by Verilator or other
 simulators along with the corresponding Verilog wrapper.
 
 This allows for the secure delivery of sensitive IP without the need for
-encrypted RTL (i.e. IEEE 1735).
+encrypted RTL (i.e. IEEE P1735).
 
 See examples/dpi_protect in the distribution for a demonstration of how
 to build and use the DPI library.
