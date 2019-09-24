@@ -97,9 +97,7 @@ class ProtectVisitor : public AstNVisitor {
                    " to use DPI libraries\n");
 
         // Module declaration
-        m_modPortsp = new AstTextBlock(fl,
-                       "module "+m_libName+" (\n",
-                       false, true);
+        m_modPortsp = new AstTextBlock(fl, "module "+m_libName+" (\n", false, true);
         txtp->addNodep(m_modPortsp);
         txtp->addText(fl, ");\n\n");
 
@@ -148,7 +146,9 @@ class ProtectVisitor : public AstNVisitor {
                        false, true);
         m_comboParamsp->addText(fl, "handle\n");
         txtp->addNodep(m_comboParamsp);
-        txtp->addText(fl, ");\nlast_combo_time = $time;\nend\n\n");
+        txtp->addText(fl, ");\n");
+        txtp->addText(fl, "last_combo_time = $time;\n");
+        txtp->addText(fl, "end\n\n");
 
         // Sequential process
         m_clkSensp = new AstTextBlock(fl, "always @(", false, true);
@@ -176,7 +176,8 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addNodep(m_seqAssignsp);
         m_comboAssignsp = new AstTextBlock(fl, "end else begin\n");
         txtp->addNodep(m_comboAssignsp);
-        txtp->addText(fl, "end\nend\n\n");
+        txtp->addText(fl, "end\n");
+        txtp->addText(fl, "end\n\n");
 
         // Final
         txtp->addText(fl, "final final_dpi_prot_"+m_libName+"(handle);\n\n");
