@@ -242,14 +242,12 @@ public:
             if (v3Global.opt.dpiProtectShared()) {
                 of.puts("\n### Library rules... (from --dpi-protect)\n");
                 of.puts("lib"+v3Global.opt.dpiProtect()+".so: $(VM_PREFIX)__ALL.a $(VK_GLOBAL_OBJS)\n");
-                // TODO -- Probably don't need to mention secret.cpp here
                 of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -shared -o $@ "+v3Global.opt.dpiProtect()+".cpp $^\n");
                 of.puts("\n");
             } else {
                 of.puts("\n### Library rules... (from --dpi-protect)\n");
                 of.puts("lib"+v3Global.opt.dpiProtect()+".a: $(VK_OBJS) $(VK_GLOBAL_OBJS)\n");
                 of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o "+
-                // TODO -- Probably don't need to mention secret.cpp here
                         v3Global.opt.dpiProtect()+".o "+v3Global.opt.dpiProtect()+".cpp\n");
                 of.puts("\tar rc $@ $^ "+v3Global.opt.dpiProtect()+".o\n");
                 of.puts("\n");
