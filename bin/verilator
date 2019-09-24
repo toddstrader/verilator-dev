@@ -763,7 +763,7 @@ to build and use the DPI library.
 
 =item --dpi-protect-shared
 
-When used with --dpi-protect proeduces a shared library instead of the
+When used with --dpi-protect produces a shared library instead of the
 default static library.  The library will be named libI<name>.so.
 
 =item --dump-defines
