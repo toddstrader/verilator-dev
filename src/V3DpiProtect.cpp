@@ -89,7 +89,6 @@ class ProtectVisitor : public AstNVisitor {
     void createSvFile(FileLine* fl) {
         // Comments
         AstTextBlock* txtp = new AstTextBlock(fl);
-        // TODO -- why do emitted comments keep indenting?
         addComment(txtp, fl, "Wrapper module for DPI protected library");
         addComment(txtp, fl, "This module requires lib"+m_libName+
                    ".a or lib"+m_libName+".so to work");
@@ -258,10 +257,6 @@ class ProtectVisitor : public AstNVisitor {
         if (VN_IS(nodep->dtypep(), UnpackArrayDType))
             nodep->v3fatalSrc("Unsupported: unpacked arrays with --dpi-protect");
         if (nodep->direction() == VDirection::INPUT) {
-            // TODO -- What is the differnce between isUsedClock()
-            //           and attrClocker()?  The latter shows up
-            //           when --clk is specified, but the former
-            //           is there regardless.
             if (nodep->isUsedClock()) {
                 handleClock(nodep);
             } else {
