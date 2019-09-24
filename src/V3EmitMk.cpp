@@ -135,11 +135,9 @@ public:
         of.puts("#    make -f "+v3Global.opt.prefix()+".mk"+"\n");
         of.puts("\n");
 
-        // TODO -- make --exe and --dpi-protect mutually exclusive
         if (v3Global.opt.exe()) {
             of.puts("default: "+v3Global.opt.exeName()+"\n");
         } else if (!v3Global.opt.dpiProtect().empty()) {
-            // TODO -- handle different C++ ABIs?
             if (v3Global.opt.dpiProtectShared()) {
                 of.puts("default: lib"+v3Global.opt.dpiProtect()+".so\n");
             } else {
@@ -176,7 +174,6 @@ public:
 
         of.puts("# User CFLAGS (from -CFLAGS on Verilator command line)\n");
         of.puts("VM_USER_CFLAGS = \\\n");
-        // TODO -- wrap Verilator runtime in a namespace to avoid collisions
         if (!v3Global.opt.dpiProtect().empty() &&
             v3Global.opt.dpiProtectShared()) {
             of.puts("\t-fPIC \\\n");
