@@ -221,7 +221,7 @@ class ProtectVisitor : public AstNVisitor {
     }
 
     void castPtr(FileLine* fl, AstTextBlock* txtp) {
-        txtp->addText(fl, m_topName+"* handle__V = static_cast<"+m_topName+"*>(ptr__V);\n");
+        txtp->addText(fl, m_topName+"* handlep__V = static_cast<"+m_topName+"*>(vhandlep__V);\n");
     }
 
     void createCppFile(FileLine* fl) {
@@ -239,53 +239,53 @@ class ProtectVisitor : public AstNVisitor {
         // Initial
         initialComment(txtp, fl);
         txtp->addText(fl, "void* "+m_libName+"_dpiprotect_create"
-                      " (const char* scope__V) {\n");
+                      " (const char* scopep__V) {\n");
         txtp->addText(fl, "assert(sizeof(WData) == sizeof(svBitVecVal));\n");
-        txtp->addText(fl, m_topName+"* handle__V = new "+m_topName+"(scope__V);\n");
-        txtp->addText(fl, "return handle__V;\n");
+        txtp->addText(fl, m_topName+"* handlep__V = new "+m_topName+"(scopep__V);\n");
+        txtp->addText(fl, "return handlep__V;\n");
         txtp->addText(fl, "}\n\n");
 
         // Updates
         comboComment(txtp, fl);
         m_cComboParamsp = new AstTextBlock(fl, "void "+m_libName+"_dpiprotect_combo_update (\n",
                                            false, true);
-        m_cComboParamsp->addText(fl, "void* ptr__V\n");
+        m_cComboParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cComboParamsp);
         txtp->addText(fl, ")\n");
         m_cComboInsp = new AstTextBlock(fl, "{\n");
         castPtr(fl, m_cComboInsp);
         txtp->addNodep(m_cComboInsp);
-        m_cComboOutsp = new AstTextBlock(fl, "handle__V->eval();\n");
+        m_cComboOutsp = new AstTextBlock(fl, "handlep__V->eval();\n");
         txtp->addNodep(m_cComboOutsp);
         txtp->addText(fl, "}\n\n");
 
         seqComment(txtp, fl);
         m_cSeqParamsp = new AstTextBlock(fl, "void "+m_libName+"_dpiprotect_seq_update (\n",
                                          false, true);
-        m_cSeqParamsp->addText(fl, "void* ptr__V\n");
+        m_cSeqParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cSeqParamsp);
         txtp->addText(fl, ")\n");
         m_cSeqClksp = new AstTextBlock(fl, "{\n");
         castPtr(fl, m_cSeqClksp);
         txtp->addNodep(m_cSeqClksp);
-        m_cSeqOutsp = new AstTextBlock(fl, "handle__V->eval();\n");
+        m_cSeqOutsp = new AstTextBlock(fl, "handlep__V->eval();\n");
         txtp->addNodep(m_cSeqOutsp);
         txtp->addText(fl, "}\n\n");
 
         comboIgnoreComment(txtp, fl);
         m_cIgnoreParamsp = new AstTextBlock(fl, "void "+m_libName+"_dpiprotect_combo_ignore (\n",
                                             false, true);
-        m_cIgnoreParamsp->addText(fl, "void* ptr__V\n");
+        m_cIgnoreParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cIgnoreParamsp);
         txtp->addText(fl, ")\n");
         txtp->addText(fl, "{ }\n\n");
 
         // Final
         finalComment(txtp, fl);
-        txtp->addText(fl, "void "+m_libName+"_dpiprotect_final (void* ptr__V) {\n");
+        txtp->addText(fl, "void "+m_libName+"_dpiprotect_final (void* vhandlep__V) {\n");
         castPtr(fl, txtp);
-        txtp->addText(fl, "handle__V->final();\n");
-        txtp->addText(fl, "delete handle__V;\n");
+        txtp->addText(fl, "handlep__V->final();\n");
+        txtp->addText(fl, "delete handlep__V;\n");
         txtp->addText(fl, "}\n\n");
 
         txtp->addText(fl, "}\n");
@@ -349,24 +349,24 @@ class ProtectVisitor : public AstNVisitor {
         int width = varp->width();
         int bytes = (width + 7) / 8;
         if (width == 1) {
-            return "handle__V->"+varp->name()+" = "+varp->name()+";\n";
+            return "handlep__V->"+varp->name()+" = "+varp->name()+";\n";
         } else if (bytes <= sizeof(uint32_t)) {
-            return "handle__V->"+varp->name()+" = *"+varp->name()+";\n";
+            return "handlep__V->"+varp->name()+" = *"+varp->name()+";\n";
         } else if (bytes <= sizeof(uint64_t)) {
-            return "memcpy(&(handle__V->"+varp->name()+"), "+varp->name()+", "+std::to_string(bytes)+");\n";
+            return "memcpy(&(handlep__V->"+varp->name()+"), "+varp->name()+", "+std::to_string(bytes)+");\n";
         } else {
-            return "memcpy(handle__V->"+varp->name()+", "+varp->name()+", "+std::to_string(bytes)+");\n";
+            return "memcpy(handlep__V->"+varp->name()+", "+varp->name()+", "+std::to_string(bytes)+");\n";
         }
     }
 
     string cOutputConnection(AstVar* varp) {
         int bytes = (varp->width() + 7) / 8;
         if (bytes <= sizeof(uint32_t)) {
-            return "*"+varp->name()+" = handle__V->"+varp->name()+";\n";
+            return "*"+varp->name()+" = handlep__V->"+varp->name()+";\n";
         } else if (bytes <= sizeof(uint64_t)) {
-            return "memcpy("+varp->name()+", &(handle__V->"+varp->name()+"), "+std::to_string(bytes)+");\n";
+            return "memcpy("+varp->name()+", &(handlep__V->"+varp->name()+"), "+std::to_string(bytes)+");\n";
         } else {
-            return "memcpy("+varp->name()+", handle__V->"+varp->name()+", "+std::to_string(bytes)+");\n";
+            return "memcpy("+varp->name()+", handlep__V->"+varp->name()+", "+std::to_string(bytes)+");\n";
         }
     }
 
