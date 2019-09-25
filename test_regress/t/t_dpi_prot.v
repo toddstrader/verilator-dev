@@ -104,7 +104,7 @@ module t (/*AUTOARG*/
 
                 if (cyc == 5) accum_bypass <= '1;
 
-                if (cyc == 10) begin
+                if (x == 0 && cyc == 10) begin
                     $write("*-* All Finished *-*\n");
                     $finish;
                 end
