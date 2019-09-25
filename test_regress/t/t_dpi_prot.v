@@ -77,7 +77,8 @@ module t (/*AUTOARG*/
 `endif
                 cyc <= cyc + 1;
                 accum_in <= accum_in + 5;
-                accum_out_expect <= accum_in + accum_out_expect;
+                // 7 is the secret_value inside the secret module
+                accum_out_expect <= accum_in + accum_out_expect + 7;
                 if (cyc == 0) begin
                     accum_in <= x*100;
                     accum_bypass <= '0;

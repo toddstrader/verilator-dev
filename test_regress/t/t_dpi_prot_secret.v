@@ -26,11 +26,12 @@ module secret_impl (
     input clk);
 
     logic [31:0] accum_q = 0;
+    logic [31:0] secret_value = 7;
 
     initial $display("created %m");
 
     always @(posedge clk) begin
-        accum_q <= accum_q + accum_in;
+        accum_q <= accum_q + accum_in + secret_value;
     end
 
     // Test combinatorial paths of different sizes

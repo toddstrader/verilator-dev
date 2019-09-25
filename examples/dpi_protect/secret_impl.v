@@ -12,6 +12,7 @@ module secret_impl(
     input clk);
 
     logic [31:0] accum_q = 0;
+    logic [31:0] secret_value = 9;
 
     initial $display("%m: initialized");
 
@@ -20,7 +21,7 @@ module secret_impl(
         if (accum_q > 10)
             x <= b;
         else
-            x <= a + b;
+            x <= a + b + secret_value;
     end
 
 endmodule
