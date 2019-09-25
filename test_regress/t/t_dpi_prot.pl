@@ -28,7 +28,7 @@ die "Could not build secret library" if system($cmd);
 
 compile(
     verilator_flags2 => ["$secret_dir/secret.sv",
-                         " -LDFLAGS",
+                         "--trace", "-LDFLAGS",
                          "'-L../$secret_prefix -lsecret'"],
     xsim_flags2 => ["$secret_dir/secret.sv"],
     );
@@ -39,6 +39,13 @@ execute(
                         "$secret_dir/libsecret",
                         "--dpi_absolute"],
     );
+
+if ($Self->{vlt}) {
+    # We can see the ports of the secret module
+    file_grep("$Self->{obj_dir}/simx.vcd", qr/accum_in/);
+    # but we can't see what's inside
+    file_grep_not("$Self->{obj_dir}/simx.vcd", qr/secret_value/);
+}
 
 ok(1);
 1;
