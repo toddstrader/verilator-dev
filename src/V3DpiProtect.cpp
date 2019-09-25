@@ -105,26 +105,34 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, ");\n\n");
 
         // DPI declarations
+        addComment(txtp, fl, "Creates an instance of the secret module at initial-time");
+        addComment(txtp, fl, "(one for each instance in the user's design) also evaluates");
+        addComment(txtp, fl, "the secret module's initial process");
         txtp->addText(fl, "import \"DPI-C\" function chandle "+
-                      m_libName+"_dpiprotect_create (string scope);\n");
+                      m_libName+"_dpiprotect_create (string scope);\n\n");
+        addComment(txtp, fl, "Updates all non-clock inputs and retrieves the results");
         m_comboPortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "+
                                          m_libName+"_dpiprotect_combo_update "
                                          "(\n", false, true);
         m_comboPortsp->addText(fl, "chandle handle\n");
         txtp->addNodep(m_comboPortsp);
-        txtp->addText(fl, ");\n");
+        txtp->addText(fl, ");\n\n");
+        addComment(txtp, fl, "Updates all clocks and retrieves the results");
         m_seqPortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "+
                                        m_libName+"_dpiprotect_seq_update "
                                        "(\n", false, true);
         m_seqPortsp->addText(fl, "chandle handle\n");
         txtp->addNodep(m_seqPortsp);
-        txtp->addText(fl, ");\n");
+        txtp->addText(fl, ");\n\n");
+        addComment(txtp, fl, "Need to convince some simulators that the input to the module");
+        addComment(txtp, fl, "must be evaluated before evaluating the clock edge");
         m_comboIgnorePortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "+
                                                m_libName+"_dpiprotect_combo_ignore "
                                                "(\n", false, true);
         m_comboIgnorePortsp->addText(fl, "chandle handle\n");
         txtp->addNodep(m_comboIgnorePortsp);
-        txtp->addText(fl, ");\n");
+        txtp->addText(fl, ");\n\n");
+        addComment(txtp, fl, "Evaluates the secret module's final process");
         txtp->addText(fl, "import \"DPI-C\" function void "+
                       m_libName+"_dpiprotect_final (chandle handle);\n\n");
 
@@ -144,6 +152,7 @@ class ProtectVisitor : public AstNVisitor {
                       "($sformatf(\"%m\"));\n\n");
 
         // Combinatorial process
+        addComment(txtp, fl, "Combinatorialy evaluate changes to inputs");
         m_comboParamsp = new AstTextBlock(fl, "always @(*) begin\n"+
                                           m_libName+"_dpiprotect_combo_update(\n",
                                           false, true);
@@ -154,12 +163,10 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "end\n\n");
 
         // Sequential process
+        addComment(txtp, fl, "Evaluate clock edges");
         m_clkSensp = new AstTextBlock(fl, "always @(", false, true);
         txtp->addNodep(m_clkSensp);
         txtp->addText(fl, ") begin\n");
-        addComment(txtp, fl, "Need to convince showname simulators that the");
-        addComment(txtp, fl, "inputs to the module must be evaluated before");
-        addComment(txtp, fl, "evaluating the clock edge");
         m_comboIgnoreParamsp = new AstTextBlock(fl, m_libName+"_dpiprotect_combo_ignore(\n",
                                                 false, true);
         m_comboIgnoreParamsp->addText(fl, "handle\n");
@@ -176,6 +183,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "end\n\n");
 
         // Select between combinatorial and sequential results
+        addComment(txtp, fl, "Select between combinatorial and sequential results");
         txtp->addText(fl, "always @(*) begin\n");
         m_seqAssignsp = new AstTextBlock(fl, "if (last_seq_time > "
                                          "last_combo_time) begin\n");
