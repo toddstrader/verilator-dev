@@ -75,9 +75,10 @@ class ProtectVisitor : public AstNVisitor {
     }
 
     virtual void visit(AstNodeModule* nodep) {
-        if (m_modProtected)
+        if (m_modProtected) {
             v3Global.rootp()->v3error("Unsupported: --dpi-protect with multiple"
                                       " top-level modules");
+        }
         m_modProtected = true;
         createSvFile(nodep->fileline());
         createCppFile(nodep->fileline());
@@ -260,8 +261,9 @@ class ProtectVisitor : public AstNVisitor {
 
     virtual void visit(AstVar* nodep) {
         if (!nodep->isIO()) return;
-        if (VN_IS(nodep->dtypep(), UnpackArrayDType))
+        if (VN_IS(nodep->dtypep(), UnpackArrayDType)) {
             nodep->v3fatalSrc("Unsupported: unpacked arrays with --dpi-protect");
+        }
         if (nodep->direction() == VDirection::INPUT) {
             if (nodep->isUsedClock()) {
                 handleClock(nodep);
@@ -281,8 +283,7 @@ class ProtectVisitor : public AstNVisitor {
     string sizedSvName(AstVar* varp) {
         string result;
         int width = varp->width();
-        if (width > 1)
-            result += "["+std::to_string(width-1)+":0] ";
+        if (width > 1) result += "["+std::to_string(width-1)+":0] ";
         result += varp->name();
         return result;
     }
@@ -290,10 +291,11 @@ class ProtectVisitor : public AstNVisitor {
     string typedCppInName(AstVar* varp) {
         string result;
         int width = varp->width();
-        if (width > 1)
+        if (width > 1) {
             result += "const svBitVecVal* ";
-        else
+        } else {
             result += "unsigned char ";
+        }
         result += varp->name();
         return result;
     }
@@ -301,10 +303,11 @@ class ProtectVisitor : public AstNVisitor {
     string typedCppOutName(AstVar* varp) {
         string result;
         int width = varp->width();
-        if (width > 1)
+        if (width > 1) {
             result += "svBitVecVal* ";
-        else
+        } else {
             result += "unsigned char* ";
+        }
         result += varp->name();
         return result;
     }
