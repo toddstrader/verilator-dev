@@ -45,38 +45,41 @@ default: run
 
 run:
 	@echo
-	@echo "-- Verilator --dpri-protect example ------"
+	@echo "-- Verilator --dpri-protect example ---------------------------"
 
-# --dpi-protect-shared can be used to produce a shared library
-# instead of this static library.  Some simulators may require
-# the shared library.
 	@echo
-	@echo "-- VERILATE secret module ----------------"
+	@echo "-- VERILATE secret module -------------------------------------"
+	@echo " --dpi-protect-shared can be used to produce a shared library"
+	@echo " instead of this static library.  Some simulators may require"
+	@echo " the shared library."
+	@echo "---------------------------------------------------------------"
 	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect secret -Mdir obj_dir_secret/ secret_impl.v
 
-# This builds secret.sv and libsecret.a which can be distributed
-# apart from the source
 	@echo
-	@echo "-- COMPILE protected library -------------"
+	@echo "-- COMPILE protected library ----------------------------------"
+	@echo " This builds secret.sv and libsecret.a which can be distributed"
+	@echo " apart from the source"
+	@echo "---------------------------------------------------------------"
 	$(MAKE) -j 4 -C obj_dir_secret -f Vsecret_impl.mk
 
-# Use the SystemVerilog wrapper (secret.sv) and the library
-# (libsecret.a) generated from the previous step
 	@echo
-	@echo "-- VERILATE top module -------------------"
+	@echo "-- VERILATE top module ----------------------------------------"
+	@echo " Use the SystemVerilog wrapper (secret.sv) and the library"
+	@echo " (libsecret.a) generated from the previous step"
+	@echo "---------------------------------------------------------------"
 	$(VERILATOR) $(VERILATOR_FLAGS) --exe -LDFLAGS '-L../obj_dir_secret -lsecret' top.v obj_dir_secret/secret.sv sim_main.cpp
 
 	@echo
-	@echo "-- COMPILE entire design -----------------"
+	@echo "-- COMPILE entire design --------------------------------------"
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 	@echo
-	@echo "-- RUN -----------------------------------"
+	@echo "-- RUN --------------------------------------------------------"
 	@mkdir -p logs
 	obj_dir/Vtop +trace
 
 	@echo
-	@echo "-- DONE ----------------------------------"
+	@echo "-- DONE -------------------------------------------------------"
 	@echo "To see waveforms, open logs/vlt_dump.vcd in a waveform viewer"
 	@echo
 
