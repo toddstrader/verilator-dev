@@ -241,7 +241,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, ")\n");
         txtp->addText(fl, "{ }\n\n");
         // Final
-        txtp->addText(fl, "void* final_dpi_prot_"+m_libName+
+        txtp->addText(fl, "void final_dpi_prot_"+m_libName+
                       " (void* ptr) {\n");
         castPtr(fl, txtp);
         txtp->addText(fl, "handle->final();\n");
