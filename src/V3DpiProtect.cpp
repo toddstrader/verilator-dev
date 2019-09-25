@@ -192,7 +192,7 @@ class ProtectVisitor : public AstNVisitor {
         m_comboIgnoreParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_comboIgnoreParamsp);
         txtp->addText(fl, ");\n");
-        m_seqParamsp = new AstTextBlock(fl, "last_seq_seqnum__V = "+m_libName+
+        m_seqParamsp = new AstTextBlock(fl, "last_seq_seqnum__V <= "+m_libName+
                                         "_dpiprotect_seq_update(\n",
                                         false, true);
         m_seqParamsp->addText(fl, "handle__V\n");
