@@ -2,11 +2,12 @@
 // This file ONLY is placed into the Public Domain, for any use,
 // without warranty, 2019 by Todd Strader.
 
-`define CHECK(sig) \
+`define DRIVE(sig) \
         /* Just throw a bunch of bits at the input */ \
         /* verilator lint_off WIDTH */ \
         sig``_in <= {8{crc}}; \
-        /* verilator lint_on WIDTH */ \
+        /* verilator lint_on WIDTH */
+`define CHECK(sig) \
         if (sig``_in != sig``_out) begin \
             $display(`"%%Error (%m) sig``_in (0x%0x) != sig``_out (0x%0x)`", \
                      sig``_in, sig``_out); \
@@ -96,14 +97,14 @@ module t (/*AUTOARG*/
                                  accum_bypass_out_expect, accum_bypass_out);
                         $stop;
                     end
-                    `CHECK(s1)
-                    `CHECK(s2)
-                    `CHECK(s8)
-                    `CHECK(s33)
-                    `CHECK(s64)
-                    `CHECK(s65)
-                    `CHECK(s129)
-                    `CHECK(s4x32)
+                    `DRIVE(s1)
+                    `DRIVE(s2)
+                    `DRIVE(s8)
+                    `DRIVE(s33)
+                    `DRIVE(s64)
+                    `DRIVE(s65)
+                    `DRIVE(s129)
+                    `DRIVE(s4x32)
                 end
 
                 if (cyc == 5) accum_bypass <= '1;
@@ -112,6 +113,17 @@ module t (/*AUTOARG*/
                     $write("*-* All Finished *-*\n");
                     $finish;
                 end
+            end
+
+            always @(*) begin
+                `CHECK(s1)
+                `CHECK(s2)
+                `CHECK(s8)
+                `CHECK(s33)
+                `CHECK(s64)
+                `CHECK(s65)
+                `CHECK(s129)
+                `CHECK(s4x32)
             end
 
             assign accum_bypass_out_expect = accum_bypass ? accum_in :
