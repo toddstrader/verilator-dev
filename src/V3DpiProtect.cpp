@@ -132,14 +132,14 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "import \"DPI-C\" function chandle "+
                       m_libName+"_dpiprotect_create (string scope__V);\n\n");
         comboComment(txtp, fl);
-        m_comboPortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "+
+        m_comboPortsp = new AstTextBlock(fl, "import \"DPI-C\" function longint "+
                                          m_libName+"_dpiprotect_combo_update "
                                          "(\n", false, true);
         m_comboPortsp->addText(fl, "chandle handle__V\n");
         txtp->addNodep(m_comboPortsp);
         txtp->addText(fl, ");\n\n");
         seqComment(txtp, fl);
-        m_seqPortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "+
+        m_seqPortsp = new AstTextBlock(fl, "import \"DPI-C\" function longint "+
                                        m_libName+"_dpiprotect_seq_update "
                                        "(\n", false, true);
         m_seqPortsp->addText(fl, "chandle handle__V\n");
@@ -164,8 +164,8 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addNodep(m_seqDeclsp);
         m_tmpDeclsp = new AstTextBlock(fl);
         txtp->addNodep(m_tmpDeclsp);
-        txtp->addText(fl, "\ntime last_combo_time__V;\n");
-        txtp->addText(fl, "time last_seq_time__V;\n\n");
+        txtp->addText(fl, "\ntime last_combo_seqnum__V;\n");
+        txtp->addText(fl, "time last_seq_seqnum__V;\n\n");
 
         // Initial
         txtp->addText(fl, "initial handle__V = "+m_libName+"_dpiprotect_create"
@@ -173,13 +173,13 @@ class ProtectVisitor : public AstNVisitor {
 
         // Combinatorial process
         addComment(txtp, fl, "Combinatorialy evaluate changes to inputs");
-        m_comboParamsp = new AstTextBlock(fl, "always @(*) begin\n"+
+        m_comboParamsp = new AstTextBlock(fl, "always @(*) begin\n"
+                                          "last_combo_seqnum__V = "+
                                           m_libName+"_dpiprotect_combo_update(\n",
                                           false, true);
         m_comboParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_comboParamsp);
         txtp->addText(fl, ");\n");
-        txtp->addText(fl, "last_combo_time__V = $time;\n");
         txtp->addText(fl, "end\n\n");
 
         // Sequential process
@@ -192,21 +192,21 @@ class ProtectVisitor : public AstNVisitor {
         m_comboIgnoreParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_comboIgnoreParamsp);
         txtp->addText(fl, ");\n");
-        m_seqParamsp = new AstTextBlock(fl, m_libName+"_dpiprotect_seq_update(\n",
+        m_seqParamsp = new AstTextBlock(fl, "last_seq_seqnum__V = "+m_libName+
+                                        "_dpiprotect_seq_update(\n",
                                         false, true);
         m_seqParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_seqParamsp);
         txtp->addText(fl, ");\n");
         m_nbAssignsp = new AstTextBlock(fl);
-        m_nbAssignsp->addText(fl, "last_seq_time__V <= $time;\n");
         txtp->addNodep(m_nbAssignsp);
         txtp->addText(fl, "end\n\n");
 
         // Select between combinatorial and sequential results
         addComment(txtp, fl, "Select between combinatorial and sequential results");
         txtp->addText(fl, "always @(*) begin\n");
-        m_seqAssignsp = new AstTextBlock(fl, "if (last_seq_time__V > "
-                                         "last_combo_time__V) begin\n");
+        m_seqAssignsp = new AstTextBlock(fl, "if (last_seq_seqnum__V > "
+                                         "last_combo_seqnum__V) begin\n");
         txtp->addNodep(m_seqAssignsp);
         m_comboAssignsp = new AstTextBlock(fl, "end else begin\n");
         txtp->addNodep(m_comboAssignsp);
@@ -221,7 +221,8 @@ class ProtectVisitor : public AstNVisitor {
     }
 
     void castPtr(FileLine* fl, AstTextBlock* txtp) {
-        txtp->addText(fl, m_topName+"* handlep__V = static_cast<"+m_topName+"*>(vhandlep__V);\n");
+        txtp->addText(fl, m_topName+"_container* handlep__V = "
+                      "static_cast<"+m_topName+"_container*>(vhandlep__V);\n");
     }
 
     void createCppFile(FileLine* fl) {
@@ -233,6 +234,15 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "#include \""+m_topName+".h\"\n");
         txtp->addText(fl, "#include \"svdpi.h\"\n\n");
 
+        // Verilated module plus sequence number
+        addComment(txtp, fl, "Container class to house verilated object and sequence number");
+        txtp->addText(fl, "class "+m_topName+"_container: public "+m_topName+" {\n");
+        txtp->addText(fl, "public:\n");
+        txtp->addText(fl, "long long m_seqnum;\n");
+        txtp->addText(fl, m_topName+"_container(const char* scopep__V):\n");
+        txtp->addText(fl, m_topName+"(scopep__V) {}\n");
+        txtp->addText(fl, "};\n\n");
+
         // Extern C
         txtp->addText(fl, "extern \"C\" {\n\n");
 
@@ -241,13 +251,14 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "void* "+m_libName+"_dpiprotect_create"
                       " (const char* scopep__V) {\n");
         txtp->addText(fl, "assert(sizeof(WData) == sizeof(svBitVecVal));\n");
-        txtp->addText(fl, m_topName+"* handlep__V = new "+m_topName+"(scopep__V);\n");
+        txtp->addText(fl, m_topName+"_container* handlep__V = "
+                      "new "+m_topName+"_container(scopep__V);\n");
         txtp->addText(fl, "return handlep__V;\n");
         txtp->addText(fl, "}\n\n");
 
         // Updates
         comboComment(txtp, fl);
-        m_cComboParamsp = new AstTextBlock(fl, "void "+m_libName+"_dpiprotect_combo_update (\n",
+        m_cComboParamsp = new AstTextBlock(fl, "long long "+m_libName+"_dpiprotect_combo_update (\n",
                                            false, true);
         m_cComboParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cComboParamsp);
@@ -257,10 +268,11 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addNodep(m_cComboInsp);
         m_cComboOutsp = new AstTextBlock(fl, "handlep__V->eval();\n");
         txtp->addNodep(m_cComboOutsp);
+        txtp->addText(fl, "return handlep__V->m_seqnum++;\n");
         txtp->addText(fl, "}\n\n");
 
         seqComment(txtp, fl);
-        m_cSeqParamsp = new AstTextBlock(fl, "void "+m_libName+"_dpiprotect_seq_update (\n",
+        m_cSeqParamsp = new AstTextBlock(fl, "long long "+m_libName+"_dpiprotect_seq_update (\n",
                                          false, true);
         m_cSeqParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cSeqParamsp);
@@ -270,6 +282,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addNodep(m_cSeqClksp);
         m_cSeqOutsp = new AstTextBlock(fl, "handlep__V->eval();\n");
         txtp->addNodep(m_cSeqOutsp);
+        txtp->addText(fl, "return handlep__V->m_seqnum++;\n");
         txtp->addText(fl, "}\n\n");
 
         comboIgnoreComment(txtp, fl);
