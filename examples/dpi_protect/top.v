@@ -11,7 +11,7 @@ module top (input clk);
     logic [31:0] b = 0;
     logic [31:0] x;
 
-    secret secret (.a, .b, .x, .clk);
+    verilated_secret secret (.a, .b, .x, .clk);
 
     always @(posedge clk) begin
         $display("[%0t] cyc=%0d a=%0d b=%0d x=%0d", $time, cyc, a, b, x);

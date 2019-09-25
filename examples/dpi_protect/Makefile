@@ -53,21 +53,22 @@ run:
 	@echo " instead of this static library.  Some simulators may require"
 	@echo " the shared library."
 	@echo "---------------------------------------------------------------"
-	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect secret -Mdir obj_dir_secret/ secret_impl.v
+	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect verilated_secret -Mdir obj_dir_secret/ secret_impl.v
 
 	@echo
 	@echo "-- COMPILE protected library ----------------------------------"
-	@echo " This builds secret.sv and libsecret.a which can be distributed"
-	@echo " apart from the source"
+	@echo " This builds verilated_secret.sv and libverilated_secret.a"
+	@echo " which can be distributed apart from the source"
 	@echo "---------------------------------------------------------------"
 	$(MAKE) -j 4 -C obj_dir_secret -f Vsecret_impl.mk
 
 	@echo
 	@echo "-- VERILATE top module ----------------------------------------"
-	@echo " Use the SystemVerilog wrapper (secret.sv) and the library"
-	@echo " (libsecret.a) generated from the previous step"
+	@echo " Use the SystemVerilog wrapper (verilated_secret.sv) and the"
+	@echo " library (libverilated_secret.a) generated from the previous"
+	@echo " step"
 	@echo "---------------------------------------------------------------"
-	$(VERILATOR) $(VERILATOR_FLAGS) --exe -LDFLAGS '-L../obj_dir_secret -lsecret' top.v obj_dir_secret/secret.sv sim_main.cpp
+	$(VERILATOR) $(VERILATOR_FLAGS) --exe -LDFLAGS '-L../obj_dir_secret -lverilated_secret' top.v obj_dir_secret/verilated_secret.sv sim_main.cpp
 
 	@echo
 	@echo "-- COMPILE entire design --------------------------------------"
