@@ -66,10 +66,10 @@ class ProtectVisitor : public AstNVisitor {
     // VISITORS
     virtual void visit(AstNetlist* nodep) {
         m_vfilep = new AstVFile(nodep->fileline(),
-                v3Global.opt.makeDir()+"/"+m_libName+".sv");
+                                v3Global.opt.makeDir()+"/"+m_libName+".sv");
         nodep->addFilesp(m_vfilep);
         m_cfilep = new AstCFile(nodep->fileline(),
-                v3Global.opt.makeDir()+"/"+m_libName+".cpp");
+                                v3Global.opt.makeDir()+"/"+m_libName+".cpp");
         nodep->addFilesp(m_cfilep);
         iterateChildren(nodep);
     }
@@ -105,27 +105,27 @@ class ProtectVisitor : public AstNVisitor {
 
         // DPI declarations
         txtp->addText(fl, "import \"DPI-C\" function chandle "
-                       "create_dpi_prot_"+m_libName+" (string scope);\n");
-        m_comboPortsp = new AstTextBlock(fl,
-                       "import \"DPI-C\" function void combo_update_dpi_prot_"+
-                       m_libName+" (\n", false, true);
+                      "create_dpi_prot_"+m_libName+" (string scope);\n");
+        m_comboPortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "
+                                         "combo_update_dpi_prot_"+m_libName+
+                                         " (\n", false, true);
         m_comboPortsp->addText(fl, "chandle handle\n");
         txtp->addNodep(m_comboPortsp);
         txtp->addText(fl, ");\n");
-        m_seqPortsp = new AstTextBlock(fl,
-                       "import \"DPI-C\" function void seq_update_dpi_prot_"+
-                       m_libName+" (\n", false, true);
+        m_seqPortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "
+                                       "seq_update_dpi_prot_"+m_libName+
+                                       " (\n", false, true);
         m_seqPortsp->addText(fl, "chandle handle\n");
         txtp->addNodep(m_seqPortsp);
         txtp->addText(fl, ");\n");
-        m_comboIgnorePortsp = new AstTextBlock(fl,
-                       "import \"DPI-C\" function void combo_ignore_dpi_prot_"+
-                       m_libName+" (\n", false, true);
+        m_comboIgnorePortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "
+                                               "combo_ignore_dpi_prot_"+m_libName+
+                                               " (\n", false, true);
         m_comboIgnorePortsp->addText(fl, "chandle handle\n");
         txtp->addNodep(m_comboIgnorePortsp);
         txtp->addText(fl, ");\n");
         txtp->addText(fl, "import \"DPI-C\" function void "
-                       "final_dpi_prot_"+m_libName+" (chandle handle);\n\n");
+                      "final_dpi_prot_"+m_libName+" (chandle handle);\n\n");
 
         // Local variables
         txtp->addText(fl, "chandle handle;\n\n");
@@ -140,12 +140,12 @@ class ProtectVisitor : public AstNVisitor {
 
         // Initial
         txtp->addText(fl, "initial handle = create_dpi_prot_"+
-                       m_libName+"($sformatf(\"%m\"));\n\n");
+                      m_libName+"($sformatf(\"%m\"));\n\n");
 
         // Combinatorial process
         m_comboParamsp = new AstTextBlock(fl, "always @(*) begin\n"
-                       "combo_update_dpi_prot_"+m_libName+"(\n",
-                       false, true);
+                                          "combo_update_dpi_prot_"+m_libName+"(\n",
+                                          false, true);
         m_comboParamsp->addText(fl, "handle\n");
         txtp->addNodep(m_comboParamsp);
         txtp->addText(fl, ");\n");
@@ -217,7 +217,7 @@ class ProtectVisitor : public AstNVisitor {
 
         // Updates
         m_cComboParamsp = new AstTextBlock(fl, "void combo_update_dpi_prot_"+
-                      m_libName+" (\n", false, true);
+                                           m_libName+" (\n", false, true);
         m_cComboParamsp->addText(fl, "void* ptr\n");
         txtp->addNodep(m_cComboParamsp);
         txtp->addText(fl, ")\n");
@@ -229,7 +229,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "}\n\n");
 
         m_cSeqParamsp = new AstTextBlock(fl, "void seq_update_dpi_prot_"+
-                                           m_libName+" (\n", false, true);
+                                         m_libName+" (\n", false, true);
         m_cSeqParamsp->addText(fl, "void* ptr\n");
         txtp->addNodep(m_cSeqParamsp);
         txtp->addText(fl, ")\n");
@@ -241,7 +241,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "}\n\n");
 
         m_cIgnoreParamsp = new AstTextBlock(fl, "void combo_ignore_dpi_prot_"+
-                                              m_libName+"(\n", false, true);
+                                            m_libName+"(\n", false, true);
         m_cIgnoreParamsp->addText(fl, "void* ptr\n");
         txtp->addNodep(m_cIgnoreParamsp);
         txtp->addText(fl, ")\n");
