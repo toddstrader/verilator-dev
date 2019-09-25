@@ -15,11 +15,11 @@ compile (
     verilator_make_gcc => 0,
     );
 
-$Self->_run(cmd=>["make",
-                  "-C",
-                  "$Self->{obj_dir}",
-                  "-f",
-                  "V$Self->{name}.mk"]);
+run(cmd=>["make",
+          "-C",
+          "$Self->{obj_dir}",
+          "-f",
+          "V$Self->{name}.mk"]);
 
 ok(1);
 1;
