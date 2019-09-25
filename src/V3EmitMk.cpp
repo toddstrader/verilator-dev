@@ -174,8 +174,7 @@ public:
 
         of.puts("# User CFLAGS (from -CFLAGS on Verilator command line)\n");
         of.puts("VM_USER_CFLAGS = \\\n");
-        if (!v3Global.opt.dpiProtect().empty() &&
-            v3Global.opt.dpiProtectShared()) {
+        if (!v3Global.opt.dpiProtect().empty() && v3Global.opt.dpiProtectShared()) {
             of.puts("\t-fPIC \\\n");
         }
         const V3StringList& cFlags = v3Global.opt.cFlags();
