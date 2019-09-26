@@ -258,8 +258,8 @@ class ProtectVisitor : public AstNVisitor {
         // Includes
         txtp->addText(fl, "#include \""+m_topName+".h\"\n");
         txtp->addText(fl, "#include \"svdpi.h\"\n\n");
-        txtp->addText(fl, "#include <stdio.h>\n");
-        txtp->addText(fl, "#include <stdlib.h>\n\n");
+        txtp->addText(fl, "#include <cstdio>\n");
+        txtp->addText(fl, "#include <cstdlib>\n\n");
 
         // Verilated module plus sequence number
         addComment(txtp, fl, "Container class to house verilated object and sequence number");
