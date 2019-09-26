@@ -4,7 +4,7 @@
 
 module secret_impl (
     input [31:0] accum_in,
-    output [31:0] accum_out,
+    output wire [31:0] accum_out,
     input accum_bypass,
     output [31:0] accum_bypass_out,
     input s1_in,
