@@ -300,7 +300,6 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
      +define+<var>=<value>      Set preprocessor define
     --dpi-hdr-only              Only produce the DPI header file
     --dpi-protect <name>        Create a DPI protected library
-    --dpi-protect-shared        Create a shared library for --dpi-protect
     --dump-defines              Show preprocessor defines with -E
     --dump-tree                 Enable dumping .tree files
     --dump-treei <level>        Enable dumping .tree files at a level
@@ -760,11 +759,6 @@ encrypted RTL (i.e. IEEE P1735).
 
 See examples/dpi_protect in the distribution for a demonstration of how
 to build and use the DPI library.
-
-=item --dpi-protect-shared
-
-When used with --dpi-protect produces a shared library instead of the
-default static library.  The library will be named libI<name>.so.
 
 =item --dump-defines
 

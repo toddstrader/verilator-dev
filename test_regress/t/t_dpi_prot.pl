@@ -12,15 +12,10 @@ scenarios(
     xsim => 1,
     );
 
-my $cmd = ["t/t_dpi_prot_secret.pl", "--vlt"];
-my $secret_prefix = "t_dpi_prot_secret";
-
 # Always compile the secret file with Verilator no matter what simulator
 #   we are testing with
-if ($Self->{xsim}) {
-    $cmd = ["t/t_dpi_prot_secret_shared.pl", "--vlt"];
-    $secret_prefix = "t_dpi_prot_secret_shared";
-}
+my $cmd = ["t/t_dpi_prot_secret.pl", "--vlt"];
+my $secret_prefix = "t_dpi_prot_secret";
 
 my $secret_dir = "$Self->{obj_dir}/../../obj_vlt/$secret_prefix";
 
@@ -29,7 +24,7 @@ die "Could not build secret library" if run(cmd => $cmd);
 compile(
     verilator_flags2 => ["$secret_dir/secret.sv",
                          "--trace", "-LDFLAGS",
-                         "'-L../$secret_prefix -lsecret'"],
+                         "'-L../$secret_prefix -lsecret -static'"],
     xsim_flags2 => ["$secret_dir/secret.sv"],
     );
 

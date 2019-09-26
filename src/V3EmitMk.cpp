@@ -138,11 +138,7 @@ public:
         if (v3Global.opt.exe()) {
             of.puts("default: "+v3Global.opt.exeName()+"\n");
         } else if (!v3Global.opt.dpiProtect().empty()) {
-            if (v3Global.opt.dpiProtectShared()) {
-                of.puts("default: lib"+v3Global.opt.dpiProtect()+".so\n");
-            } else {
-                of.puts("default: lib"+v3Global.opt.dpiProtect()+".a\n");
-            }
+            of.puts("default: lib"+v3Global.opt.dpiProtect()+"\n");
         } else {
             of.puts("default: "+v3Global.opt.prefix()+"__ALL.a\n");
         }
@@ -174,7 +170,7 @@ public:
 
         of.puts("# User CFLAGS (from -CFLAGS on Verilator command line)\n");
         of.puts("VM_USER_CFLAGS = \\\n");
-        if (!v3Global.opt.dpiProtect().empty() && v3Global.opt.dpiProtectShared()) {
+        if (!v3Global.opt.dpiProtect().empty()) {
             of.puts("\t-fPIC \\\n");
         }
         const V3StringList& cFlags = v3Global.opt.cFlags();
@@ -236,16 +232,18 @@ public:
 
         if (!v3Global.opt.dpiProtect().empty()) {
             of.puts("\n### Library rules... (from --dpi-protect)\n");
-            if (v3Global.opt.dpiProtectShared()) {
-                of.puts("lib"+v3Global.opt.dpiProtect()+".so: $(VM_PREFIX)__ALL.a $(VK_GLOBAL_OBJS)\n");
-                of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -shared -o $@ "+v3Global.opt.dpiProtect()+".cpp $^\n");
-            } else {
-                of.puts("lib"+v3Global.opt.dpiProtect()+".a: $(VK_OBJS) $(VK_GLOBAL_OBJS)\n");
-                of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o "+
-                        v3Global.opt.dpiProtect()+".o "+v3Global.opt.dpiProtect()+".cpp\n");
-                of.puts("\tar rc $@ $^ "+v3Global.opt.dpiProtect()+".o\n");
-            }
+            of.puts(v3Global.opt.dpiProtectLibName(false)+": $(VK_OBJS) $(VK_GLOBAL_OBJS)\n");
+            of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o "+
+                    v3Global.opt.dpiProtect()+".o "+v3Global.opt.dpiProtect()+".cpp\n");
+            of.puts("\tar rc $@ $^ "+v3Global.opt.dpiProtect()+".o\n");
             of.puts("\n");
+
+            of.puts(v3Global.opt.dpiProtectLibName(true)+": $(VM_PREFIX)__ALL.a $(VK_GLOBAL_OBJS)\n");
+            of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -shared -o $@ "+v3Global.opt.dpiProtect()+".cpp $^\n");
+            of.puts("\n");
+
+            of.puts("lib"+v3Global.opt.dpiProtect()+": "+v3Global.opt.dpiProtectLibName(false)+
+                    " "+v3Global.opt.dpiProtectLibName(true)+"\n");
         }
 
         of.puts("\n");

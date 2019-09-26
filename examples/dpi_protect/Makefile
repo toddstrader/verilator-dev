@@ -49,16 +49,17 @@ run:
 
 	@echo
 	@echo "-- VERILATE secret module -------------------------------------"
-	@echo " --dpi-protect-shared can be used to produce a shared library"
-	@echo " instead of this static library.  Some simulators may require"
-	@echo " the shared library."
+	@echo " --dpi-protect will produce both a static and shared library"
+	@echo " In this example the static library is used, but some"
+	@echo " simulators may require the shared library."
 	@echo "---------------------------------------------------------------"
 	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect verilated_secret -Mdir obj_dir_secret/ secret_impl.v
 
 	@echo
 	@echo "-- COMPILE protected library ----------------------------------"
-	@echo " This builds verilated_secret.sv and libverilated_secret.a"
-	@echo " which can be distributed apart from the source"
+	@echo " This builds verilated_secret.sv, libverilated_secret.a and"
+	@echo " libverilated_secret.so which can be distributed apart from"
+	@echo " the source"
 	@echo "---------------------------------------------------------------"
 	$(MAKE) -j 4 -C obj_dir_secret -f Vsecret_impl.mk
 

@@ -121,7 +121,6 @@ class V3Options {
     bool        m_debugSelfTest;  // main switch: --debug-self-test
     bool        m_decoration;   // main switch: --decoration
     bool        m_dpiHdrOnly;   // main switch: --dpi-hdr-only
-    bool        m_dpiProtectShared; // main switch: --dpi-protect-shared
     bool        m_dumpDefines;  // main switch: --dump-defines
     bool        m_exe;          // main switch: --exe
     bool        m_ignc;         // main switch: --ignc
@@ -292,7 +291,6 @@ class V3Options {
     bool debugSelfTest() const { return m_debugSelfTest; }
     bool decoration() const { return m_decoration; }
     bool dpiHdrOnly() const { return m_dpiHdrOnly; }
-    bool dpiProtectShared() const { return m_dpiProtectShared; }
     bool dumpDefines() const { return m_dumpDefines; }
     bool exe() const { return m_exe; }
     bool threadsDpiPure() const { return m_threadsDpiPure; }
@@ -348,6 +346,15 @@ class V3Options {
     int compLimitParens() const { return m_compLimitParens; }
 
     string dpiProtect() const { return m_dpiProtect; }
+    string dpiProtectLibName(bool shared) {
+        string libName = "lib"+dpiProtect();
+        if (shared) {
+            libName += ".so";
+        } else {
+            libName += ".a";
+        }
+        return libName;
+    }
     string exeName() const { return m_exeName!="" ? m_exeName : prefix(); }
     string l2Name() const { return m_l2Name; }
     string makeDir() const { return m_makeDir; }
