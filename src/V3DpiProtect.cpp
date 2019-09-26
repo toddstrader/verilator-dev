@@ -370,7 +370,7 @@ class ProtectVisitor : public AstNVisitor {
     string sizedSvName(AstVar* varp) {
         string result;
         int width = varp->width();
-        if (width > 1) result += "["+std::to_string(width-1)+":0] ";
+        if (width > 1) result += "["+cvtToStr(width-1)+":0] ";
         result += varp->name();
         return result;
     }
@@ -407,9 +407,9 @@ class ProtectVisitor : public AstNVisitor {
         } else if (bytes <= sizeof(uint32_t)) {
             return "handlep__V->"+varp->name()+" = *"+varp->name()+";\n";
         } else if (bytes <= sizeof(uint64_t)) {
-            return "memcpy(&(handlep__V->"+varp->name()+"), "+varp->name()+", "+std::to_string(bytes)+");\n";
+            return "memcpy(&(handlep__V->"+varp->name()+"), "+varp->name()+", "+cvtToStr(bytes)+");\n";
         } else {
-            return "memcpy(handlep__V->"+varp->name()+", "+varp->name()+", "+std::to_string(bytes)+");\n";
+            return "memcpy(handlep__V->"+varp->name()+", "+varp->name()+", "+cvtToStr(bytes)+");\n";
         }
     }
 
@@ -418,9 +418,9 @@ class ProtectVisitor : public AstNVisitor {
         if (bytes <= sizeof(uint32_t)) {
             return "*"+varp->name()+" = handlep__V->"+varp->name()+";\n";
         } else if (bytes <= sizeof(uint64_t)) {
-            return "memcpy("+varp->name()+", &(handlep__V->"+varp->name()+"), "+std::to_string(bytes)+");\n";
+            return "memcpy("+varp->name()+", &(handlep__V->"+varp->name()+"), "+cvtToStr(bytes)+");\n";
         } else {
-            return "memcpy("+varp->name()+", handlep__V->"+varp->name()+", "+std::to_string(bytes)+");\n";
+            return "memcpy("+varp->name()+", handlep__V->"+varp->name()+", "+cvtToStr(bytes)+");\n";
         }
     }
 
