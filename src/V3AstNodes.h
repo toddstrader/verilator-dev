@@ -5784,8 +5784,8 @@ public:
     bool commas() const { return m_commas; }
     AstNode* nodesp() const { return op1p(); }
     void addNodep(AstNode* nodep) { addOp1p(nodep); }
-    void addText(FileLine* fl, const string& textp) {
-        addNodep(new AstText(fl, textp));
+    void addText(FileLine* fl, const string& textp, bool tracking=false) {
+        addNodep(new AstText(fl, textp, tracking));
     }
 };
 

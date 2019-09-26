@@ -533,7 +533,7 @@ public:
         puts(",\"\");\n");
     }
     virtual void visit(AstText* nodep) {
-        if (nodep->tracking()) {
+        if (nodep->tracking() || m_trackText) {
             puts(nodep->text());
         } else {
             ofp()->putsNoTracking(nodep->text());
@@ -871,9 +871,10 @@ public:
     EmitCStmts() {
         init();
     }
-    EmitCStmts(AstNode* nodep, V3OutCFile* ofp) {
+    EmitCStmts(AstNode* nodep, V3OutCFile* ofp, bool trackText=false) {
         init();
         m_ofp = ofp;
+        m_trackText = trackText;
         iterate(nodep);
     }
     virtual ~EmitCStmts() {}
@@ -3254,7 +3255,7 @@ void V3EmitC::emitcFiles() {
         if (cfilep && cfilep->tblockp()) {
             V3OutCFile of(cfilep->name());
             of.puts("// DESCR" "IPTION: Verilator generated C++\n");
-            EmitCStmts visitor(cfilep->tblockp(), &of);
+            EmitCStmts visitor(cfilep->tblockp(), &of, true);
         }
     }
 }
