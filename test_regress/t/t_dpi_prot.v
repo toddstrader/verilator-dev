@@ -8,7 +8,7 @@
         sig``_in <= {8{crc}}; \
         /* verilator lint_on WIDTH */
 `define CHECK(sig) \
-        if (sig``_in != sig``_out) begin \
+        if (cyc > 0 && sig``_in != sig``_out) begin \
             $display(`"%%Error (%m) sig``_in (0x%0x) != sig``_out (0x%0x)`", \
                      sig``_in, sig``_out); \
             $stop; \
@@ -24,7 +24,7 @@ module t (/*AUTOARG*/
     generate
         for (x = 0; x < 2; x = x + 1) begin: gen_loop
             integer cyc = 0;
-            reg [63:0] crc;
+            reg [63:0] crc = 64'h5aef0c8d_d70a4497;
             logic [31:0] accum_in;
             logic [31:0] accum_out;
             logic accum_bypass;
@@ -82,10 +82,17 @@ module t (/*AUTOARG*/
                 accum_in <= accum_in + 5;
                 // 7 is the secret_value inside the secret module
                 accum_out_expect <= accum_in + accum_out_expect + 7;
+                `DRIVE(s1)
+                `DRIVE(s2)
+                `DRIVE(s8)
+                `DRIVE(s33)
+                `DRIVE(s64)
+                `DRIVE(s65)
+                `DRIVE(s129)
+                `DRIVE(s4x32)
                 if (cyc == 0) begin
                     accum_in <= x*100;
                     accum_bypass <= '0;
-	            crc <= 64'h5aef0c8d_d70a4497;
                 end else if (cyc > 0) begin
                     if (accum_out_expect != accum_out) begin
                         $display("%%Error: (%m) accum_out expected %0d got %0d",
@@ -97,14 +104,6 @@ module t (/*AUTOARG*/
                                  accum_bypass_out_expect, accum_bypass_out);
                         $stop;
                     end
-                    `DRIVE(s1)
-                    `DRIVE(s2)
-                    `DRIVE(s8)
-                    `DRIVE(s33)
-                    `DRIVE(s64)
-                    `DRIVE(s65)
-                    `DRIVE(s129)
-                    `DRIVE(s4x32)
                 end
 
                 if (cyc == 5) accum_bypass <= '1;
@@ -116,6 +115,12 @@ module t (/*AUTOARG*/
             end
 
             always @(*) begin
+                // XSim (and maybe all event simulators?) sees the moment where
+                // s1_in has not yet propagated to s1_out, however, they do always
+                // both change at the same time
+                /* verilator lint_off STMTDLY */
+                #1;
+                /* verilator lint_on STMTDLY */
                 `CHECK(s1)
                 `CHECK(s2)
                 `CHECK(s8)

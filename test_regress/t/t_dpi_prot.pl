@@ -30,7 +30,9 @@ compile(
 
 execute(
     check_finished => 1,
-    xsim_run_flags2 => ["--sv_lib",
+    xsim_run_flags2 => ["--debug",
+                        "all",
+                        "--sv_lib",
                         "$secret_dir/libsecret",
                         "--dpi_absolute"],
     );
