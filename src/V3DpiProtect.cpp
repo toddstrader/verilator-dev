@@ -25,6 +25,7 @@
 #include "V3String.h"
 #include "V3DpiProtect.h"
 #include "V3File.h"
+#include "V3Hashed.h"
 
 #include <list>
 
@@ -45,6 +46,7 @@ class ProtectVisitor : public AstNVisitor {
     AstTextBlock* m_comboDeclsp;        // Combo signal declaration list
     AstTextBlock* m_seqDeclsp;          // Sequential signal declaration list
     AstTextBlock* m_tmpDeclsp;          // Temporary signal declaration list
+    AstTextBlock* m_hashValuep;         // CPP hash value
     AstTextBlock* m_comboParamsp;       // Combo function parameter list
     AstTextBlock* m_clkSensp;           // Clock sensitivity list
     AstTextBlock* m_comboIgnoreParamsp; // Combo ignore parameter list
@@ -53,6 +55,7 @@ class ProtectVisitor : public AstNVisitor {
     AstTextBlock* m_seqAssignsp;        // Sequential assignment list
     AstTextBlock* m_comboAssignsp;      // Combo assignment list
     // C text blocks
+    AstTextBlock* m_cHashValuep;        // CPP hash value
     AstTextBlock* m_cComboParamsp;      // Combo function parameter list
     AstTextBlock* m_cComboInsp;         // Combo input copy list
     AstTextBlock* m_cComboOutsp;        // Combo output copy list
@@ -80,14 +83,23 @@ class ProtectVisitor : public AstNVisitor {
                                       " top-level modules");
         }
         m_modProtected = true;
-        createSvFile(nodep->fileline());
-        createCppFile(nodep->fileline());
+        FileLine* fl = nodep->fileline();
+        createSvFile(fl);
+        createCppFile(fl);
 
         iterateChildren(nodep);
+
+        V3Hash hash = V3Hashed::uncachedHash(m_cfilep);
+        m_hashValuep->addText(fl, cvtToStr(hash.fullValue())+";\n");
+        m_cHashValuep->addText(fl, cvtToStr(hash.fullValue())+";\n");
     }
 
     void addComment(AstTextBlock* txtp, FileLine* fl, const string& comment) {
         txtp->addNodep(new AstComment(fl, comment));
+    }
+
+    void hashComment(AstTextBlock* txtp, FileLine* fl) {
+        addComment(txtp, fl, "Checks to make sure the .sv wrapper and library agree");
     }
 
     void initialComment(AstTextBlock* txtp, FileLine* fl) {
@@ -128,6 +140,9 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, ");\n\n");
 
         // DPI declarations
+        hashComment(txtp, fl);
+        txtp->addText(fl, "import \"DPI-C\" function void "+
+                      m_libName+"_dpiprotect_check_hash (int dpiprotect_hash__V);\n\n");
         initialComment(txtp, fl);
         txtp->addText(fl, "import \"DPI-C\" function chandle "+
                       m_libName+"_dpiprotect_create (string scope__V);\n\n");
@@ -167,9 +182,19 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "\ntime last_combo_seqnum__V;\n");
         txtp->addText(fl, "time last_seq_seqnum__V;\n\n");
 
+        // CPP hash value
+        addComment(txtp, fl, "Hash value to make sure this file and the corresponding");
+        addComment(txtp, fl, "library agree");
+        m_hashValuep = new AstTextBlock(fl, "localparam int dpiprotect_hash__V =\n");
+        txtp->addNodep(m_hashValuep);
+        txtp->addText(fl, "\n");
+
         // Initial
-        txtp->addText(fl, "initial handle__V = "+m_libName+"_dpiprotect_create"
-                      "($sformatf(\"%m\"));\n\n");
+        txtp->addText(fl, "initial begin\n");
+        txtp->addText(fl, m_libName+"_dpiprotect_check_hash(dpiprotect_hash__V);\n");
+        txtp->addText(fl, "handle__V = "+m_libName+"_dpiprotect_create"
+                      "($sformatf(\"%m\"));\n");
+        txtp->addText(fl, "end\n\n");
 
         // Combinatorial process
         addComment(txtp, fl, "Combinatorialy evaluate changes to inputs");
@@ -233,6 +258,8 @@ class ProtectVisitor : public AstNVisitor {
         // Includes
         txtp->addText(fl, "#include \""+m_topName+".h\"\n");
         txtp->addText(fl, "#include \"svdpi.h\"\n\n");
+        txtp->addText(fl, "#include <stdio.h>\n");
+        txtp->addText(fl, "#include <stdlib.h>\n\n");
 
         // Verilated module plus sequence number
         addComment(txtp, fl, "Container class to house verilated object and sequence number");
@@ -245,6 +272,20 @@ class ProtectVisitor : public AstNVisitor {
 
         // Extern C
         txtp->addText(fl, "extern \"C\" {\n\n");
+
+        // Hash check
+        hashComment(txtp, fl);
+        txtp->addText(fl, "void "+m_libName+"_dpiprotect_check_hash"
+                      " (int dpiprotect_hash__V) {\n");
+        m_cHashValuep = new AstTextBlock(fl, "int expected_hash__V =\n");
+        txtp->addNodep(m_cHashValuep);
+        txtp->addText(fl, "if (dpiprotect_hash__V != expected_hash__V) {\n");
+        txtp->addText(fl, "fprintf(stderr, \"%%Error: cannot use "+m_libName+" library, "
+                      "Verliog (%u) and library (%u) hash values do not "
+                      "agree\\n\", dpiprotect_hash__V, expected_hash__V);\n");
+        txtp->addText(fl, "exit(EXIT_FAILURE);\n");
+        txtp->addText(fl, "}\n");
+        txtp->addText(fl, "}\n\n");
 
         // Initial
         initialComment(txtp, fl);
@@ -433,11 +474,12 @@ class ProtectVisitor : public AstNVisitor {
     explicit ProtectVisitor(AstNode* nodep):
         m_modProtected(false), m_vfilep(NULL), m_cfilep(NULL), m_modPortsp(NULL),
         m_comboPortsp(NULL), m_seqPortsp(NULL), m_comboIgnorePortsp(NULL), m_comboDeclsp(NULL),
-        m_seqDeclsp(NULL), m_tmpDeclsp(NULL), m_clkSensp(NULL), m_comboIgnoreParamsp(NULL),
-        m_seqParamsp(NULL), m_nbAssignsp(NULL), m_seqAssignsp(NULL), m_comboAssignsp(NULL),
-        m_cComboParamsp(NULL), m_cComboInsp(NULL), m_cComboOutsp(NULL), m_cSeqParamsp(NULL),
-        m_cSeqClksp(NULL), m_cSeqOutsp(NULL), m_cIgnoreParamsp(NULL),
-        m_libName(v3Global.opt.dpiProtect()), m_topName(v3Global.opt.prefix())
+        m_seqDeclsp(NULL), m_tmpDeclsp(NULL), m_hashValuep(NULL), m_clkSensp(NULL),
+        m_comboIgnoreParamsp(NULL), m_seqParamsp(NULL), m_nbAssignsp(NULL), m_seqAssignsp(NULL),
+        m_comboAssignsp(NULL), m_cHashValuep(NULL), m_cComboParamsp(NULL), m_cComboInsp(NULL),
+        m_cComboOutsp(NULL), m_cSeqParamsp(NULL), m_cSeqClksp(NULL), m_cSeqOutsp(NULL),
+        m_cIgnoreParamsp(NULL), m_libName(v3Global.opt.dpiProtect()),
+        m_topName(v3Global.opt.prefix())
     {
         iterate(nodep);
     }
