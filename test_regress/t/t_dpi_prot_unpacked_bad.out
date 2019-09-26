@@ -1,0 +1,5 @@
+%Error: Internal Error: t/t_dpi_prot_unpacked_bad.v:6: ../V3DpiProtect.cpp:352: Unsupported: unpacked arrays with --dpi-protect
+      input  unpacked_in [7:0],
+             ^~~~~~~~~~~
+                        ... See the manual and http://www.veripool.org/verilator for more assistance.
+%Error: Command Failed

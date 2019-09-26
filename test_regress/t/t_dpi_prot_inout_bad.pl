@@ -8,12 +8,13 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 # Version 2.0.
 
 scenarios(vlt => 1);
-$Self->{vlt} and unsupported("Unsupported port direction for --dpi-protect");
 
 compile (
     verilator_flags2 => ["--dpi-protect",
                          "secret"],
     verilator_make_gcc => 0,
+    fails => 1,
+    expect_filename => $Self->{golden_filename},
     );
 
 #run(cmd=>["make",
