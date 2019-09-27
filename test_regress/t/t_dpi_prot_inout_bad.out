@@ -1,0 +1,5 @@
+%Error: Internal Error: t/t_dpi_prot_inout_bad.v:8: ../V3DpiProtect.cpp:364: Unsupported port direction for --dpi-protect: INOUT
+      inout  z,
+             ^
+                        ... See the manual and http://www.veripool.org/verilator for more assistance.
+%Error: Command Failed

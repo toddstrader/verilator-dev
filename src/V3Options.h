@@ -183,6 +183,7 @@ class V3Options {
     int         m_compLimitParens;  // compiler selection; number of nested parens
 
     string      m_bin;          // main switch: --bin {binary}
+    string      m_dpiProtect;   // main switch: --dpi-protect {lib_name}
     string      m_exeName;      // main switch: -o {name}
     string      m_flags;        // main switch: -f {name}
     string      m_l2Name;       // main switch: --l2name; "" for top-module's name
@@ -350,6 +351,16 @@ class V3Options {
     int compLimitMembers() const { return m_compLimitMembers; }
     int compLimitParens() const { return m_compLimitParens; }
 
+    string dpiProtect() const { return m_dpiProtect; }
+    string dpiProtectLibName(bool shared) {
+        string libName = "lib"+dpiProtect();
+        if (shared) {
+            libName += ".so";
+        } else {
+            libName += ".a";
+        }
+        return libName;
+    }
     string exeName() const { return m_exeName!="" ? m_exeName : prefix(); }
     string l2Name() const { return m_l2Name; }
     string makeDir() const { return m_makeDir; }

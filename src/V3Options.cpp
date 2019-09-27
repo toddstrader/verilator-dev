@@ -834,6 +834,9 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                 shift;
                 setDebugSrcLevel(src, atoi(argv[i]));
             }
+            else if (!strcmp(sw, "-dpi-protect") && (i+1)<argc) {
+                shift; m_dpiProtect = argv[i];
+            }
             else if (!strcmp(sw, "-dump-treei") && (i+1)<argc) {
                 shift;
                 m_dumpTree = atoi(argv[i]);
