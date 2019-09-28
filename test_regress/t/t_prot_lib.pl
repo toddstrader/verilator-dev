@@ -14,8 +14,8 @@ scenarios(
 
 # Always compile the secret file with Verilator no matter what simulator
 #   we are testing with
-my $cmd = ["t/t_dpi_prot_secret.pl", "--vlt"];
-my $secret_prefix = "t_dpi_prot_secret";
+my $cmd = ["t/t_prot_lib_secret.pl", "--vlt"];
+my $secret_prefix = "t_prot_lib_secret";
 
 my $secret_dir = "$Self->{obj_dir}/../../obj_vlt/$secret_prefix";
 

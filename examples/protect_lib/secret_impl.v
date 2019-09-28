@@ -1,4 +1,4 @@
-// DESCRIPTION: Verilator: --dpi-protect example secret module
+// DESCRIPTION: Verilator: --protect-lib example secret module
 //
 // This file ONLY is placed into the Public Domain, for any use,
 // without warranty, 2019 by Todd Strader.

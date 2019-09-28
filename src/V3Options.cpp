@@ -834,9 +834,6 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                 shift;
                 setDebugSrcLevel(src, atoi(argv[i]));
             }
-            else if (!strcmp(sw, "-dpi-protect") && (i+1)<argc) {
-                shift; m_dpiProtect = argv[i];
-            }
             else if (!strcmp(sw, "-dump-treei") && (i+1)<argc) {
                 shift;
                 m_dumpTree = atoi(argv[i]);
@@ -923,6 +920,9 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
             else if (!strcmp(sw, "-output-split-ctrace")) {  // Undocumented optimization tweak
                 shift;
                 m_outputSplitCTrace = atoi(argv[i]);
+            }
+            else if (!strcmp(sw, "-protect-lib") && (i+1)<argc) {
+                shift; m_protectLib = argv[i];
             }
             else if (!strcmp(sw, "-trace-fst")) {
                 m_trace = true;

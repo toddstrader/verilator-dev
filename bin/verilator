@@ -299,7 +299,6 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
     --default-language <lang>   Default language to parse
      +define+<var>=<value>      Set preprocessor define
     --dpi-hdr-only              Only produce the DPI header file
-    --dpi-protect <name>        Create a DPI protected library
     --dump-defines              Show preprocessor defines with -E
     --dump-tree                 Enable dumping .tree files
     --dump-treei <level>        Enable dumping .tree files at a level
@@ -355,6 +354,7 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
     --prof-threads              Enable generating gantt chart data for threads
     --protect-key <key>         Key for symbol protection
     --protect-ids               Hash identifier names for obscurity
+    --protect-lib <name>        Create a DPI protected library
     --private                   Debugging; see docs
     --public                    Debugging; see docs
     --public-flat-rw            Mark all variables, etc as public_flat_rw
@@ -749,18 +749,6 @@ while -D is an alias for GCC compatibility.
 
 Only generate the DPI header file.  This option has no effect on the name
 or location of the file.
-
-=item --dpi-protect I<name>
-
-Produces C++, Verilog wrappers and a Makefile which can in turn produce a
-DPI library, named libI<name>.a, which can be used by Verilator or other
-simulators along with the corresponding Verilog wrapper.
-
-This allows for the secure delivery of sensitive IP without the need for
-encrypted RTL (i.e. IEEE P1735).
-
-See examples/dpi_protect in the distribution for a demonstration of how
-to build and use the DPI library.
 
 =item --dump-defines
 
@@ -1203,6 +1191,18 @@ Using DPI imports/exports is allowed and generally relatively safe in terms
 of information disclosed, which is limited to the DPI function prototyptes.
 Use of the VPI is not recommended as many design details may be exposed,
 and an INSECURE warning will be issued.
+
+=item --protect-lib I<name>
+
+Produces C++, Verilog wrappers and a Makefile which can in turn produce a
+DPI library, named libI<name>.a, which can be used by Verilator or other
+simulators along with the corresponding Verilog wrapper.
+
+This allows for the secure delivery of sensitive IP without the need for
+encrypted RTL (i.e. IEEE P1735).
+
+See examples/protect_lib in the distribution for a demonstration of how
+to build and use the DPI library.
 
 =item --private
 
@@ -3247,7 +3247,7 @@ statements must be simple expressions that complete in one cycle.
 
 Open source simulators like Verilator are unable to use encrypted RTL
 (i.e. IEEE P1735).  Talk to your IP vendor about delivering IP blocks
-via Verilator's --dpi-protect feature instead.
+via Verilator's --protect-lib feature instead.
 
 =head2 Language Keyword Limitations
 

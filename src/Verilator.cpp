@@ -42,7 +42,6 @@
 #include "V3Depth.h"
 #include "V3DepthBlock.h"
 #include "V3Descope.h"
-#include "V3DpiProtect.h"
 #include "V3EmitC.h"
 #include "V3EmitMk.h"
 #include "V3EmitV.h"
@@ -74,6 +73,7 @@
 #include "V3Partition.h"
 #include "V3PreShell.h"
 #include "V3Premit.h"
+#include "V3ProtectLib.h"
 #include "V3Reloop.h"
 #include "V3Scope.h"
 #include "V3Scoreboard.h"
@@ -549,8 +549,8 @@ void process() {
     }
 
     // Output DPI protected library files
-    if (!v3Global.opt.dpiProtect().empty()) {
-        V3DpiProtect::protect();
+    if (!v3Global.opt.protectLib().empty()) {
+        V3ProtectLib::protect();
         V3EmitV::emitvFiles();
         V3EmitC::emitcFiles();
     }

@@ -10,16 +10,18 @@ if (!$::Driver) { use FindBin; exec("$FindBin::Bin/bootstrap.pl", @ARGV, $0); di
 scenarios(vlt => 1);
 
 compile (
-    verilator_flags2 => ["--dpi-protect",
+    verilator_flags2 => ["--protect-lib",
                          "secret"],
     verilator_make_gcc => 0,
+    fails => 1,
+    expect_filename => $Self->{golden_filename},
     );
 
-run(cmd=>["make",
-          "-C",
-          "$Self->{obj_dir}",
-          "-f",
-          "V$Self->{name}.mk"]);
+#run(cmd=>["make",
+#          "-C",
+#          "$Self->{obj_dir}",
+#          "-f",
+#          "V$Self->{name}.mk"]);
 
 ok(1);
 1;

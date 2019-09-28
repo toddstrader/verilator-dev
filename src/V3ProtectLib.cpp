@@ -23,7 +23,7 @@
 
 #include "V3Global.h"
 #include "V3String.h"
-#include "V3DpiProtect.h"
+#include "V3ProtectLib.h"
 #include "V3File.h"
 #include "V3Hashed.h"
 
@@ -31,7 +31,7 @@
 
 
 //######################################################################
-// DpiProtect top-level visitor
+// ProtectLib top-level visitor
 
 class ProtectVisitor : public AstNVisitor {
   private:
@@ -137,34 +137,34 @@ class ProtectVisitor : public AstNVisitor {
         // DPI declarations
         hashComment(txtp, fl);
         txtp->addText(fl, "import \"DPI-C\" function void "+
-                      m_libName+"_dpiprotect_check_hash (int dpiprotect_hash__V);\n\n");
+                      m_libName+"_protectlib_check_hash (int protectlib_hash__V);\n\n");
         initialComment(txtp, fl);
         txtp->addText(fl, "import \"DPI-C\" function chandle "+
-                      m_libName+"_dpiprotect_create (string scope__V);\n\n");
+                      m_libName+"_protectlib_create (string scope__V);\n\n");
         comboComment(txtp, fl);
         m_comboPortsp = new AstTextBlock(fl, "import \"DPI-C\" function longint "+
-                                         m_libName+"_dpiprotect_combo_update "
+                                         m_libName+"_protectlib_combo_update "
                                          "(\n", false, true);
         m_comboPortsp->addText(fl, "chandle handle__V\n");
         txtp->addNodep(m_comboPortsp);
         txtp->addText(fl, ");\n\n");
         seqComment(txtp, fl);
         m_seqPortsp = new AstTextBlock(fl, "import \"DPI-C\" function longint "+
-                                       m_libName+"_dpiprotect_seq_update "
+                                       m_libName+"_protectlib_seq_update "
                                        "(\n", false, true);
         m_seqPortsp->addText(fl, "chandle handle__V\n");
         txtp->addNodep(m_seqPortsp);
         txtp->addText(fl, ");\n\n");
         comboIgnoreComment(txtp, fl);
         m_comboIgnorePortsp = new AstTextBlock(fl, "import \"DPI-C\" function void "+
-                                               m_libName+"_dpiprotect_combo_ignore "
+                                               m_libName+"_protectlib_combo_ignore "
                                                "(\n", false, true);
         m_comboIgnorePortsp->addText(fl, "chandle handle__V\n");
         txtp->addNodep(m_comboIgnorePortsp);
         txtp->addText(fl, ");\n\n");
         finalComment(txtp, fl);
         txtp->addText(fl, "import \"DPI-C\" function void "+
-                      m_libName+"_dpiprotect_final (chandle handle__V);\n\n");
+                      m_libName+"_protectlib_final (chandle handle__V);\n\n");
 
         // Local variables
         txtp->addText(fl, "chandle handle__V;\n\n");
@@ -180,14 +180,14 @@ class ProtectVisitor : public AstNVisitor {
         // CPP hash value
         addComment(txtp, fl, "Hash value to make sure this file and the corresponding");
         addComment(txtp, fl, "library agree");
-        m_hashValuep = new AstTextBlock(fl, "localparam int dpiprotect_hash__V =\n");
+        m_hashValuep = new AstTextBlock(fl, "localparam int protectlib_hash__V =\n");
         txtp->addNodep(m_hashValuep);
         txtp->addText(fl, "\n");
 
         // Initial
         txtp->addText(fl, "initial begin\n");
-        txtp->addText(fl, m_libName+"_dpiprotect_check_hash(dpiprotect_hash__V);\n");
-        txtp->addText(fl, "handle__V = "+m_libName+"_dpiprotect_create"
+        txtp->addText(fl, m_libName+"_protectlib_check_hash(protectlib_hash__V);\n");
+        txtp->addText(fl, "handle__V = "+m_libName+"_protectlib_create"
                       "($sformatf(\"%m\"));\n");
         txtp->addText(fl, "end\n\n");
 
@@ -195,7 +195,7 @@ class ProtectVisitor : public AstNVisitor {
         addComment(txtp, fl, "Combinatorialy evaluate changes to inputs");
         m_comboParamsp = new AstTextBlock(fl, "always @(*) begin\n"
                                           "last_combo_seqnum__V = "+
-                                          m_libName+"_dpiprotect_combo_update(\n",
+                                          m_libName+"_protectlib_combo_update(\n",
                                           false, true);
         m_comboParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_comboParamsp);
@@ -207,13 +207,13 @@ class ProtectVisitor : public AstNVisitor {
         m_clkSensp = new AstTextBlock(fl, "always @(", false, true);
         txtp->addNodep(m_clkSensp);
         txtp->addText(fl, ") begin\n");
-        m_comboIgnoreParamsp = new AstTextBlock(fl, m_libName+"_dpiprotect_combo_ignore(\n",
+        m_comboIgnoreParamsp = new AstTextBlock(fl, m_libName+"_protectlib_combo_ignore(\n",
                                                 false, true);
         m_comboIgnoreParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_comboIgnoreParamsp);
         txtp->addText(fl, ");\n");
         m_seqParamsp = new AstTextBlock(fl, "last_seq_seqnum__V <= "+m_libName+
-                                        "_dpiprotect_seq_update(\n",
+                                        "_protectlib_seq_update(\n",
                                         false, true);
         m_seqParamsp->addText(fl, "handle__V\n");
         txtp->addNodep(m_seqParamsp);
@@ -234,7 +234,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "end\n\n");
 
         // Final
-        txtp->addText(fl, "final "+m_libName+"_dpiprotect_final(handle__V);\n\n");
+        txtp->addText(fl, "final "+m_libName+"_protectlib_final(handle__V);\n\n");
 
         txtp->addText(fl, "endmodule\n");
         m_vfilep->tblockp(txtp);
@@ -270,21 +270,21 @@ class ProtectVisitor : public AstNVisitor {
 
         // Hash check
         hashComment(txtp, fl);
-        txtp->addText(fl, "void "+m_libName+"_dpiprotect_check_hash"
-                      " (int dpiprotect_hash__V) {\n");
+        txtp->addText(fl, "void "+m_libName+"_protectlib_check_hash"
+                      " (int protectlib_hash__V) {\n");
         m_cHashValuep = new AstTextBlock(fl, "int expected_hash__V =\n");
         txtp->addNodep(m_cHashValuep);
-        txtp->addText(fl, "if (dpiprotect_hash__V != expected_hash__V) {\n");
+        txtp->addText(fl, "if (protectlib_hash__V != expected_hash__V) {\n");
         txtp->addText(fl, "fprintf(stderr, \"%%Error: cannot use "+m_libName+" library, "
                       "Verliog (%u) and library (%u) hash values do not "
-                      "agree\\n\", dpiprotect_hash__V, expected_hash__V);\n");
+                      "agree\\n\", protectlib_hash__V, expected_hash__V);\n");
         txtp->addText(fl, "exit(EXIT_FAILURE);\n");
         txtp->addText(fl, "}\n");
         txtp->addText(fl, "}\n\n");
 
         // Initial
         initialComment(txtp, fl);
-        txtp->addText(fl, "void* "+m_libName+"_dpiprotect_create"
+        txtp->addText(fl, "void* "+m_libName+"_protectlib_create"
                       " (const char* scopep__V) {\n");
         txtp->addText(fl, "assert(sizeof(WData) == sizeof(svBitVecVal));\n");
         txtp->addText(fl, m_topName+"_container* handlep__V = "
@@ -294,7 +294,7 @@ class ProtectVisitor : public AstNVisitor {
 
         // Updates
         comboComment(txtp, fl);
-        m_cComboParamsp = new AstTextBlock(fl, "long long "+m_libName+"_dpiprotect_combo_update (\n",
+        m_cComboParamsp = new AstTextBlock(fl, "long long "+m_libName+"_protectlib_combo_update (\n",
                                            false, true);
         m_cComboParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cComboParamsp);
@@ -308,7 +308,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "}\n\n");
 
         seqComment(txtp, fl);
-        m_cSeqParamsp = new AstTextBlock(fl, "long long "+m_libName+"_dpiprotect_seq_update (\n",
+        m_cSeqParamsp = new AstTextBlock(fl, "long long "+m_libName+"_protectlib_seq_update (\n",
                                          false, true);
         m_cSeqParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cSeqParamsp);
@@ -322,7 +322,7 @@ class ProtectVisitor : public AstNVisitor {
         txtp->addText(fl, "}\n\n");
 
         comboIgnoreComment(txtp, fl);
-        m_cIgnoreParamsp = new AstTextBlock(fl, "void "+m_libName+"_dpiprotect_combo_ignore (\n",
+        m_cIgnoreParamsp = new AstTextBlock(fl, "void "+m_libName+"_protectlib_combo_ignore (\n",
                                             false, true);
         m_cIgnoreParamsp->addText(fl, "void* vhandlep__V\n");
         txtp->addNodep(m_cIgnoreParamsp);
@@ -331,7 +331,7 @@ class ProtectVisitor : public AstNVisitor {
 
         // Final
         finalComment(txtp, fl);
-        txtp->addText(fl, "void "+m_libName+"_dpiprotect_final (void* vhandlep__V) {\n");
+        txtp->addText(fl, "void "+m_libName+"_protectlib_final (void* vhandlep__V) {\n");
         castPtr(fl, txtp);
         txtp->addText(fl, "handlep__V->final();\n");
         txtp->addText(fl, "delete handlep__V;\n");
@@ -344,7 +344,7 @@ class ProtectVisitor : public AstNVisitor {
     virtual void visit(AstVar* nodep) {
         if (!nodep->isIO()) return;
         if (VN_IS(nodep->dtypep(), UnpackArrayDType)) {
-            nodep->v3fatalSrc("Unsupported: unpacked arrays with --dpi-protect");
+            nodep->v3fatalSrc("Unsupported: unpacked arrays with protect-lib");
         }
         if (nodep->direction() == VDirection::INPUT) {
             if (nodep->isUsedClock()) {
@@ -355,7 +355,7 @@ class ProtectVisitor : public AstNVisitor {
         } else if (nodep->direction() == VDirection::OUTPUT) {
             handleOutput(nodep);
         } else {
-            nodep->v3fatalSrc("Unsupported port direction for --dpi-protect: "<<
+            nodep->v3fatalSrc("Unsupported port direction for protect-lib: "<<
                               nodep->direction().ascii());
         }
     }
@@ -473,7 +473,7 @@ class ProtectVisitor : public AstNVisitor {
         m_comboIgnoreParamsp(NULL), m_seqParamsp(NULL), m_nbAssignsp(NULL), m_seqAssignsp(NULL),
         m_comboAssignsp(NULL), m_cHashValuep(NULL), m_cComboParamsp(NULL), m_cComboInsp(NULL),
         m_cComboOutsp(NULL), m_cSeqParamsp(NULL), m_cSeqClksp(NULL), m_cSeqOutsp(NULL),
-        m_cIgnoreParamsp(NULL), m_libName(v3Global.opt.dpiProtect()),
+        m_cIgnoreParamsp(NULL), m_libName(v3Global.opt.protectLib()),
         m_topName(v3Global.opt.prefix())
     {
         iterate(nodep);
@@ -481,9 +481,9 @@ class ProtectVisitor : public AstNVisitor {
 };
 
 //######################################################################
-// DpiProtect class functions
+// ProtectLib class functions
 
-void V3DpiProtect::protect() {
+void V3ProtectLib::protect() {
     UINFO(2,__FUNCTION__<<": "<<endl);
     ProtectVisitor visitor(v3Global.rootp());
 }

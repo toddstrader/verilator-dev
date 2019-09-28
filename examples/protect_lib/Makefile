@@ -1,6 +1,6 @@
 ######################################################################
 #
-# DESCRIPTION: Verilator Example: --dpi-protect Makefile
+# DESCRIPTION: Verilator Example: --protect-lib Makefile
 #
 # This calls the object directory makefiles.  That allows the objects to
 # be placed in the "current directory" which simplifies the Makefile.
@@ -45,15 +45,15 @@ default: run
 
 run:
 	@echo
-	@echo "-- Verilator --dpri-protect example ---------------------------"
+	@echo "-- Verilator --protect-lib example -_--------------------------"
 
 	@echo
 	@echo "-- VERILATE secret module -------------------------------------"
-	@echo " --dpi-protect will produce both a static and shared library"
+	@echo " --protect-lib will produce both a static and shared library"
 	@echo " In this example the static library is used, but some"
 	@echo " simulators may require the shared library."
 	@echo "---------------------------------------------------------------"
-	$(VERILATOR) $(VERILATOR_FLAGS) --dpi-protect verilated_secret -Mdir obj_dir_secret/ secret_impl.v
+	$(VERILATOR) $(VERILATOR_FLAGS) --protect-lib verilated_secret -Mdir obj_dir_secret/ secret_impl.v
 
 	@echo
 	@echo "-- COMPILE protected library ----------------------------------"

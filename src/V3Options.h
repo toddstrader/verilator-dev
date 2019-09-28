@@ -183,7 +183,6 @@ class V3Options {
     int         m_compLimitParens;  // compiler selection; number of nested parens
 
     string      m_bin;          // main switch: --bin {binary}
-    string      m_dpiProtect;   // main switch: --dpi-protect {lib_name}
     string      m_exeName;      // main switch: -o {name}
     string      m_flags;        // main switch: -f {name}
     string      m_l2Name;       // main switch: --l2name; "" for top-module's name
@@ -192,6 +191,7 @@ class V3Options {
     string      m_pipeFilter;   // main switch: --pipe-filter
     string      m_prefix;       // main switch: --prefix
     string      m_protectKey;   // main switch: --protect-key
+    string      m_protectLib;   // main switch: --protect-lib {lib_name}
     string      m_topModule;    // main switch: --top-module
     string      m_unusedRegexp; // main switch: --unused-regexp
     string      m_xAssign;      // main switch: --x-assign
@@ -351,16 +351,6 @@ class V3Options {
     int compLimitMembers() const { return m_compLimitMembers; }
     int compLimitParens() const { return m_compLimitParens; }
 
-    string dpiProtect() const { return m_dpiProtect; }
-    string dpiProtectLibName(bool shared) {
-        string libName = "lib"+dpiProtect();
-        if (shared) {
-            libName += ".so";
-        } else {
-            libName += ".a";
-        }
-        return libName;
-    }
     string exeName() const { return m_exeName!="" ? m_exeName : prefix(); }
     string l2Name() const { return m_l2Name; }
     string makeDir() const { return m_makeDir; }
@@ -369,6 +359,16 @@ class V3Options {
     string prefix() const { return m_prefix; }
     string protectKey() const { return m_protectKey; }
     string protectKeyDefaulted();  // Set default key if not set by user
+    string protectLib() const { return m_protectLib; }
+    string protectLibName(bool shared) {
+        string libName = "lib"+protectLib();
+        if (shared) {
+            libName += ".so";
+        } else {
+            libName += ".a";
+        }
+        return libName;
+    }
     string topModule() const { return m_topModule; }
     string unusedRegexp() const { return m_unusedRegexp; }
     string xAssign() const { return m_xAssign; }

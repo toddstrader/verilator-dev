@@ -18,8 +18,8 @@
 //
 //*************************************************************************
 
-#ifndef _V3DPIPROTECT_H_
-#define _V3DPIPROTECT_H_ 1
+#ifndef _V3PROTECTLIB_H_
+#define _V3PROTECTLIB_H_ 1
 
 #include "config_build.h"
 #include "verilatedos.h"
@@ -29,7 +29,7 @@
 
 //============================================================================
 
-class V3DpiProtect {
+class V3ProtectLib {
 public:
     static void protect();
 };
