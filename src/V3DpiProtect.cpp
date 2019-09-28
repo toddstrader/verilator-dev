@@ -35,7 +35,6 @@
 
 class ProtectVisitor : public AstNVisitor {
   private:
-    bool m_modProtected;                // Tracks if we've already protected on module
     AstVFile* m_vfilep;                 // DPI-enabled Verilog wrapper
     AstCFile* m_cfilep;                 // C implementation of DPI functions
     // Verilog text blocks
@@ -78,11 +77,7 @@ class ProtectVisitor : public AstNVisitor {
     }
 
     virtual void visit(AstNodeModule* nodep) {
-        if (m_modProtected) {
-            v3Global.rootp()->v3error("Unsupported: --dpi-protect with multiple"
-                                      " top-level modules");
-        }
-        m_modProtected = true;
+        UASSERT_OBJ(!nodep->nextp(), nodep, "Multiple root modules");
         FileLine* fl = nodep->fileline();
         createSvFile(fl);
         createCppFile(fl);
@@ -472,7 +467,7 @@ class ProtectVisitor : public AstNVisitor {
 
   public:
     explicit ProtectVisitor(AstNode* nodep):
-        m_modProtected(false), m_vfilep(NULL), m_cfilep(NULL), m_modPortsp(NULL),
+        m_vfilep(NULL), m_cfilep(NULL), m_modPortsp(NULL),
         m_comboPortsp(NULL), m_seqPortsp(NULL), m_comboIgnorePortsp(NULL), m_comboDeclsp(NULL),
         m_seqDeclsp(NULL), m_tmpDeclsp(NULL), m_hashValuep(NULL), m_clkSensp(NULL),
         m_comboIgnoreParamsp(NULL), m_seqParamsp(NULL), m_nbAssignsp(NULL), m_seqAssignsp(NULL),
