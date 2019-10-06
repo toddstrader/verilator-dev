@@ -1196,7 +1196,8 @@ and an INSECURE warning will be issued.
 
 Produces C++, Verilog wrappers and a Makefile which can in turn produce a
 DPI library, named libI<name>.a, which can be used by Verilator or other
-simulators along with the corresponding Verilog wrapper.
+simulators along with the corresponding Verilog wrapper.  Implies
+--protect-ids.
 
 This allows for the secure delivery of sensitive IP without the need for
 encrypted RTL (i.e. IEEE P1735).
