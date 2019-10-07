@@ -38,7 +38,7 @@ VERILATOR_FLAGS += -O2 -x-assign 0
 # Warn abount lint issues; may not want this on less solid designs
 VERILATOR_FLAGS += -Wall
 # Make waveforms
-VERILATOR_FLAGS += --trace
+TOP_VERILATOR_FLAGS = $(VERILATOR_FLAGS) --trace
 
 ######################################################################
 default: run
@@ -69,7 +69,7 @@ run:
 	@echo " library (libverilated_secret.a) generated from the previous"
 	@echo " step"
 	@echo "---------------------------------------------------------------"
-	$(VERILATOR) $(VERILATOR_FLAGS) --exe -LDFLAGS '-L../obj_dir_secret -lverilated_secret' top.v obj_dir_secret/verilated_secret.sv sim_main.cpp
+	$(VERILATOR) $(TOP_VERILATOR_FLAGS) --exe -LDFLAGS '-L../obj_dir_secret -lverilated_secret -static' top.v obj_dir_secret/verilated_secret.sv sim_main.cpp
 
 	@echo
 	@echo "-- COMPILE entire design --------------------------------------"
