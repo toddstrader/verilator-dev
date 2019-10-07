@@ -75,19 +75,19 @@ jobs:
     - if: type = cron
       stage: test
       name: Xenail gcc dist test
-      dist: xenial
+      os: xenial
       compiler: gcc
       script: ci/test.sh dist
     - if: type = cron
       stage: test
       name: Xenail gcc vlt test
-      dist: xenial
+      os: xenial
       compiler: gcc
       script: ci/test.sh vlt
     - if: type = cron
       stage: test
       name: Xenail gcc vltmt test
-      dist: xenial
+      os: xenial
       compiler: gcc
       script: ci/test.sh vltmt
     - if: type = cron
@@ -99,19 +99,19 @@ jobs:
     - if: type = cron
       stage: test
       name: Xenail clang dist test
-      dist: xenial
+      os: xenial
       compiler: clang
       script: ci/test.sh dist
     - if: type = cron
       stage: test
       name: Xenail clang vlt test
-      dist: xenial
+      os: xenial
       compiler: clang
       script: ci/test.sh vlt
     - if: type = cron
       stage: test
       name: Xenail clang vltmt test
-      dist: xenial
+      os: xenial
       compiler: clang
       script: ci/test.sh vltmt
 #    - if: type = cron
@@ -149,18 +149,18 @@ jobs:
     - if: type = cron
       stage: test
       name: Trusty gcc dist test
-      dist: trusty
+      os: trusty
       compiler: gcc
       script: ci/test.sh dist
     - if: type = cron
       stage: test
       name: Trusty gcc vlt test
-      dist: trusty
+      os: trusty
       compiler: gcc
       script: ci/test.sh vlt
     - if: type = cron
       stage: test
-      dist: trusty
+      os: trusty
       name: Trusty gcc vltmt test
       compiler: gcc
       script: ci/test.sh vltmt
