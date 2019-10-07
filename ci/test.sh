@@ -8,11 +8,9 @@ case $1 in
         make examples
         make test_regress SCENARIOS=--dist
         ;;
-    *)
     vlt)
         make test_regress SCENARIOS=--vlt
         ;;
-    *)
     vltmt)
         make test_regress SCENARIOS=--vltmt
         ;;
