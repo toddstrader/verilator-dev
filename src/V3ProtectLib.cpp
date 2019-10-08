@@ -362,14 +362,6 @@ class ProtectVisitor : public AstNVisitor {
 
     virtual void visit(AstNode* nodep) { }
 
-    string sizedSvName(AstVar* varp) {
-        string result;
-        int width = varp->width();
-        if (width > 1) result += "["+cvtToStr(width-1)+":0] ";
-        result += varp->name();
-        return result;
-    }
-
     string cInputConnection(AstVar* varp) {
         string frstmt;
         bool useSetWSvlv = V3Task::dpiToInternalFrStmt(varp, varp->name(), true, frstmt);
@@ -413,9 +405,19 @@ class ProtectVisitor : public AstNVisitor {
         m_comboParamsp->addText(fl, varp->name()+"_combo__V\n");
         m_seqPortsp->addNodep(varp->cloneTree(false));
         m_seqParamsp->addText(fl, varp->name()+"_tmp__V\n");
-        m_comboDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_combo__V;\n");
-        m_seqDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_seq__V;\n");
-        m_tmpDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_tmp__V;\n");
+
+        AstNodeDType* comboDtypep = varp->dtypep()->cloneTree(false);
+        m_comboDeclsp->addNodep(comboDtypep);
+        m_comboDeclsp->addText(fl, " "+varp->name()+"_combo__V;\n");
+
+        AstNodeDType* seqDtypep = varp->dtypep()->cloneTree(false);
+        m_seqDeclsp->addNodep(seqDtypep);
+        m_seqDeclsp->addText(fl, " "+varp->name()+"_seq__V;\n");
+
+        AstNodeDType* tmpDtypep = varp->dtypep()->cloneTree(false);
+        m_tmpDeclsp->addNodep(tmpDtypep);
+        m_tmpDeclsp->addText(fl, " "+varp->name()+"_tmp__V;\n");
+
         m_nbAssignsp->addText(fl, varp->name()+"_seq__V <= "+varp->name()+"_tmp__V;\n");
         m_seqAssignsp->addText(fl, varp->name()+" = "+varp->name()+"_seq__V;\n");
         m_comboAssignsp->addText(fl, varp->name()+" = "+varp->name()+"_combo__V;\n");
