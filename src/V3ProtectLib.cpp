@@ -287,7 +287,6 @@ class ProtectVisitor : public AstNVisitor {
         initialComment(txtp, fl);
         txtp->addText(fl, "void* "+m_libName+"_protectlib_create"
                       " (const char* scopep__V) {\n");
-        txtp->addText(fl, "assert(sizeof(WData) == sizeof(svBitVecVal));\n");
         txtp->addText(fl, m_topName+"_container* handlep__V = "
                       "new "+m_topName+"_container(scopep__V);\n");
         txtp->addText(fl, "return handlep__V;\n");
