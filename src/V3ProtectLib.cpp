@@ -380,23 +380,10 @@ class ProtectVisitor : public AstNVisitor {
         return "handlep__V->"+varp->name()+" = "+frstmt+";\n";
     }
 
-    // TODO -- is there something that already does this?
-    string typeName(AstVar* varp, bool direction) {
-        string result;
-        if (direction) result += varp->direction().verilogKwd()+" ";
-        AstBasicDType* basicp = varp->dtypep()->basicp();
-        result += basicp->name()+" ";
-        if (basicp->isRanged()) {
-            result += "["+cvtToStr(basicp->left())+":"+cvtToStr(basicp->right())+"] ";
-        }
-        result += varp->name();
-        return result;
-    }
-
     void handleClock(AstVar* varp) {
         FileLine* fl = varp->fileline();
         handleInput(varp);
-        m_seqPortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
+        m_seqPortsp->addNodep(varp->cloneTree(false));
         m_seqParamsp->addText(fl, varp->name()+"\n");
         m_clkSensp->addText(fl, "edge("+varp->name()+")");
         m_cSeqParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
@@ -406,9 +393,9 @@ class ProtectVisitor : public AstNVisitor {
     void handleDataInput(AstVar* varp) {
         FileLine* fl = varp->fileline();
         handleInput(varp);
-        m_comboPortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
+        m_comboPortsp->addNodep(varp->cloneTree(false));
         m_comboParamsp->addText(fl, varp->name()+"\n");
-        m_comboIgnorePortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
+        m_comboIgnorePortsp->addNodep(varp->cloneTree(false));
         m_comboIgnoreParamsp->addText(fl, varp->name()+"\n");
         m_cComboParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
         m_cComboInsp->addText(fl, cInputConnection(varp));
@@ -423,9 +410,9 @@ class ProtectVisitor : public AstNVisitor {
     void handleOutput(AstVar* varp) {
         FileLine* fl = varp->fileline();
         m_modPortsp->addNodep(varp->cloneTree(false));
-        m_comboPortsp->addText(fl, "output bit "+sizedSvName(varp)+"\n");
+        m_comboPortsp->addNodep(varp->cloneTree(false));
         m_comboParamsp->addText(fl, varp->name()+"_combo__V\n");
-        m_seqPortsp->addText(fl, "output bit "+sizedSvName(varp)+"\n");
+        m_seqPortsp->addNodep(varp->cloneTree(false));
         m_seqParamsp->addText(fl, varp->name()+"_tmp__V\n");
         m_comboDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_combo__V;\n");
         m_seqDeclsp->addText(fl, "logic "+sizedSvName(varp)+"_seq__V;\n");
