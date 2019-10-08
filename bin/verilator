@@ -1195,15 +1195,16 @@ and an INSECURE warning will be issued.
 =item --protect-lib I<name>
 
 Produces C++, Verilog wrappers and a Makefile which can in turn produce a
-DPI library, named libI<name>.a, which can be used by Verilator or other
-simulators along with the corresponding Verilog wrapper.  Implies
---protect-ids.
+DPI library which can be used by Verilator or other simulators along with
+the corresponding Verilog wrapper.  The Makefile will build both a static
+and dynamic version of the library named libI<name>.a and libI<name>.so
+respectively.  This is done because some simulators require a dynamic
+library, but the static library is arguably easier to use if possible.
+--protect-lib implies --protect-ids.
 
 This allows for the secure delivery of sensitive IP without the need for
-encrypted RTL (i.e. IEEE P1735).
-
-See examples/protect_lib in the distribution for a demonstration of how
-to build and use the DPI library.
+encrypted RTL (i.e. IEEE P1735).  See examples/protect_lib in the
+distribution for a demonstration of how to build and use the DPI library.
 
 =item --private
 
@@ -3248,7 +3249,7 @@ statements must be simple expressions that complete in one cycle.
 
 Open source simulators like Verilator are unable to use encrypted RTL
 (i.e. IEEE P1735).  Talk to your IP vendor about delivering IP blocks
-via Verilator's --protect-lib feature instead.
+via Verilator's --protect-lib feature.
 
 =head2 Language Keyword Limitations
 
