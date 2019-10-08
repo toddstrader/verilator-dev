@@ -617,10 +617,11 @@ class EmitVBaseVisitor : public EmitCBaseVisitor {
     }
 
 public:
-    bool        m_suppressVarSemi;
+    bool        m_suppressVarSemi;  // Suppress emitting semicolon for AstVars
     explicit EmitVBaseVisitor(AstSenTree* domainp=NULL) {
         // Domain for printing one a ALWAYS under a ACTIVE
         m_suppressSemi = false;
+        m_suppressVarSemi = false;
         m_sensesp = domainp;
     }
     virtual ~EmitVBaseVisitor() {}
