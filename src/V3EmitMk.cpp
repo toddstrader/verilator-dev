@@ -232,6 +232,8 @@ public:
 
         if (!v3Global.opt.protectLib().empty()) {
             of.puts("\n### Library rules... (from --protect-lib)\n");
+            of.puts("# Using -fPIC objects for both static and dynamic libraries "
+                    "(which appears to work)\n");
             of.puts(v3Global.opt.protectLibName(false)+": $(VK_OBJS) $(VK_GLOBAL_OBJS)\n");
             of.puts("\t$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o "+
                     v3Global.opt.protectLib()+".o "+v3Global.opt.protectLib()+".cpp\n");
