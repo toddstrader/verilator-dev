@@ -594,7 +594,7 @@ class EmitVBaseVisitor : public EmitCBaseVisitor {
         puts(" ");
         iterate(nodep->dtypep()); puts(" ");
         puts(nodep->prettyName());
-        puts(";\n");
+        if (!m_suppressVarSemi) puts(";\n"); else puts("\n");
     }
     virtual void visit(AstActive* nodep) {
         m_sensesp = nodep->sensesp();
@@ -617,6 +617,7 @@ class EmitVBaseVisitor : public EmitCBaseVisitor {
     }
 
 public:
+    bool        m_suppressVarSemi;
     explicit EmitVBaseVisitor(AstSenTree* domainp=NULL) {
         // Domain for printing one a ALWAYS under a ACTIVE
         m_suppressSemi = false;
@@ -639,9 +640,11 @@ class EmitVFileVisitor : public EmitVBaseVisitor {
     virtual void putqs(AstNode*, const string& str) { putbs(str); }
     virtual void putsNoTracking(const string& str) { ofp()->putsNoTracking(str); }
 public:
-    EmitVFileVisitor(AstNode* nodep, V3OutFile* ofp, bool trackText=false) {
+    EmitVFileVisitor(AstNode* nodep, V3OutFile* ofp, bool trackText=false,
+                     bool suppressVarSemi=false) {
         m_ofp = ofp;
         m_trackText = trackText;
+        m_suppressVarSemi = suppressVarSemi;
         iterate(nodep);
     }
     virtual ~EmitVFileVisitor() {}
@@ -779,7 +782,7 @@ void V3EmitV::emitvFiles() {
         if (vfilep && vfilep->tblockp()) {
             V3OutVFile of(vfilep->name());
             of.puts("// DESCR" "IPTION: Verilator generated Verilog\n");
-            EmitVFileVisitor visitor(vfilep->tblockp(), &of, true);
+            EmitVFileVisitor visitor(vfilep->tblockp(), &of, true, true);
         }
     }
 }

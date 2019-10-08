@@ -26,6 +26,7 @@
 #include "V3ProtectLib.h"
 #include "V3File.h"
 #include "V3Hashed.h"
+#include "V3Task.h"
 
 #include <list>
 
@@ -252,7 +253,7 @@ class ProtectVisitor : public AstNVisitor {
 
         // Includes
         txtp->addText(fl, "#include \""+m_topName+".h\"\n");
-        txtp->addText(fl, "#include \"svdpi.h\"\n\n");
+        txtp->addText(fl, "#include \"verilated_dpi.h\"\n\n");
         txtp->addText(fl, "#include <cstdio>\n");
         txtp->addText(fl, "#include <cstdlib>\n\n");
 
@@ -370,53 +371,26 @@ class ProtectVisitor : public AstNVisitor {
         return result;
     }
 
-    string typedCppInName(AstVar* varp) {
-        string result;
-        int width = varp->width();
-        if (width > 1) {
-            result += "const svBitVecVal* ";
-        } else {
-            result += "unsigned char ";
-        }
-        result += varp->name();
-        return result;
-    }
-
-    string typedCppOutName(AstVar* varp) {
-        string result;
-        int width = varp->width();
-        if (width > 1) {
-            result += "svBitVecVal* ";
-        } else {
-            result += "unsigned char* ";
-        }
-        result += varp->name();
-        return result;
-    }
-
     string cInputConnection(AstVar* varp) {
-        int width = varp->width();
-        int bytes = (width + 7) / 8;
-        if (width == 1) {
-            return "handlep__V->"+varp->name()+" = "+varp->name()+";\n";
-        } else if (bytes <= sizeof(uint32_t)) {
-            return "handlep__V->"+varp->name()+" = *"+varp->name()+";\n";
-        } else if (bytes <= sizeof(uint64_t)) {
-            return "memcpy(&(handlep__V->"+varp->name()+"), "+varp->name()+", "+cvtToStr(bytes)+");\n";
-        } else {
-            return "memcpy(handlep__V->"+varp->name()+", "+varp->name()+", "+cvtToStr(bytes)+");\n";
+        string frstmt;
+        bool useSetWSvlv = V3Task::dpiToInternalFrStmt(varp, varp->name(), true, frstmt);
+        if (useSetWSvlv) {
+            return frstmt+" handlep__V->"+varp->name()+", "+varp->name()+");\n";
         }
+        return "handlep__V->"+varp->name()+" = "+frstmt+";\n";
     }
 
-    string cOutputConnection(AstVar* varp) {
-        int bytes = (varp->width() + 7) / 8;
-        if (bytes <= sizeof(uint32_t)) {
-            return "*"+varp->name()+" = handlep__V->"+varp->name()+";\n";
-        } else if (bytes <= sizeof(uint64_t)) {
-            return "memcpy("+varp->name()+", &(handlep__V->"+varp->name()+"), "+cvtToStr(bytes)+");\n";
-        } else {
-            return "memcpy("+varp->name()+", handlep__V->"+varp->name()+", "+cvtToStr(bytes)+");\n";
+    // TODO -- is there something that already does this?
+    string typeName(AstVar* varp, bool direction) {
+        string result;
+        if (direction) result += varp->direction().verilogKwd()+" ";
+        AstBasicDType* basicp = varp->dtypep()->basicp();
+        result += basicp->name()+" ";
+        if (basicp->isRanged()) {
+            result += "["+cvtToStr(basicp->left())+":"+cvtToStr(basicp->right())+"] ";
         }
+        result += varp->name();
+        return result;
     }
 
     void handleClock(AstVar* varp) {
@@ -425,7 +399,7 @@ class ProtectVisitor : public AstNVisitor {
         m_seqPortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
         m_seqParamsp->addText(fl, varp->name()+"\n");
         m_clkSensp->addText(fl, "edge("+varp->name()+")");
-        m_cSeqParamsp->addText(fl, typedCppInName(varp)+"\n");
+        m_cSeqParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
         m_cSeqClksp->addText(fl, cInputConnection(varp));
     }
 
@@ -436,19 +410,19 @@ class ProtectVisitor : public AstNVisitor {
         m_comboParamsp->addText(fl, varp->name()+"\n");
         m_comboIgnorePortsp->addText(fl, "input bit "+sizedSvName(varp)+"\n");
         m_comboIgnoreParamsp->addText(fl, varp->name()+"\n");
-        m_cComboParamsp->addText(fl, typedCppInName(varp)+"\n");
+        m_cComboParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
         m_cComboInsp->addText(fl, cInputConnection(varp));
-        m_cIgnoreParamsp->addText(fl, typedCppInName(varp)+"\n");
+        m_cIgnoreParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
     }
 
     void handleInput(AstVar* varp) {
         FileLine* fl = varp->fileline();
-        m_modPortsp->addText(fl, "input "+sizedSvName(varp)+"\n");
+        m_modPortsp->addNodep(varp->cloneTree(false));
     }
 
     void handleOutput(AstVar* varp) {
         FileLine* fl = varp->fileline();
-        m_modPortsp->addText(fl, "output logic "+sizedSvName(varp)+"\n");
+        m_modPortsp->addNodep(varp->cloneTree(false));
         m_comboPortsp->addText(fl, "output bit "+sizedSvName(varp)+"\n");
         m_comboParamsp->addText(fl, varp->name()+"_combo__V\n");
         m_seqPortsp->addText(fl, "output bit "+sizedSvName(varp)+"\n");
@@ -459,10 +433,12 @@ class ProtectVisitor : public AstNVisitor {
         m_nbAssignsp->addText(fl, varp->name()+"_seq__V <= "+varp->name()+"_tmp__V;\n");
         m_seqAssignsp->addText(fl, varp->name()+" = "+varp->name()+"_seq__V;\n");
         m_comboAssignsp->addText(fl, varp->name()+" = "+varp->name()+"_combo__V;\n");
-        m_cComboParamsp->addText(fl, typedCppOutName(varp)+"\n");
-        m_cComboOutsp->addText(fl, cOutputConnection(varp));
-        m_cSeqParamsp->addText(fl, typedCppOutName(varp)+"\n");
-        m_cSeqOutsp->addText(fl, cOutputConnection(varp));
+        m_cComboParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
+        m_cComboOutsp->addText(fl, V3Task::assignInternalToDpi(varp, false, true, "", "",
+                                                               "handlep__V->"));
+        m_cSeqParamsp->addText(fl, varp->dpiArgType(true, false)+"\n");
+        m_cSeqOutsp->addText(fl, V3Task::assignInternalToDpi(varp, false, true, "", "",
+                                                               "handlep__V->"));
     }
 
   public:
