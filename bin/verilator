@@ -1203,7 +1203,7 @@ library, but the static library is arguably easier to use if possible.
 --protect-lib implies --protect-ids.
 
 This allows for the secure delivery of sensitive IP without the need for
-encrypted RTL (i.e. IEEE P1735).  See examples/protect_lib in the
+encrypted RTL (i.e. IEEE P1735).  See examples/make_protect_lib in the
 distribution for a demonstration of how to build and use the DPI library.
 
 =item --private

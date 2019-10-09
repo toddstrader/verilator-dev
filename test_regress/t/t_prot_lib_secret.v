@@ -25,13 +25,13 @@ module secret_impl (
 		    output logic [3:0] [31:0] s4x32_out,
 		    input 		      clk);
 
-   logic [31:0] 			      accum_q = 0;
+   logic [31:0] 			      secret_accum_q = 0;
    logic [31:0] 			      secret_value = 7;
 
    initial $display("created %m");
 
    always @(posedge clk) begin
-      accum_q <= accum_q + accum_in + secret_value;
+      secret_accum_q <= secret_accum_q + accum_in + secret_value;
    end
 
    // Test combinatorial paths of different sizes
@@ -47,10 +47,10 @@ module secret_impl (
    end
 
    // Test sequential path
-   assign accum_out = accum_q;
+   assign accum_out = secret_accum_q;
 
    // Test mixed combinatorial/sequential path
-   assign accum_bypass_out = accum_bypass ? accum_in : accum_q;
+   assign accum_bypass_out = accum_bypass ? accum_in : secret_accum_q;
 
    final $display("destroying %m");
 

@@ -11,7 +11,9 @@ scenarios(vlt => 1);
 
 compile (
     verilator_flags2 => ["--protect-lib",
-                         "secret"],
+                         "secret",
+                         "--protect-key",
+                         "SECRET_FAKE_KEY"],
     verilator_make_gcc => 0,
     );
 
