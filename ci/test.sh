@@ -1,8 +1,7 @@
 #"!/bin/bash
 set -e
 
-#export DRIVER_FLAGS='-j 0 --quiet --rerun'
-export DRIVER_FLAGS='-j 0'
+export DRIVER_FLAGS='-j 0 --quiet --rerun'
 
 case $1 in
     dist)
