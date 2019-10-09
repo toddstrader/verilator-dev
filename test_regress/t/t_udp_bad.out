@@ -1,4 +1,0 @@
-%Error: t/t_udp.v:103: Unsupported: Verilog 1995 UDP Tables.  Use --bbox-unsup to ignore tables.
-   table
-   ^~~~~
-%Error: Exiting due to

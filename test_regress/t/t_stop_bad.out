@@ -1,3 +1,0 @@
-Intentional stop
-%Error: t/t_stop_bad.v:9: Verilog $stop
-Aborting...

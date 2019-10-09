@@ -1,0 +1,4 @@
+If you got here from the ORConf 2019 presentation "DPI Protected Verilog
+Instead of Encryption", the --protect-lib feature has now been landed in
+Verilator's master branch.  Please see https://github.com/verilator/verilator
+and check out the documentation on --protect-lib.
