@@ -1,4 +1,4 @@
-#"!/bin/bash
+#!/bin/bash
 set -e
 
 export DRIVER_FLAGS='-j 0 --quiet --rerun'
