@@ -5,9 +5,6 @@ export DRIVER_FLAGS='-j 0 --quiet --rerun'
 
 case $1 in
     dist)
-        for p in examples/*; do \
-            make -C $p
-        done
         make -C test_regress SCENARIOS=--dist
         ;;
     vlt)
