@@ -1,4 +1,19 @@
 #!/bin/bash
+# DESCRIPTION: Verilator: Travis CI build script
+#
+# Copyright 2019 by Todd Strader. This program is free software; you can
+# redistribute it and/or modify it under the terms of either the GNU
+# Lesser General Public License Version 3 or the Perl Artistic License
+# Version 2.0.
+#
+# This script builds and caches the Verilator binaries for Travis CI
+# (and possibly other CI platforms).  The Verilator CI system uses this
+# script, but other CI systems that depend on Verilator may also use
+# the script.
+# see: https://github.com/verilator/verilator_ext_tests/blob/master/.travis.yml
+# To use this script, either checkout Verilator as part of the CI build
+# process or add Verilator as a Git submodule.  Verilator tarballs can
+# not be used as the script relies on Git revisions for caching.
 set -e
 
 if [ -z ${VERILATOR_NUM_JOBS} ]; then
@@ -16,9 +31,6 @@ if [ -z ${VERILATOR_CACHE} ]; then
     echo "VERILATOR_CACHE not set"
     exit -1
 fi
-
-# TODO -- remove
-ls -a ${VERILATOR_CACHE}
 
 VERILATOR_REV=$(cd ${VERILATOR_ROOT} && git rev-parse HEAD)
 echo "Found Verilator rev ${VERILATOR_REV}"
@@ -50,6 +62,3 @@ else
     autoconf && ./configure ${VERILATOR_CONFIG_FLAGS}
     cp ${VERILATOR_CACHE}/* bin
 fi
-
-# TODO -- remove
-ls -a ${VERILATOR_CACHE}
