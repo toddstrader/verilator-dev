@@ -20,6 +20,13 @@ module t (/*AUTOARG*/
 	  );
    input clk;
 
+   localparam last_cyc =
+`ifdef TEST_BENCHMARK
+        `TEST_BENCHMARK;
+`else
+        10;
+`endif
+
    genvar x;
    generate
       for (x = 0; x < 2; x = x + 1) begin: gen_loop
@@ -108,7 +115,8 @@ module t (/*AUTOARG*/
 
             if (cyc == 5) accum_bypass <= '1;
 
-            if (x == 0 && cyc == 10) begin
+            if (x == 0 && cyc == last_cyc) begin
+               $display("final cycle = %0d", cyc);
                $write("*-* All Finished *-*\n");
                $finish;
             end
