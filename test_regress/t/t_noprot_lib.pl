@@ -15,6 +15,7 @@ scenarios(
     xsim => 1,
     );
 
+$Self->{sim_time} = $Self->{benchmark} * 100 if $Self->{benchmark};
 top_filename("t/t_prot_lib.v");
 
 # Tests the same code as t_prot_lib.pl but without --protect-lib

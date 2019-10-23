@@ -15,6 +15,8 @@ scenarios(
     xsim => 1,
     );
 
+$Self->{sim_time} = $Self->{benchmark} * 100 if $Self->{benchmark};
+
 # Always compile the secret file with Verilator no matter what simulator
 #   we are testing with
 my $cmd = ["t/t_prot_lib_secret.pl", "--vlt"];

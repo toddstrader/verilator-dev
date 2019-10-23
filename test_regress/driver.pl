@@ -1668,11 +1668,7 @@ sub _make_main {
     _print_advance_time($self, $fh, 10);
     print $fh "    }\n";
 
-    print $fh "    while (";
-    if (!$self->{benchmark}) {
-        print $fh "sc_time_stamp() < sim_time && ";
-    }
-    print $fh "!Verilated::gotFinish()) {\n";
+    print $fh "    while (sc_time_stamp() < sim_time && !Verilated::gotFinish()) {\n";
     for (my $i=0; $i<5; $i++) {
         my $action = 0;
         if ($self->{inputs}{fastclk}) {
