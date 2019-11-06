@@ -362,6 +362,7 @@ detailed descriptions in L</"VERILATION ARGUMENTS"> for more information.
     --quiet-exit                Don't print the command on failure
     --relative-includes         Resolve includes relative to current file
     --no-relative-cfuncs        Disallow 'this->' in generated functions
+    --replay-tool               Generates a tool for replaying simulations
     --report-unoptflat          Extra diagnostics for UNOPTFLAT
     --rr                        Run Verilator and record with rr
     --savable                   Enable model save-restore
@@ -1275,6 +1276,10 @@ When exiting due to an error, do not display the "Command Failed" message.
 When a file references an include file, resolve the filename relative to
 the path of the referencing file, instead of relative to the current
 directory.
+
+=item --replay-tool
+
+TODO -- words
 
 =item --report-unoptflat
 

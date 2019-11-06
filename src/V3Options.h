@@ -176,6 +176,7 @@ class V3Options {
     bool        m_publicFlatRW;  // main switch: --public-flat-rw
     bool        m_relativeCFuncs; // main switch: --relative-cfuncs
     bool        m_relativeIncludes; // main switch: --relative-includes
+    bool        m_replayTool;   // main switch: --replay-tool
     bool        m_reportUnoptflat; // main switch: --report-unoptflat
     bool        m_savable;      // main switch: --savable
     bool        m_systemC;      // main switch: --sc: System C instead of simple C++
@@ -365,6 +366,7 @@ class V3Options {
     bool ignc() const { return m_ignc; }
     bool inhibitSim() const { return m_inhibitSim; }
     bool relativeCFuncs() const { return m_relativeCFuncs; }
+    bool replayTool() const { return m_replayTool; }
     bool reportUnoptflat() const { return m_reportUnoptflat; }
     bool vpi() const { return m_vpi; }
     bool xInitialEdge() const { return m_xInitialEdge; }

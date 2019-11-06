@@ -780,6 +780,7 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
             else if (!strncmp(sw, "-pvalue+", strlen("-pvalue+")))   { addParameter(string(sw+strlen("-pvalue+")), false); }
             else if ( onoff (sw, "-relative-cfuncs", flag/*ref*/))   { m_relativeCFuncs = flag; }
             else if ( onoff (sw, "-relative-includes", flag/*ref*/)) { m_relativeIncludes = flag; }
+            else if ( onoff (sw, "-replay-tool", flag/*ref*/))       { m_replayTool = flag; }
             else if ( onoff (sw, "-report-unoptflat", flag/*ref*/))  { m_reportUnoptflat = flag; }
             else if ( onoff (sw, "-savable", flag/*ref*/))           { m_savable = flag; }
             else if (!strcmp(sw, "-sc"))                             { m_outFormatOk = true; m_systemC = true; }
@@ -1478,6 +1479,7 @@ V3Options::V3Options() {
     m_publicFlatRW = false;
     m_relativeCFuncs = true;
     m_relativeIncludes = false;
+    m_replayTool = false;
     m_reportUnoptflat = false;
     m_savable = false;
     m_stats = false;
