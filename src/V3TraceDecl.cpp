@@ -203,15 +203,17 @@ private:
     virtual void visit(AstIfaceRefDType* nodep) {
         if (m_traVscp && nodep->ifacep()) {
             // Stash the signal state because we're going to go through another VARSCOPE
-            m_ifShowname = m_traShowname;
-            m_traShowname = "";
             AstVarScope* traVscp = m_traVscp;
-            m_traVscp = NULL;
             AstNode* traValuep = m_traValuep;
-            m_traValuep = NULL;
-            iterate(nodep->ifacep());
-            m_traShowname = m_ifShowname;
-            m_ifShowname = "";
+            {
+                m_traVscp = NULL;
+                m_traValuep = NULL;
+                m_ifShowname = m_traShowname;
+                m_traShowname = "";
+                iterate(nodep->ifacep());
+                m_traShowname = m_ifShowname;
+                m_ifShowname = "";
+            }
             m_traVscp = traVscp;
             m_traValuep = traValuep;
         }
