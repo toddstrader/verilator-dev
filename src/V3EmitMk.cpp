@@ -131,6 +131,8 @@ public:
 
         if (v3Global.opt.exe()) {
             of.puts("default: "+v3Global.opt.exeName()+"\n");
+        } else if (!v3Global.opt.replayTool()) {
+            of.puts("default: "+v3Global.opt.prefix()+"-replay-tool\n");
         } else if (!v3Global.opt.protectLib().empty()) {
             of.puts("default: lib"+v3Global.opt.protectLib()+"\n");
         } else {
@@ -240,6 +242,12 @@ public:
 
             of.puts("lib"+v3Global.opt.protectLib()+": "+v3Global.opt.protectLibName(false)+
                     " "+v3Global.opt.protectLibName(true)+"\n");
+        }
+
+        if (v3Global.opt.replayTool()) {
+            of.puts("\n### Replay tool rules... (from --replay-tool)\n");
+            of.puts(v3Global.opt.prefix()+"-replay-tool: $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a\n");
+            of.puts("\t$(LINK) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@ $(LIBS) $(SC_LIBS)\n");
         }
 
         of.puts("\n");
