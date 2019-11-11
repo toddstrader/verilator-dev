@@ -2999,6 +2999,9 @@ class EmitCTrace : EmitCStmts {
             && nodep->bitRange().ranged()) {
             puts(","+cvtToStr(nodep->bitRange().left())+","+cvtToStr(nodep->bitRange().right()));
         }
+        if (nodep->isScoped()) {
+            puts(",scope");
+        }
         puts(");");
     }
 

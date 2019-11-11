@@ -118,10 +118,13 @@ void VerilatedFst::declDTypeEnum(int dtypenum, const char* name, vluint32_t elem
 
 void VerilatedFst::declSymbol(vluint32_t code, const char* name,
                               int dtypenum, fstVarDir vardir, fstVarType vartype,
-                              int arraynum, vluint32_t len) {
+                              int arraynum, vluint32_t len, const char* scopeName) {
     std::pair<Code2SymbolType::iterator, bool> p
         = m_code2symbol.insert(std::make_pair(code, static_cast<fstHandle>(NULL)));
-    std::istringstream nameiss(name);
+    std::string nameStr;
+    if (scopeName) nameStr = std::string(scopeName) + " ";
+    nameStr += std::string(name);
+    std::istringstream nameiss(nameStr);
     std::istream_iterator<std::string> beg(nameiss), end;
     std::list<std::string> tokens(beg, end);  // Split name
     std::string symbol_name(tokens.back());

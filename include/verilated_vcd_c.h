@@ -124,7 +124,8 @@ private:
     void printQuad(vluint64_t n);
     void printTime(vluint64_t timeui);
     void declare(vluint32_t code, const char* name, const char* wirep,
-                 int arraynum, bool tri, bool bussed, int msb, int lsb);
+                 int arraynum, bool tri, bool bussed, int msb, int lsb,
+                 const char* basenameCstr);
 
     void dumpHeader();
     void dumpPrep(vluint64_t timeui);
@@ -199,16 +200,26 @@ public:
     /// Inside dumping routines, declare a module
     void module(const std::string& name);
     /// Inside dumping routines, declare a signal
-    void declBit      (vluint32_t code, const char* name, int arraynum);
-    void declBus      (vluint32_t code, const char* name, int arraynum, int msb, int lsb);
-    void declQuad     (vluint32_t code, const char* name, int arraynum, int msb, int lsb);
-    void declArray    (vluint32_t code, const char* name, int arraynum, int msb, int lsb);
-    void declTriBit   (vluint32_t code, const char* name, int arraynum);
-    void declTriBus   (vluint32_t code, const char* name, int arraynum, int msb, int lsb);
-    void declTriQuad  (vluint32_t code, const char* name, int arraynum, int msb, int lsb);
-    void declTriArray (vluint32_t code, const char* name, int arraynum, int msb, int lsb);
-    void declDouble   (vluint32_t code, const char* name, int arraynum);
-    void declFloat    (vluint32_t code, const char* name, int arraynum);
+    void declBit      (vluint32_t code, const char* name, int arraynum,
+                       const char* scopename=NULL);
+    void declBus      (vluint32_t code, const char* name, int arraynum, int msb, int lsb,
+                       const char* scopename=NULL);
+    void declQuad     (vluint32_t code, const char* name, int arraynum, int msb, int lsb,
+                       const char* scopename=NULL);
+    void declArray    (vluint32_t code, const char* name, int arraynum, int msb, int lsb,
+                       const char* scopename=NULL);
+    void declTriBit   (vluint32_t code, const char* name, int arraynum,
+                       const char* scopename=NULL);
+    void declTriBus   (vluint32_t code, const char* name, int arraynum, int msb, int lsb,
+                       const char* scopename=NULL);
+    void declTriQuad  (vluint32_t code, const char* name, int arraynum, int msb, int lsb,
+                       const char* scopename=NULL);
+    void declTriArray (vluint32_t code, const char* name, int arraynum, int msb, int lsb,
+                       const char* scopename=NULL);
+    void declDouble   (vluint32_t code, const char* name, int arraynum,
+                       const char* scopename=NULL);
+    void declFloat    (vluint32_t code, const char* name, int arraynum,
+                       const char* scopename=NULL);
     //  ... other module_start for submodules (based on cell name)
 
     /// Inside dumping routines, dump one signal
