@@ -159,3 +159,8 @@ jobs:
       name: Trusty gcc vltmt test
       compiler: gcc
       script: ci/test.sh vltmt
+
+notifications:
+  email:
+    if: repo = verilator/verilator
+      - todd.strader@gmail.com
