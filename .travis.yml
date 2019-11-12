@@ -73,43 +73,50 @@ jobs:
     - if: type = cron
       stage: test
       name: Xenail gcc dist test
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: gcc
       script: ci/test.sh dist
     - if: type = cron
       stage: test
       name: Xenail gcc vlt test
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: gcc
       script: ci/test.sh vlt
     - if: type = cron
       stage: test
       name: Xenail gcc vltmt test
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: gcc
       script: ci/test.sh vltmt
     - if: type = cron
       stage: "Build Verilator"
       name: Build xenial clang Verilator
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: clang
       script: echo "Done building Verilator"
     - if: type = cron
       stage: test
       name: Xenail clang dist test
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: clang
       script: ci/test.sh dist
     - if: type = cron
       stage: test
       name: Xenail clang vlt test
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: clang
       script: ci/test.sh vlt
     - if: type = cron
       stage: test
       name: Xenail clang vltmt test
-      os: xenial
+      os: linux
+      dist: xenial
       compiler: clang
       script: ci/test.sh vltmt
 #    - if: type = cron
@@ -139,24 +146,28 @@ jobs:
     - if: type = cron
       stage: "Build Verilator"
       name: Build trusty gcc Verilator
-      os: trusty
+      os: linux
+      dist: trusty
       compiler: gcc
       script: echo "Done building Verilator"
     - if: type = cron
       stage: test
       name: Trusty gcc dist test
-      os: trusty
+      os: linux
+      dist: trusty
       compiler: gcc
       script: ci/test.sh dist
     - if: type = cron
       stage: test
       name: Trusty gcc vlt test
-      os: trusty
+      os: linux
+      dist: trusty
       compiler: gcc
       script: ci/test.sh vlt
     - if: type = cron
       stage: test
-      os: trusty
+      os: linux
+      dist: trusty
       name: Trusty gcc vltmt test
       compiler: gcc
       script: ci/test.sh vltmt
