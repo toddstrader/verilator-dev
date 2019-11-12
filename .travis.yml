@@ -4,6 +4,8 @@
 # redistribute it and/or modify it under the terms of either the GNU Lesser
 # General Public License Version 3 or the Perl Artistic License Version 2.0.
 
+version: ~> 1.0
+
 language: cpp
 
 cache: ccache
