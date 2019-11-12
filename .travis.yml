@@ -6,8 +6,8 @@
 
 version: ~> 1.0
 
+os: linux
 language: cpp
-
 cache: ccache
 
 env:
@@ -40,26 +40,22 @@ jobs:
     - if: type != cron
       stage: "Build Verilator"
       name: Build Verilator
-      os: linux
       compiler: gcc
       script: echo "Done building Verilator"
 # Non-cron build will just run on whatever linux flavor we get
     - if: type != cron
       stage: test
       name: Dist test
-      os: linux
       compiler: gcc
       script: ci/test.sh dist
     - if: type != cron
       stage: test
       name: Vlt test
-      os: linux
       compiler: gcc
       script: ci/test.sh vlt
     - if: type != cron
       stage: test
       name: Vltmt test
-      os: linux
       compiler: gcc
       script: ci/test.sh vltmt
 # Cron builds try different OS/compiler combinations
