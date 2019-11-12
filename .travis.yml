@@ -165,5 +165,4 @@ jobs:
 notifications:
   email:
     if: repo = verilator/verilator
-      recipients:
-        - todd.strader@gmail.com
+      recipients: todd.strader@gmail.com
