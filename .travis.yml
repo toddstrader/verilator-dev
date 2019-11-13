@@ -25,8 +25,9 @@ cache:
 before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-  - sudo apt-get install gdb gtkwave
+  - sudo apt-get install gdb gtkwave python3.5
 before_script:
+  - python3 --version
   - bash -x ci/build_verilator.sh
 after_script:
   - ccache -s
