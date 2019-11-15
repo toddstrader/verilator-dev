@@ -25,7 +25,7 @@ cache:
 before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-  - sudo add-apt-repository ppa:palmerdabbelt/personal
+  - sudo add-apt-repository -y ppa:palmerdabbelt/personal
   - sudo apt-get update
   - sudo apt-get install gdb gtkwave vcddiff
 before_script:
