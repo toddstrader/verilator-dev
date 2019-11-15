@@ -25,7 +25,9 @@ cache:
 before_install:
 # Perl modules needed for testing
   - yes yes | sudo cpan -fi Unix::Processors Parallel::Forker Bit::Vector
-  - sudo apt-get install gdb gtkwave
+  - sudo add-apt-repository ppa:palmerdabbelt/personal
+  - sudo apt-get update
+  - sudo apt-get install gdb gtkwave vcddiff
 before_script:
   - bash -x ci/build_verilator.sh
 after_script:
