@@ -122,8 +122,7 @@ private:
                                                bitRange, arrayRange, m_interface);
         UINFO(9,"Decl "<<declp<<endl);
 
-        // TODO -- can we remove the m_initSubStmts test since we're also checking that it's greater than?
-        if (!m_interface && m_initSubStmts && v3Global.opt.outputSplitCTrace()
+        if (!m_interface && v3Global.opt.outputSplitCTrace()
             && m_initSubStmts > v3Global.opt.outputSplitCTrace()) {
             m_initSubFuncp = newCFuncSub(m_initFuncp);
             m_initSubStmts = 0;
