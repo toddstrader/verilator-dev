@@ -163,7 +163,13 @@ private:
             {
                 m_interface = true;
                 m_initSubFuncp = newCFuncSub(origSubFunc);
+                string scopeName = nodep->prettyName();
+                size_t lastDot = scopeName.find_last_of('.');
+                scopeName = scopeName.substr(0, lastDot);
+
                 for (AstIntfRef* irp = cellp->intfRefp(); irp; irp = VN_CAST(irp->nextp(), IntfRef)) {
+                    string intfScopeName = irp->prettyName().substr(0, lastDot);
+                    if (scopeName != intfScopeName) continue;
                     callCFuncSub(origSubFunc, m_initSubFuncp, AstNode::vcdName(irp->name()));
                     ++origSubStmts;
                 }
