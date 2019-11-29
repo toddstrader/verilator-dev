@@ -38,6 +38,8 @@ module t (/*AUTOARG*/
    sub_check c2 (.intf_for_check(intf_2));
    sub_all a (.intf_one(intf_1),
               .intf_two(intf_2));
+   sub_all b (.intf_one(intf_2),
+              .intf_two(intf_1));
 
    always @ (posedge clk) begin
       cyc <= cyc + 1;
