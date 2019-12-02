@@ -170,7 +170,9 @@ private:
                 for (AstIntfRef* irp = cellp->intfRefp(); irp; irp = VN_CAST(irp->nextp(), IntfRef)) {
                     string intfScopeName = irp->prettyName().substr(0, lastDot);
                     if (scopeName != intfScopeName) continue;
-                    callCFuncSub(origSubFunc, m_initSubFuncp, AstNode::vcdName(irp->name()));
+                    callCFuncSub(origSubFunc, m_initSubFuncp,
+                                 VIdProtect::protectWordsIf(AstNode::vcdName(irp->name()),
+                                                            irp->protect()));
                     ++origSubStmts;
                 }
                 iterateChildren(nodep);
