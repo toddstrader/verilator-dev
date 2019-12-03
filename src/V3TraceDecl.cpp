@@ -102,8 +102,8 @@ private:
     AstCFunc* newCFuncSub(AstCFunc* basep) {
         string name = basep->name()+"__"+cvtToStr(++m_funcNum);
         AstCFunc* funcp = NULL;
-        if (basep->funcType()==AstCFuncType::TRACE_INIT ||
-            basep->funcType()==AstCFuncType::TRACE_INIT_SUB) {
+        if (basep->funcType()==AstCFuncType::TRACE_INIT
+            || basep->funcType()==AstCFuncType::TRACE_INIT_SUB) {
             funcp = newCFunc(AstCFuncType::TRACE_INIT_SUB, name, basep->slow());
         } else {
             basep->v3fatalSrc("Strange base function type");
@@ -168,7 +168,10 @@ private:
                 scopeName = scopeName.substr(0, lastDot);
 
                 for (AstIntfRef* irp = cellp->intfRefp(); irp; irp = VN_CAST(irp->nextp(), IntfRef)) {
-                    string intfScopeName = irp->prettyName().substr(0, lastDot);
+                    size_t scopeLen = scopeName.length();
+                    string irpName = irp->prettyName();
+                    if (scopeLen > irpName.length()) continue;
+                    string intfScopeName = irpName.substr(0, scopeLen);
                     if (scopeName != intfScopeName) continue;
                     callCFuncSub(origSubFunc, m_initSubFuncp,
                                  VIdProtect::protectWordsIf(AstNode::vcdName(irp->name()),

@@ -2927,8 +2927,8 @@ class EmitCTrace : EmitCStmts {
             puts("size_t nameLen = strlen(");
             putsQuoted(protectName);
             puts(");\n");
-            puts("nameLen += strlen(scope) + 1;\n");
-            puts("char name [nameLen];\n");
+            puts("nameLen += strlen(scope) + 2;\n");
+            puts("char* name = new char [nameLen];\n");
             puts("strcpy(name, scope);\n");
             puts("strcat(name, \" \");\n");
             puts("strcat(name, ");
@@ -3020,6 +3020,7 @@ class EmitCTrace : EmitCStmts {
         }
         puts(");");
         if (nodep->isScoped()) {
+            puts("\ndelete [] name;");
             puts("\n}");
         }
     }

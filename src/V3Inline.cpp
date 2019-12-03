@@ -699,6 +699,8 @@ private:
     }
 
     //--------------------
+    virtual void visit(AstNodeMath*) {}  // Accelerate
+    virtual void visit(AstNodeStmt*) {}  // Accelerate
     virtual void visit(AstNode* nodep) {
         iterateChildren(nodep);
     }
