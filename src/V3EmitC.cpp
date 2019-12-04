@@ -233,6 +233,10 @@ public:
             puts(");\n");
         }
     }
+    virtual void visit(AstIntfRef* nodep) {
+        putsQuoted(VIdProtect::protectWordsIf(AstNode::vcdName(nodep->name()),
+                                              nodep->protect()));
+    }
     virtual void visit(AstNodeCase* nodep) {
         // In V3Case...
         nodep->v3fatalSrc("Case statements should have been reduced out");

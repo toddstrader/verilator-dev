@@ -92,11 +92,11 @@ private:
         UINFO(5,"  Newfunc "<<funcp<<endl);
         return funcp;
     }
-    void callCFuncSub(AstCFunc* basep, AstCFunc* funcp, const string& scope) {
+    void callCFuncSub(AstCFunc* basep, AstCFunc* funcp, AstIntfRef* irp) {
         AstCCall* callp = new AstCCall(funcp->fileline(), funcp);
         string args("vlSymsp, vcdp, code");
-        if (!scope.empty()) args += ", \"" + scope + "\"";
         callp->argTypes(args);
+        if (irp) callp->addArgsp(irp->unlinkFrBack());
         basep->addStmtsp(callp);
     }
     AstCFunc* newCFuncSub(AstCFunc* basep) {
@@ -108,7 +108,7 @@ private:
         } else {
             basep->v3fatalSrc("Strange base function type");
         }
-        if (!m_interface) callCFuncSub(basep, funcp, "");
+        if (!m_interface) callCFuncSub(basep, funcp, NULL);
         return funcp;
     }
     void addTraceDecl(const VNumRange& arrayRange,
@@ -165,17 +165,21 @@ private:
                 m_initSubFuncp = newCFuncSub(origSubFunc);
                 string scopeName = nodep->prettyName();
                 size_t lastDot = scopeName.find_last_of('.');
-                scopeName = scopeName.substr(0, lastDot);
+                UASSERT_OBJ(lastDot != string::npos, nodep,
+                            "Expected an interface scope name to have at least one dot");
+                scopeName = scopeName.substr(0, lastDot+1);
+                size_t scopeLen = scopeName.length();
 
-                for (AstIntfRef* irp = cellp->intfRefp(); irp; irp = VN_CAST(irp->nextp(), IntfRef)) {
-                    size_t scopeLen = scopeName.length();
+                AstIntfRef* nextIrp = cellp->intfRefp();
+                while (nextIrp) {
+                    AstIntfRef* irp = nextIrp;
+                    nextIrp = VN_CAST(irp->nextp(), IntfRef);
+
                     string irpName = irp->prettyName();
                     if (scopeLen > irpName.length()) continue;
                     string intfScopeName = irpName.substr(0, scopeLen);
                     if (scopeName != intfScopeName) continue;
-                    callCFuncSub(origSubFunc, m_initSubFuncp,
-                                 VIdProtect::protectWordsIf(AstNode::vcdName(irp->name()),
-                                                            irp->protect()));
+                    callCFuncSub(origSubFunc, m_initSubFuncp, irp);
                     ++origSubStmts;
                 }
                 iterateChildren(nodep);
