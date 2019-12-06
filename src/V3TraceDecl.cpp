@@ -83,8 +83,9 @@ private:
     AstCFunc* newCFunc(AstCFuncType type, const string& name, bool slow) {
         AstCFunc* funcp = new AstCFunc(m_scopetopp->fileline(), name, m_scopetopp);
         funcp->slow(slow);
-        string argTypes(EmitCBaseVisitor::symClassVar()+", "+v3Global.opt.traceClassBase()+"* vcdp, uint32_t code");
-        if (m_interface) argTypes += ", const char* scope";
+        string argTypes(EmitCBaseVisitor::symClassVar()+", "+v3Global.opt.traceClassBase()
+                        +"* vcdp, uint32_t code");
+        if (m_interface) argTypes += ", const char* scopep";
         funcp->argTypes(argTypes);
         funcp->funcType(type);
         funcp->symProlog(true);
@@ -94,8 +95,7 @@ private:
     }
     void callCFuncSub(AstCFunc* basep, AstCFunc* funcp, AstIntfRef* irp) {
         AstCCall* callp = new AstCCall(funcp->fileline(), funcp);
-        string args("vlSymsp, vcdp, code");
-        callp->argTypes(args);
+        callp->argTypes("vlSymsp, vcdp, code");
         if (irp) callp->addArgsp(irp->unlinkFrBack());
         basep->addStmtsp(callp);
     }
@@ -155,9 +155,8 @@ private:
         iterateChildren(nodep);
     }
     virtual void visit(AstScope* nodep) {
-        AstCell* cellp;
-        if ((cellp = VN_CAST(nodep->aboveCellp(), Cell))
-            && VN_IS(cellp->modp(), Iface)) {
+        AstCell* cellp = VN_CAST(nodep->aboveCellp(), Cell);
+        if (cellp && VN_IS(cellp->modp(), Iface)) {
             AstCFunc* origSubFunc = m_initSubFuncp;
             int origSubStmts = m_initSubStmts;
             {
@@ -171,6 +170,8 @@ private:
                 size_t scopeLen = scopeName.length();
 
                 AstIntfRef* nextIrp = cellp->intfRefp();
+                // While instead of for loop because interface references will
+                // be unlinked as we go
                 while (nextIrp) {
                     AstIntfRef* irp = nextIrp;
                     nextIrp = VN_CAST(irp->nextp(), IntfRef);

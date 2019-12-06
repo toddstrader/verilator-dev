@@ -2940,7 +2940,7 @@ class EmitCTrace : EmitCStmts {
         if (nodep->arrayRange().ranged()) puts("+i*"+cvtToStr(nodep->widthWords()));
         puts(",");
         if (nodep->isScoped()) {
-            puts("Verilated::catName(scope,");
+            puts("Verilated::catName(scopep,");
         }
         putsQuoted(VIdProtect::protectWordsIf(nodep->showname(), nodep->protect()));
         if (nodep->isScoped()) {

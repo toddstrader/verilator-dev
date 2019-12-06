@@ -1836,7 +1836,7 @@ public:
 class AstIntfRef : public AstNode {
     // An interface reference
 private:
-    string m_name;      // Name of the reference
+    string m_name;  // Name of the reference
 public:
     AstIntfRef(FileLine* fl, const string& name)
         : AstNode(fl), m_name(name) { }

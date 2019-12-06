@@ -621,7 +621,9 @@ private:
     // NODE STATE
     //   AstVar::user1p()   // AstCell which this Var points to
 
-    string m_scope; // Scope name
+    AstUser2InUse m_inuser2;
+
+    string m_scope;  // Scope name
 
     // METHODS
     VL_DEBUG_FUNC;  // Declare debug()
@@ -656,8 +658,8 @@ private:
                 if (!irdtp) continue;
 
                 AstCell* cellp;
-                if ((cellp = VN_CAST(fromVarp->user1p(), Cell)) ||
-                    (cellp = irdtp->cellp())) {
+                if ((cellp = VN_CAST(fromVarp->user1p(), Cell))
+                    || (cellp = irdtp->cellp())) {
                     varp->user1p(cellp);
                     string alias = m_scope + "__DOT__" + pinp->name();
                     cellp->addIntfRefp(new AstIntfRef(pinp->fileline(), alias));
@@ -708,7 +710,6 @@ private:
 public:
     // CONSTRUCTORS
     explicit InlineIntfRefVisitor(AstNode* nodep) {
-        AstNode::user1ClearTree();
         iterate(nodep);
     }
     virtual ~InlineIntfRefVisitor() {
