@@ -2924,21 +2924,6 @@ class EmitCTrace : EmitCStmts {
     }
 
     void emitTraceInitOne(AstTraceDecl* nodep, int enumNum) {
-        string protectName =
-            VIdProtect::protectWordsIf(nodep->showname(), nodep->protect());
-        if (nodep->isScoped()) {
-            puts("{\n");
-            puts("size_t nameLen = strlen(");
-            putsQuoted(protectName);
-            puts(");\n");
-            puts("nameLen += strlen(scope) + 2;\n");
-            puts("char* name = new char [nameLen];\n");
-            puts("strcpy(name, scope);\n");
-            puts("strcat(name, \" \");\n");
-            puts("strcat(name, ");
-            putsQuoted(protectName);
-            puts(");\n");
-        }
         if (nodep->dtypep()->basicp()->isDouble()) {
             puts("vcdp->declDouble");
         } else if (nodep->isWide()) {
@@ -2955,9 +2940,11 @@ class EmitCTrace : EmitCStmts {
         if (nodep->arrayRange().ranged()) puts("+i*"+cvtToStr(nodep->widthWords()));
         puts(",");
         if (nodep->isScoped()) {
-            puts("name");
-        } else {
-            putsQuoted(protectName);
+            puts("Verilated::catName(scope,");
+        }
+        putsQuoted(VIdProtect::protectWordsIf(nodep->showname(), nodep->protect()));
+        if (nodep->isScoped()) {
+            puts(",\" \")");
         }
         // Direction
         if (v3Global.opt.traceFormat().fstFlavor()) {
@@ -3023,10 +3010,6 @@ class EmitCTrace : EmitCStmts {
             puts(","+cvtToStr(nodep->bitRange().left())+","+cvtToStr(nodep->bitRange().right()));
         }
         puts(");");
-        if (nodep->isScoped()) {
-            puts("\ndelete [] name;");
-            puts("\n}");
-        }
     }
 
     int emitTraceDeclDType(AstNodeDType* nodep) {
