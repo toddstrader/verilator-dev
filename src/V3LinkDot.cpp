@@ -2070,11 +2070,20 @@ private:
                         refp->varp(varp);
                         m_ds.m_dotText = "";
                         if (m_ds.m_unresolved && m_ds.m_unlinkedScope) {
-                            newp = new AstUnlinkedRef(nodep->fileline(), VN_CAST(refp, VarXRef),
-                                                      refp->name(),
-                                                      m_ds.m_unlinkedScope->unlinkFrBack());
-                            m_ds.m_unlinkedScope = NULL;
-                            m_ds.m_unresolved = false;
+                            // TODO -- check if coming from an interface
+                            if (varp->isParam()) {
+                                string dotted = refp->dotted();
+                                size_t pos = dotted.find("__BRA__??__KET__");
+                                refp->dotted(dotted.substr(0, pos));
+                                newp = refp;
+                            } else {
+                                newp = new AstUnlinkedRef(nodep->fileline(),
+                                                          VN_CAST(refp, VarXRef),
+                                                          refp->name(),
+                                                          m_ds.m_unlinkedScope->unlinkFrBack());
+                                m_ds.m_unlinkedScope = NULL;
+                                m_ds.m_unresolved = false;
+                           }
                         } else {
                             newp = refp;
                         }
